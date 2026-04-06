@@ -1,17 +1,17 @@
 #!/bin/bash
-# Generates .env files for local development from supabase status.
+# Generates .env files for local development from npx supabase status.
 # Run this after `supabase start`.
 
 set -e
 
 # Check supabase is running
-if ! supabase status > /dev/null 2>&1; then
+if ! npx supabase status > /dev/null 2>&1; then
   echo "Error: Supabase is not running. Run 'supabase start' first."
   exit 1
 fi
 
-# Parse supabase status into variables
-eval "$(supabase status -o env 2>/dev/null)"
+# Parse npx supabase status into variables
+eval "$(npx supabase status -o env 2>/dev/null)"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"

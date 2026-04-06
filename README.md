@@ -1,6 +1,6 @@
-# Intex 2
+# Beacon of Hope
 
-A web application for a nonprofit organization supporting survivors of abuse and trafficking. Built for BYU IS 401/413/414/455 INTEX.
+A web application for **Beacon of Hope**, a nonprofit organization supporting survivors of abuse and trafficking. Built for BYU IS 401/413/414/455 INTEX.
 
 ## Tech Stack
 
@@ -16,14 +16,13 @@ A web application for a nonprofit organization supporting survivors of abuse and
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - [Node.js 20+](https://nodejs.org/)
-- [Supabase CLI](https://supabase.com/docs/guides/cli)
-- [Docker](https://www.docker.com/) (required by Supabase CLI)
+- [Docker](https://www.docker.com/) (required by Supabase)
 
 ### First-time setup
 
 ```bash
-supabase start          # Start local Supabase (requires Docker)
-./scripts/setup-env.sh  # Generate .env files from your local Supabase
+npx supabase start          # Start local Supabase (requires Docker)
+./scripts/setup-env.sh      # Generate .env files from your local Supabase
 ```
 
 ### Backend
