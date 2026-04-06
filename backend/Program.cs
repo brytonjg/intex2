@@ -20,6 +20,23 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+var logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
+logger.LogInformation("Environment: {env}", app.Environment.EnvironmentName);
+logger.LogInformation("Connection string present: {present}", !string.IsNullOrEmpty(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Test DB connection on startup
+try
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.CanConnectAsync();
+    logger.LogInformation("Database connection: OK");
+}
+catch (Exception ex)
+{
+    logger.LogError(ex, "Database connection: FAILED");
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -28,7 +45,17 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
 
-app.MapGet("/api/health", () => new { status = "ok" });
+app.MapGet("/api/health", async (AppDbContext db) =>
+{
+    var canConnect = false;
+    try { canConnect = await db.Database.CanConnectAsync(); } catch { }
+    return new
+    {
+        status = canConnect ? "ok" : "degraded",
+        database = canConnect ? "connected" : "unreachable",
+        environment = app.Environment.EnvironmentName
+    };
+});
 
 // ── Public endpoints (Impact page, Home page) ──────────────
 
