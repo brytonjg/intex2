@@ -1,46 +1,45 @@
 .page {
-  padding: 2rem 2.5rem;
-  max-width: 1120px;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+  padding: 1.35rem 1.35rem 1.7rem;
+  max-width: 1220px;
 }
 
-/* ── Header ───────────────────────────────────────────── */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1.75rem;
+  gap: 1rem;
+  margin-bottom: 1.15rem;
 }
 
 .headerRow {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.55rem;
   margin-bottom: 0.2rem;
 }
 
 .title {
   font-family: var(--font-display);
-  font-size: 2rem;
-  font-weight: 500;
-  color: var(--color-deep-navy);
-  letter-spacing: -0.03em;
+  font-size: 2.15rem;
+  line-height: 1;
+  color: var(--text-strong);
 }
 
 .roleBadge {
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
+  font-size: 0.68rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-weight: 700;
   color: var(--color-sage);
-  background: rgba(122, 158, 126, 0.1);
-  border: 1px solid rgba(122, 158, 126, 0.25);
-  padding: 0.18rem 0.55rem;
-  border-radius: 20px;
+  background: rgba(15, 143, 125, 0.12);
+  border: 1px solid rgba(15, 143, 125, 0.24);
+  border-radius: 999px;
+  padding: 0.2rem 0.5rem;
 }
 
 .dateText {
-  font-size: 0.82rem;
-  color: var(--color-warm-gray);
+  font-size: 0.83rem;
+  color: var(--text-muted);
 }
 
 .quickActions {
@@ -49,118 +48,110 @@
 }
 
 .actionBtn {
+  min-height: 39px;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+  border-radius: 999px;
+  padding: 0.45rem 0.82rem;
   font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--color-deep-navy);
-  background: #fff;
-  border: 1px solid var(--color-sand);
-  padding: 0.45rem 0.85rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-family: var(--font-body);
-  transition: all 0.2s;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(120deg, var(--color-sage), #139f8c);
+  transition: transform 0.22s, filter 0.22s;
 }
 
 .actionBtn:hover {
-  border-color: var(--color-amber);
-  background: rgba(212, 168, 83, 0.05);
+  transform: translateY(-1px);
+  filter: brightness(1.02);
 }
 
-/* ── Metric Cards ─────────────────────────────────────── */
 .metrics {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.85rem;
-  margin-bottom: 1.75rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.95rem;
 }
 
 .metricCard {
   background: #fff;
-  border: 1px solid var(--color-sand);
-  border-radius: 12px;
-  padding: 1.15rem 1.25rem;
-  transition: transform 0.25s, box-shadow 0.25s;
-}
-
-.metricCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(15, 27, 45, 0.09);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+  padding: 1rem 0.95rem;
 }
 
 .metricLabel {
-  font-size: 0.73rem;
-  font-weight: 600;
-  color: var(--color-warm-gray);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   display: block;
-  margin-bottom: 0.5rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 0.45rem;
 }
 
 .metricRow {
   display: flex;
   align-items: baseline;
-  gap: 0.5rem;
-  margin-bottom: 0.2rem;
+  gap: 0.42rem;
 }
 
 .metricNumber {
   font-family: var(--font-display);
   font-size: 2.1rem;
-  font-weight: 600;
-  color: var(--color-deep-navy);
   line-height: 1;
-  letter-spacing: -0.03em;
+  color: var(--text-strong);
 }
 
-.metricUp {
+.metricUp,
+.metricDanger,
+.metricDate {
   display: inline-flex;
   align-items: center;
   gap: 0.1rem;
-  font-size: 0.73rem;
+  font-size: 0.72rem;
   font-weight: 700;
+}
+
+.metricUp {
   color: var(--color-sage);
 }
 
 .metricDanger {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.15rem;
-  font-size: 0.73rem;
-  font-weight: 700;
   color: var(--color-rose);
 }
 
 .metricDate {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.15rem;
-  font-size: 0.73rem;
-  font-weight: 500;
-  color: var(--color-warm-gray);
+  color: var(--text-muted);
 }
 
 .metricSub {
-  font-size: 0.73rem;
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.75rem;
   color: var(--color-light-gray);
 }
 
-/* ── Main Grid (Table + Right col) ────────────────────── */
 .mainGrid {
   display: grid;
-  grid-template-columns: 1fr 340px;
-  gap: 0.85rem;
-  margin-bottom: 1.75rem;
+  grid-template-columns: minmax(0, 1fr) 315px;
+  gap: 0.75rem;
+  margin-bottom: 0.95rem;
 }
 
-/* ── Table Card ───────────────────────────────────────── */
-.tableCard {
+.tableCard,
+.donationsCard,
+.channelCard,
+.chartCard {
   background: #fff;
-  border: 1px solid var(--color-sand);
-  border-radius: 12px;
+  border: 1px solid rgba(15, 27, 45, 0.09);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.tableCard,
+.donationsCard {
   overflow: hidden;
 }
 
@@ -168,44 +159,44 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid #F4F1EB;
+  gap: 0.75rem;
+  padding: 0.85rem 0.95rem;
+  border-bottom: 1px solid rgba(15, 27, 45, 0.08);
 }
 
 .cardTitle {
   font-family: var(--font-display);
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--color-deep-navy);
+  font-size: 1.15rem;
+  color: var(--text-strong);
 }
 
 .cardSubtitle {
   font-size: 0.73rem;
-  color: var(--color-warm-gray);
+  color: var(--text-muted);
 }
 
 .legendRow {
   display: flex;
-  gap: 0.6rem;
+  gap: 0.4rem;
+  flex-wrap: wrap;
 }
 
 .legendItem {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--color-slate);
-  background: #FAFAF7;
-  border: 1px solid var(--color-sand);
-  border-radius: 5px;
-  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 27, 45, 0.11);
+  padding: 0.12rem 0.46rem;
+  font-size: 0.69rem;
+  color: var(--text-muted);
+  background: var(--surface-2);
 }
 
 .legendDot {
   width: 6px;
   height: 6px;
-  border-radius: 50%;
+  border-radius: 999px;
 }
 
 .tableWrapper {
@@ -215,52 +206,47 @@
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.82rem;
+  min-width: 580px;
 }
 
 .table th {
   text-align: left;
-  padding: 0.6rem 1rem;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--color-warm-gray);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 0.69rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  background: #FAFAF7;
-  border-bottom: 1px solid var(--color-sand);
+  padding: 0.6rem 0.95rem;
+  border-bottom: 1px solid rgba(15, 27, 45, 0.09);
 }
 
 .table td {
-  padding: 0.55rem 1rem;
-  color: var(--color-slate);
-  border-bottom: 1px solid #F7F5F0;
+  padding: 0.62rem 0.95rem;
+  border-bottom: 1px solid rgba(15, 27, 45, 0.06);
+  font-size: 0.81rem;
+  color: var(--text-muted);
 }
 
 .table tbody tr:last-child td {
   border-bottom: none;
 }
 
-.table tbody tr {
-  transition: background 0.15s;
-}
-
 .table tbody tr:hover {
-  background: #FDFCF9;
+  background: #f8fbff;
 }
 
 .rowCritical {
-  background: rgba(196, 117, 110, 0.03);
+  background: rgba(203, 87, 104, 0.05);
 }
 
 .rowCritical:hover {
-  background: rgba(196, 117, 110, 0.06) !important;
+  background: rgba(203, 87, 104, 0.08) !important;
 }
 
 .residentCode {
-  font-weight: 700;
-  color: var(--color-deep-navy);
   display: block;
-  font-size: 0.82rem;
+  color: var(--text-strong);
+  font-weight: 700;
 }
 
 .residentWorker {
@@ -270,172 +256,147 @@
 
 .cellOverdue {
   color: var(--color-rose);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .severityBadge {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 0.15rem 0.5rem;
-  border-radius: 20px;
+  gap: 0.22rem;
   border: 1px solid;
+  border-radius: 999px;
+  padding: 0.14rem 0.44rem;
+  font-size: 0.68rem;
+  font-weight: 700;
   white-space: nowrap;
 }
 
 .severityDot {
   width: 5px;
   height: 5px;
-  border-radius: 50%;
+  border-radius: 999px;
 }
 
-/* ── Right Column ─────────────────────────────────────── */
 .rightCol {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
-}
-
-.donationsCard {
-  background: #fff;
-  border: 1px solid var(--color-sand);
-  border-radius: 12px;
-  overflow: hidden;
-  flex: 1;
+  gap: 0.75rem;
 }
 
 .viewAllBtn {
-  font-size: 0.73rem;
-  font-weight: 600;
-  color: var(--color-amber-dark);
-  cursor: pointer;
-  border: none;
-  background: none;
-  font-family: var(--font-body);
-  transition: color 0.2s;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--color-sage);
 }
 
 .viewAllBtn:hover {
-  color: var(--color-amber);
+  text-decoration: underline;
 }
 
 .donationsList {
-  padding: 0.25rem 0;
+  padding: 0.2rem 0;
 }
 
 .donationRow {
+  padding: 0.6rem 0.95rem;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 0.55rem 1.25rem;
-  transition: background 0.15s;
+  gap: 0.5rem;
 }
 
 .donationRow:hover {
-  background: #FDFCF9;
+  background: #f8fbff;
 }
 
-.donationInfo {
+.donationInfo,
+.donationRight {
   display: flex;
   flex-direction: column;
 }
 
 .donationName {
   font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--color-deep-navy);
+  font-weight: 700;
+  color: var(--text-strong);
 }
 
-.donationType {
-  font-size: 0.7rem;
+.donationType,
+.donationDate {
+  font-size: 0.71rem;
   color: var(--color-light-gray);
-}
-
-.donationRight {
-  text-align: right;
-  display: flex;
-  flex-direction: column;
 }
 
 .donationAmount {
   font-family: var(--font-display);
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--color-deep-navy);
+  font-size: 0.98rem;
+  color: var(--text-strong);
 }
 
-.donationDate {
-  font-size: 0.7rem;
-  color: var(--color-light-gray);
+.donationRight {
+  text-align: right;
 }
 
 .channelCard {
-  background: #fff;
-  border: 1px solid var(--color-sand);
-  border-radius: 12px;
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.45rem;
 }
 
-/* ── Charts Row ───────────────────────────────────────── */
 .chartsRow {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.85rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
 }
 
 .chartCard {
-  background: #fff;
-  border: 1px solid var(--color-sand);
-  border-radius: 12px;
-  padding: 1.25rem;
+  padding: 0.9rem;
 }
 
 .chartMeta {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 1rem;
+  gap: 0.75rem;
+  margin-bottom: 0.7rem;
+}
+
+.chartCallout,
+.chartCalloutDanger {
+  font-size: 0.73rem;
+  font-weight: 700;
 }
 
 .chartCallout {
-  font-size: 0.73rem;
-  font-weight: 600;
   color: var(--color-sage);
 }
 
 .chartCalloutDanger {
-  font-size: 0.73rem;
-  font-weight: 600;
   color: var(--color-rose);
 }
 
-/* ── Tooltip ──────────────────────────────────────────── */
 .tooltip {
-  background: var(--color-deep-navy);
-  padding: 0.45rem 0.7rem;
+  background: rgba(15, 27, 45, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.19);
   border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  padding: 0.4rem 0.62rem;
 }
 
 .tooltipLabel {
-  font-size: 0.68rem;
-  color: rgba(255, 255, 255, 0.45);
-  margin-bottom: 0.1rem;
+  font-size: 0.67rem;
+  color: rgba(255, 255, 255, 0.65);
 }
 
 .tooltipValue {
   font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 0.96rem;
   color: #fff;
 }
 
-/* ── Responsive ───────────────────────────────────────── */
-@media (max-width: 1024px) {
+@media (max-width: 1080px) {
+  .quickActions {
+    display: none;
+  }
+
   .metrics {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .mainGrid {
@@ -445,31 +406,18 @@
   .chartsRow {
     grid-template-columns: 1fr;
   }
-
-  .quickActions {
-    display: none;
-  }
 }
 
 @media (max-width: 768px) {
   .page {
-    padding: 1.25rem;
+    padding: 1rem;
   }
 
   .metrics {
-    grid-template-columns: 1fr 1fr;
-    gap: 0.65rem;
-  }
-
-  .metricNumber {
-    font-size: 1.7rem;
+    grid-template-columns: 1fr;
   }
 
   .legendRow {
     display: none;
-  }
-
-  .table {
-    min-width: 580px;
   }
 }

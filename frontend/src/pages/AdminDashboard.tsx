@@ -47,7 +47,7 @@ const donationsByChannel = [
   { channel: 'Direct', amount: 17900 },
 ];
 
-const channelColors = ['#D4A853', '#B8913A', '#7A9E7E', '#5A6B7A', '#C4756E'];
+const channelColors = ['#0F8F7D', '#FF9F43', '#66C8BA', '#637A96', '#CB5768'];
 
 type Severity = 'Low' | 'Medium' | 'High' | 'Critical';
 
@@ -89,10 +89,10 @@ const recentDonations: RecentDonation[] = [
 ];
 
 const severityConfig: Record<Severity, { color: string; bg: string; border: string }> = {
-  Low: { color: '#4A7A4E', bg: '#7A9E7E18', border: '#7A9E7E40' },
-  Medium: { color: '#A68B3A', bg: '#D4A85318', border: '#D4A85340' },
-  High: { color: '#B5713A', bg: '#D48C5318', border: '#D48C5340' },
-  Critical: { color: '#A5524D', bg: '#C4756E18', border: '#C4756E40' },
+  Low: { color: '#247D6C', bg: '#0F8F7D18', border: '#0F8F7D40' },
+  Medium: { color: '#BA6E1B', bg: '#FF9F4318', border: '#FF9F4340' },
+  High: { color: '#A35A15', bg: '#D46F1518', border: '#D46F1540' },
+  Critical: { color: '#A33C4B', bg: '#CB576818', border: '#CB576840' },
 };
 
 /* ── Tooltips ──────────────────────────────────────────── */
