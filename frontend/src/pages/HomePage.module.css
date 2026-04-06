@@ -1,135 +1,136 @@
+/* ── Hero ────────────────────────────────────────────────── */
 .hero {
   position: relative;
-  min-height: min(94vh, 860px);
+  min-height: min(96vh, 900px);
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 8rem 1.25rem 5rem;
+  padding: 8rem 1.5rem 6rem;
   overflow: hidden;
   background:
-    radial-gradient(circle at 12% 18%, rgba(15, 143, 125, 0.2), transparent 38%),
-    radial-gradient(circle at 90% 72%, rgba(255, 159, 67, 0.22), transparent 42%),
-    linear-gradient(180deg, #f8fbff 0%, #f8f7f3 70%);
+    radial-gradient(ellipse 70% 55% at 20% 20%, rgba(224, 122, 95, 0.15), transparent),
+    radial-gradient(ellipse 50% 50% at 80% 75%, rgba(139, 126, 200, 0.13), transparent),
+    radial-gradient(ellipse 40% 40% at 60% 10%, rgba(212, 162, 76, 0.1), transparent),
+    linear-gradient(175deg, var(--rose-tint) 0%, var(--ivory) 50%, #f5f0ff 100%);
 }
 
 .heroOverlay {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(115deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.45)),
-    repeating-linear-gradient(
-      90deg,
-      transparent 0,
-      transparent 48px,
-      rgba(15, 27, 45, 0.025) 48px,
-      rgba(15, 27, 45, 0.025) 49px
-    );
+    radial-gradient(circle 600px at 15% 80%, rgba(139, 126, 200, 0.08), transparent),
+    radial-gradient(circle 400px at 85% 15%, rgba(224, 122, 95, 0.06), transparent);
   pointer-events: none;
 }
 
 .heroContent {
   position: relative;
-  max-width: 800px;
+  max-width: 780px;
   z-index: 1;
-  animation: fadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: fadeUp 1s var(--ease-out) both;
 }
 
 .heroLabel {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.8rem;
+  display: inline-block;
+  font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--color-sage);
-  margin-bottom: 1.15rem;
+  color: var(--coral);
+  background: rgba(224, 122, 95, 0.1);
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  margin-bottom: 1.5rem;
 }
 
 .heroHeadline {
   font-family: var(--font-display);
-  font-size: clamp(3rem, 6vw, 5rem);
+  font-size: clamp(3.2rem, 7vw, 5.5rem);
   font-weight: 600;
-  line-height: 1.02;
+  line-height: 1.0;
   letter-spacing: -0.03em;
-  color: var(--text-strong);
-  margin-bottom: 1.25rem;
+  color: var(--charcoal);
+  margin-bottom: 1.4rem;
 }
 
 .heroHeadline em {
-  color: var(--color-amber-dark);
+  color: var(--coral);
   font-style: italic;
 }
 
 .heroSub {
-  margin: 0 auto 2.2rem;
-  max-width: 620px;
-  font-size: 1.07rem;
-  line-height: 1.75;
-  color: var(--text-muted);
+  margin: 0 auto 2.5rem;
+  max-width: 560px;
+  font-size: 1.08rem;
+  line-height: 1.8;
+  color: var(--slate);
 }
 
 .heroCtas {
   display: flex;
   justify-content: center;
-  gap: 0.9rem;
+  gap: 0.85rem;
   flex-wrap: wrap;
 }
 
+/* ── Buttons ────────────────────────────────────────────── */
 .btnPrimary,
 .btnSecondary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  min-height: 46px;
-  padding: 0.8rem 1.35rem;
+  min-height: 48px;
+  padding: 0.85rem 1.6rem;
   border-radius: 999px;
   text-decoration: none;
   font-size: 0.93rem;
   font-weight: 700;
-  transition: transform 0.24s, box-shadow 0.24s, filter 0.24s;
+  transition: transform 0.25s, box-shadow 0.25s;
 }
 
 .btnPrimary {
   color: #fff;
-  background: linear-gradient(120deg, var(--color-sage), #14a996);
-  box-shadow: 0 10px 24px rgba(15, 143, 125, 0.24);
+  background: linear-gradient(135deg, var(--coral), var(--coral-light));
+  box-shadow: 0 8px 24px rgba(224, 122, 95, 0.3);
 }
 
 .btnPrimary:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.03);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(224, 122, 95, 0.38);
 }
 
 .btnSecondary {
-  color: var(--text-strong);
-  background: #fff;
-  border: 1px solid rgba(15, 27, 45, 0.12);
+  color: var(--charcoal);
+  background: var(--warm-white);
+  border: 1.5px solid rgba(43, 45, 66, 0.12);
+  box-shadow: var(--shadow-soft);
 }
 
 .btnSecondary:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lifted);
+  border-color: rgba(139, 126, 200, 0.3);
 }
 
 .scrollHint {
   position: absolute;
   left: 50%;
-  bottom: 1.5rem;
+  bottom: 2rem;
   transform: translateX(-50%);
-  color: var(--text-muted);
-  opacity: 0.75;
-  animation: bounce 2.2s ease-in-out infinite;
+  color: var(--muted);
+  opacity: 0.6;
+  animation: bounce 2.5s ease-in-out infinite;
 }
 
+/* ── Shared section spacing ─────────────────────────────── */
 .impact,
 .mission,
 .involved,
 .donateCta,
 .testimonial {
-  padding: 5.5rem 1.25rem;
+  padding: 6rem 1.5rem;
 }
 
 .impactInner,
@@ -141,29 +142,29 @@
   margin: 0 auto;
 }
 
+/* ── Impact Stats ───────────────────────────────────────── */
 .impact {
-  background: var(--surface-2);
-  border-top: 1px solid rgba(15, 27, 45, 0.09);
-  border-bottom: 1px solid rgba(15, 27, 45, 0.09);
+  background: var(--warm-white);
+  border-top: 1px solid rgba(43, 45, 66, 0.06);
 }
 
 .impactLabel {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  font-size: 0.78rem;
+  gap: 0.5rem;
+  font-size: 0.76rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 1.7rem;
+  color: var(--muted);
+  margin-bottom: 2rem;
 }
 
 .impactDot {
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background: var(--color-sage);
+  background: var(--coral);
 }
 
 .impactGrid,
@@ -171,142 +172,165 @@
 .involvedGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 1.1rem;
 }
 
+/* ── Shared card base ───────────────────────────────────── */
 .statCard,
 .processCard,
 .involvedCard,
 .donateCard {
-  background: var(--surface-1);
-  border: 1px solid rgba(15, 27, 45, 0.09);
+  background: var(--warm-white);
+  border: 1px solid rgba(43, 45, 66, 0.07);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out), border-color 0.3s;
 }
 
+.statCard:hover,
+.processCard:hover,
+.involvedCard:hover,
+.donateCard:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lifted);
+}
+
+/* ── Stat cards ─────────────────────────────────────────── */
 .statCard {
-  padding: 1.55rem 1.2rem;
+  padding: 1.75rem 1.4rem;
+  border-left: 3px solid var(--coral-light);
 }
 
 .statNumber {
   display: block;
   font-family: var(--font-display);
-  font-size: clamp(2.1rem, 4vw, 3rem);
-  font-weight: 600;
-  color: var(--text-strong);
+  font-size: clamp(2.4rem, 5vw, 3.2rem);
+  font-weight: 700;
+  color: var(--charcoal);
   line-height: 1;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.45rem;
 }
 
 .statDesc {
   font-size: 0.88rem;
-  color: var(--text-muted);
+  color: var(--slate);
+  line-height: 1.4;
 }
 
+/* ── Mission / Process ──────────────────────────────────── */
 .mission {
-  background: transparent;
+  background: var(--ivory);
 }
 
 .sectionTitle {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: clamp(2.2rem, 4.5vw, 3.2rem);
   font-weight: 600;
-  color: var(--text-strong);
+  color: var(--charcoal);
   letter-spacing: -0.02em;
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.75rem;
 }
 
 .missionText {
-  max-width: 720px;
-  font-size: 1rem;
-  line-height: 1.75;
-  color: var(--text-muted);
-  margin-bottom: 2rem;
+  max-width: 680px;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: var(--slate);
+  margin-bottom: 2.5rem;
 }
 
 .processCard {
-  padding: 1.45rem 1.1rem;
-  transition: transform 0.25s, border-color 0.25s;
+  padding: 1.75rem 1.35rem;
+  position: relative;
 }
 
 .processCard:hover {
-  transform: translateY(-2px);
-  border-color: rgba(15, 143, 125, 0.35);
+  border-color: rgba(139, 126, 200, 0.35);
 }
 
 .processIcon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
   display: grid;
   place-items: center;
-  background: rgba(15, 143, 125, 0.11);
-  color: var(--color-sage);
-  margin-bottom: 0.85rem;
+  background: var(--lavender-soft);
+  color: var(--lavender);
+  margin-bottom: 1rem;
 }
 
 .processStep {
-  font-size: 0.76rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: var(--color-light-gray);
-  margin-bottom: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--fog);
+  margin-bottom: 0.45rem;
 }
 
 .processTitle {
   font-family: var(--font-display);
-  font-size: 1.25rem;
-  color: var(--text-strong);
-  margin-bottom: 0.45rem;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--charcoal);
+  margin-bottom: 0.5rem;
 }
 
 .processDesc {
-  font-size: 0.88rem;
-  line-height: 1.6;
-  color: var(--text-muted);
+  font-size: 0.89rem;
+  line-height: 1.65;
+  color: var(--slate);
 }
 
+/* ── Testimonial ────────────────────────────────────────── */
 .testimonial {
   background:
-    radial-gradient(circle at 90% 10%, rgba(255, 194, 116, 0.2), transparent 35%),
-    linear-gradient(130deg, #10223a, #203956);
+    radial-gradient(ellipse 60% 80% at 80% 20%, rgba(224, 122, 95, 0.12), transparent),
+    radial-gradient(ellipse 50% 60% at 20% 80%, rgba(139, 126, 200, 0.1), transparent),
+    linear-gradient(140deg, var(--charcoal), var(--charcoal-soft));
   text-align: center;
 }
 
 .quote p {
   font-family: var(--font-display);
-  font-size: clamp(1.7rem, 3.3vw, 2.6rem);
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
   line-height: 1.35;
   font-style: italic;
   color: rgba(255, 255, 255, 0.95);
+  max-width: 680px;
+  margin: 0 auto;
 }
 
 .quoteAttr {
-  margin-top: 1.7rem;
+  margin-top: 2rem;
   display: inline-flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 0.85rem;
 }
 
 .quoteAvatar {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: linear-gradient(135deg, rgba(224, 122, 95, 0.3), rgba(139, 126, 200, 0.3));
+  border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .quoteName {
   text-align: left;
-  font-size: 0.93rem;
+  font-size: 0.95rem;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .quoteDetail {
   text-align: left;
   font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.66);
+  color: rgba(255, 255, 255, 0.58);
+}
+
+/* ── Get Involved ───────────────────────────────────────── */
+.involved {
+  background: var(--warm-white);
 }
 
 .involvedInner {
@@ -314,11 +338,11 @@
 }
 
 .involvedSub {
-  max-width: 620px;
-  margin: 0 auto 2rem;
-  font-size: 1rem;
-  color: var(--text-muted);
-  line-height: 1.7;
+  max-width: 580px;
+  margin: 0 auto 2.5rem;
+  font-size: 1.05rem;
+  color: var(--slate);
+  line-height: 1.75;
 }
 
 .involvedGrid {
@@ -326,94 +350,92 @@
 }
 
 .involvedCard {
-  padding: 1.45rem 1.2rem;
-  transition: transform 0.25s, border-color 0.25s;
+  padding: 1.75rem 1.35rem;
 }
 
 .involvedCard:hover {
-  transform: translateY(-2px);
-  border-color: rgba(255, 159, 67, 0.4);
+  border-color: rgba(224, 122, 95, 0.35);
 }
 
 .involvedIcon {
-  color: var(--color-amber-dark);
-  margin-bottom: 0.75rem;
+  color: var(--coral);
+  margin-bottom: 0.9rem;
 }
 
 .involvedCard h3 {
   font-family: var(--font-display);
-  font-size: 1.3rem;
-  margin-bottom: 0.35rem;
-  color: var(--text-strong);
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  color: var(--charcoal);
 }
 
 .involvedCard p {
-  font-size: 0.89rem;
-  line-height: 1.62;
-  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--slate);
 }
 
+/* ── Donate CTA ─────────────────────────────────────────── */
 .donateCta {
   text-align: center;
-  background: var(--surface-2);
-  border-top: 1px solid rgba(15, 27, 45, 0.09);
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 0%, rgba(139, 126, 200, 0.08), transparent),
+    var(--ivory);
+  border-top: 1px solid rgba(43, 45, 66, 0.06);
 }
 
 .donateTitle {
   font-family: var(--font-display);
-  font-size: clamp(1.9rem, 3.8vw, 2.7rem);
-  color: var(--text-strong);
-  margin-bottom: 1.8rem;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-weight: 600;
+  color: var(--charcoal);
+  margin-bottom: 2rem;
 }
 
 .donateAmounts {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 1.1rem;
+  max-width: 760px;
+  margin: 0 auto;
 }
 
 .donateCard {
-  padding: 1.5rem 1rem;
-  min-height: 148px;
+  padding: 2rem 1.25rem;
   display: grid;
   align-content: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
+  text-align: center;
+  border-top: 3px solid var(--honey-light);
 }
 
 .donateAmount {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 4vw, 2.4rem);
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  font-weight: 700;
   line-height: 1;
-  color: var(--color-amber-dark);
+  color: var(--honey);
 }
 
 .donateDesc {
-  color: var(--text-muted);
+  color: var(--slate);
   font-size: 0.88rem;
   line-height: 1.5;
 }
 
+/* ── Animations ─────────────────────────────────────────── */
 @keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes bounce {
-  0%,
-  100% {
-    transform: translateX(-50%) translateY(0);
-  }
-  50% {
-    transform: translateX(-50%) translateY(6px);
-  }
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%      { transform: translateX(-50%) translateY(7px); }
 }
 
+/* ── Responsive ─────────────────────────────────────────── */
 @media (max-width: 1024px) {
   .impactGrid,
   .processGrid,
@@ -425,8 +447,8 @@
 
 @media (max-width: 768px) {
   .hero {
-    min-height: 86vh;
-    padding: 7rem 1rem 4rem;
+    min-height: 88vh;
+    padding: 7rem 1.15rem 4.5rem;
   }
 
   .heroSub {
@@ -438,7 +460,7 @@
   .involved,
   .donateCta,
   .testimonial {
-    padding: 4rem 1rem;
+    padding: 4rem 1.15rem;
   }
 
   .impactGrid,

@@ -68,13 +68,13 @@ export default function HomePage() {
         <div className={styles.heroContent}>
           <p className={styles.heroLabel}>Beacon of Hope Foundation</p>
           <h1 className={styles.heroHeadline}>
-            Restoring hope,<br />
-            <em>one child at a time</em>
+            Every girl deserves<br />
+            <em>to feel safe</em>
           </h1>
           <p className={styles.heroSub}>
-            We operate safe homes in the Philippines for girls who are survivors
-            of sexual abuse and trafficking — providing shelter, healing, education,
-            and a path to a new life.
+            We provide safe homes in Guam for girls who are survivors
+            of sexual abuse and trafficking — offering shelter, healing, education,
+            and a path toward a brighter future.
           </p>
           <div className={styles.heroCtas}>
             <a href="#involved" className={styles.btnPrimary}>
@@ -131,12 +131,12 @@ export default function HomePage() {
       {/* ── Mission / How it Works ──────────────────────── */}
       <section id="mission" className={styles.mission} ref={missionRef}>
         <div className={`${styles.missionInner} reveal`}>
-          <h2 className={styles.sectionTitle}>Our Mission</h2>
+          <h2 className={styles.sectionTitle}>How We Help</h2>
           <p className={styles.missionText}>
-            Beacon of Hope contracts with in-country individuals and organizations across
-            the Philippines to provide safehouses and comprehensive rehabilitation services.
-            Every girl who enters our care receives a personalized path toward healing
-            and independence.
+            Beacon of Hope partners with local organizations across Guam to
+            provide safehouses and comprehensive rehabilitation services.
+            Every girl who enters our care receives a personalized path toward healing,
+            independence, and a future she can be proud of.
           </p>
 
           <div className={`${styles.processGrid} reveal-stagger`}>
@@ -158,8 +158,8 @@ export default function HomePage() {
               <div className={styles.processStep}>02</div>
               <h3 className={styles.processTitle}>Safe Housing</h3>
               <p className={styles.processDesc}>
-                Placed in one of our safehouses across Luzon, Visayas, and Mindanao
-                with around-the-clock care.
+                Placed in one of our safehouses across Guam
+                with around-the-clock care and support.
               </p>
             </div>
             <div className={`${styles.processCard} reveal`}>
@@ -247,7 +247,7 @@ export default function HomePage() {
       {/* ── Donation CTA ────────────────────────────────── */}
       <section className={styles.donateCta} ref={donateRef}>
         <div className={`${styles.donateInner} reveal`}>
-          <h2 className={styles.donateTitle}>Your donation changes a life</h2>
+          <h2 className={styles.donateTitle}>See what your generosity makes possible</h2>
           <div className={styles.donateAmounts}>
             <div className={styles.donateCard}>
               <span className={styles.donateAmount}>&#8369;500</span>

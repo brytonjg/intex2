@@ -1,45 +1,47 @@
 .page {
-  padding: 1.35rem 1.35rem 1.7rem;
-  max-width: 1220px;
+  padding: 1.5rem 1.5rem 2rem;
+  max-width: 1180px;
 }
 
+/* ── Header ─────────────────────────────────────────────── */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 1rem;
-  margin-bottom: 1.15rem;
+  margin-bottom: 1.25rem;
 }
 
 .headerRow {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
-  margin-bottom: 0.2rem;
+  gap: 0.6rem;
+  margin-bottom: 0.25rem;
 }
 
 .title {
   font-family: var(--font-display);
-  font-size: 2.15rem;
+  font-size: 2.2rem;
+  font-weight: 600;
   line-height: 1;
-  color: var(--text-strong);
+  color: var(--charcoal);
 }
 
 .roleBadge {
   font-size: 0.68rem;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   font-weight: 700;
-  color: var(--color-sage);
-  background: rgba(15, 143, 125, 0.12);
-  border: 1px solid rgba(15, 143, 125, 0.24);
+  color: var(--coral);
+  background: rgba(224, 122, 95, 0.1);
+  border: 1px solid rgba(224, 122, 95, 0.22);
   border-radius: 999px;
-  padding: 0.2rem 0.5rem;
+  padding: 0.2rem 0.55rem;
 }
 
 .dateText {
-  font-size: 0.83rem;
-  color: var(--text-muted);
+  font-size: 0.84rem;
+  color: var(--muted);
 }
 
 .quickActions {
@@ -48,46 +50,54 @@
 }
 
 .actionBtn {
-  min-height: 39px;
+  min-height: 38px;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
   border-radius: 999px;
-  padding: 0.45rem 0.82rem;
+  padding: 0.45rem 0.85rem;
   font-size: 0.78rem;
   font-weight: 700;
   color: #fff;
-  background: linear-gradient(120deg, var(--color-sage), #139f8c);
-  transition: transform 0.22s, filter 0.22s;
+  background: linear-gradient(135deg, var(--coral), var(--coral-light));
+  transition: transform 0.22s, box-shadow 0.22s;
+  box-shadow: 0 4px 14px rgba(224, 122, 95, 0.2);
 }
 
 .actionBtn:hover {
   transform: translateY(-1px);
-  filter: brightness(1.02);
+  box-shadow: 0 6px 18px rgba(224, 122, 95, 0.28);
 }
 
+/* ── Metric Cards ───────────────────────────────────────── */
 .metrics {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.75rem;
-  margin-bottom: 0.95rem;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
 }
 
 .metricCard {
-  background: #fff;
-  border: 1px solid rgba(15, 27, 45, 0.09);
-  border-radius: 14px;
-  box-shadow: var(--shadow-sm);
-  padding: 1rem 0.95rem;
+  background: var(--warm-white);
+  border: 1px solid rgba(43, 45, 66, 0.07);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+  padding: 1.1rem 1rem;
+  transition: transform 0.25s var(--ease-out), box-shadow 0.25s;
+}
+
+.metricCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lifted);
 }
 
 .metricLabel {
   display: block;
   font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.09em;
   font-weight: 700;
-  color: var(--text-muted);
+  color: var(--muted);
   margin-bottom: 0.45rem;
 }
 
@@ -100,8 +110,9 @@
 .metricNumber {
   font-family: var(--font-display);
   font-size: 2.1rem;
+  font-weight: 700;
   line-height: 1;
-  color: var(--text-strong);
+  color: var(--charcoal);
 }
 
 .metricUp,
@@ -115,39 +126,40 @@
 }
 
 .metricUp {
-  color: var(--color-sage);
+  color: var(--sage);
 }
 
 .metricDanger {
-  color: var(--color-rose);
+  color: var(--rose-danger);
 }
 
 .metricDate {
-  color: var(--text-muted);
+  color: var(--muted);
 }
 
 .metricSub {
   display: block;
   margin-top: 0.2rem;
   font-size: 0.75rem;
-  color: var(--color-light-gray);
+  color: var(--fog);
 }
 
+/* ── Main Grid ──────────────────────────────────────────── */
 .mainGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 315px;
-  gap: 0.75rem;
-  margin-bottom: 0.95rem;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
 }
 
 .tableCard,
 .donationsCard,
 .channelCard,
 .chartCard {
-  background: #fff;
-  border: 1px solid rgba(15, 27, 45, 0.09);
-  border-radius: 14px;
-  box-shadow: var(--shadow-sm);
+  background: var(--warm-white);
+  border: 1px solid rgba(43, 45, 66, 0.07);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
 }
 
 .tableCard,
@@ -160,19 +172,20 @@
   justify-content: space-between;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.85rem 0.95rem;
-  border-bottom: 1px solid rgba(15, 27, 45, 0.08);
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid rgba(43, 45, 66, 0.06);
 }
 
 .cardTitle {
   font-family: var(--font-display);
   font-size: 1.15rem;
-  color: var(--text-strong);
+  font-weight: 600;
+  color: var(--charcoal);
 }
 
 .cardSubtitle {
   font-size: 0.73rem;
-  color: var(--text-muted);
+  color: var(--muted);
 }
 
 .legendRow {
@@ -186,11 +199,12 @@
   align-items: center;
   gap: 0.25rem;
   border-radius: 999px;
-  border: 1px solid rgba(15, 27, 45, 0.11);
+  border: 1px solid rgba(43, 45, 66, 0.08);
   padding: 0.12rem 0.46rem;
   font-size: 0.69rem;
-  color: var(--text-muted);
-  background: var(--surface-2);
+  font-weight: 600;
+  color: var(--slate);
+  background: var(--ivory);
 }
 
 .legendDot {
@@ -199,6 +213,7 @@
   border-radius: 999px;
 }
 
+/* ── Table ──────────────────────────────────────────────── */
 .tableWrapper {
   overflow-x: auto;
 }
@@ -211,20 +226,21 @@
 
 .table th {
   text-align: left;
-  background: var(--surface-2);
-  color: var(--text-muted);
+  background: var(--ivory);
+  color: var(--muted);
   font-size: 0.69rem;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 0.6rem 0.95rem;
-  border-bottom: 1px solid rgba(15, 27, 45, 0.09);
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid rgba(43, 45, 66, 0.07);
 }
 
 .table td {
-  padding: 0.62rem 0.95rem;
-  border-bottom: 1px solid rgba(15, 27, 45, 0.06);
-  font-size: 0.81rem;
-  color: var(--text-muted);
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid rgba(43, 45, 66, 0.05);
+  font-size: 0.82rem;
+  color: var(--slate);
 }
 
 .table tbody tr:last-child td {
@@ -232,30 +248,30 @@
 }
 
 .table tbody tr:hover {
-  background: #f8fbff;
+  background: var(--rose-tint);
 }
 
 .rowCritical {
-  background: rgba(203, 87, 104, 0.05);
+  background: rgba(212, 93, 107, 0.04);
 }
 
 .rowCritical:hover {
-  background: rgba(203, 87, 104, 0.08) !important;
+  background: rgba(212, 93, 107, 0.08) !important;
 }
 
 .residentCode {
   display: block;
-  color: var(--text-strong);
+  color: var(--charcoal);
   font-weight: 700;
 }
 
 .residentWorker {
   font-size: 0.7rem;
-  color: var(--color-light-gray);
+  color: var(--fog);
 }
 
 .cellOverdue {
-  color: var(--color-rose);
+  color: var(--rose-danger);
   font-weight: 700;
 }
 
@@ -265,8 +281,8 @@
   gap: 0.22rem;
   border: 1px solid;
   border-radius: 999px;
-  padding: 0.14rem 0.44rem;
-  font-size: 0.68rem;
+  padding: 0.14rem 0.46rem;
+  font-size: 0.69rem;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -277,16 +293,17 @@
   border-radius: 999px;
 }
 
+/* ── Right Column ───────────────────────────────────────── */
 .rightCol {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.85rem;
 }
 
 .viewAllBtn {
   font-size: 0.74rem;
   font-weight: 700;
-  color: var(--color-sage);
+  color: var(--coral);
 }
 
 .viewAllBtn:hover {
@@ -298,14 +315,15 @@
 }
 
 .donationRow {
-  padding: 0.6rem 0.95rem;
+  padding: 0.6rem 1rem;
   display: flex;
   justify-content: space-between;
   gap: 0.5rem;
+  transition: background 0.15s;
 }
 
 .donationRow:hover {
-  background: #f8fbff;
+  background: var(--rose-tint);
 }
 
 .donationInfo,
@@ -317,19 +335,20 @@
 .donationName {
   font-size: 0.82rem;
   font-weight: 700;
-  color: var(--text-strong);
+  color: var(--charcoal);
 }
 
 .donationType,
 .donationDate {
   font-size: 0.71rem;
-  color: var(--color-light-gray);
+  color: var(--fog);
 }
 
 .donationAmount {
   font-family: var(--font-display);
   font-size: 0.98rem;
-  color: var(--text-strong);
+  font-weight: 600;
+  color: var(--charcoal);
 }
 
 .donationRight {
@@ -337,17 +356,18 @@
 }
 
 .channelCard {
-  padding-bottom: 0.45rem;
+  padding-bottom: 0.5rem;
 }
 
+/* ── Charts Row ─────────────────────────────────────────── */
 .chartsRow {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: 0.85rem;
 }
 
 .chartCard {
-  padding: 0.9rem;
+  padding: 1rem;
 }
 
 .chartMeta {
@@ -355,7 +375,7 @@
   justify-content: space-between;
   align-items: baseline;
   gap: 0.75rem;
-  margin-bottom: 0.7rem;
+  margin-bottom: 0.75rem;
 }
 
 .chartCallout,
@@ -365,31 +385,35 @@
 }
 
 .chartCallout {
-  color: var(--color-sage);
+  color: var(--sage);
 }
 
 .chartCalloutDanger {
-  color: var(--color-rose);
+  color: var(--rose-danger);
 }
 
+/* ── Tooltip ────────────────────────────────────────────── */
 .tooltip {
-  background: rgba(15, 27, 45, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.19);
-  border-radius: 8px;
-  padding: 0.4rem 0.62rem;
+  background: var(--charcoal);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 0.45rem 0.65rem;
+  box-shadow: 0 8px 24px rgba(43, 45, 66, 0.3);
 }
 
 .tooltipLabel {
   font-size: 0.67rem;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .tooltipValue {
   font-family: var(--font-display);
-  font-size: 0.96rem;
+  font-size: 0.98rem;
+  font-weight: 600;
   color: #fff;
 }
 
+/* ── Responsive ─────────────────────────────────────────── */
 @media (max-width: 1080px) {
   .quickActions {
     display: none;
@@ -410,7 +434,7 @@
 
 @media (max-width: 768px) {
   .page {
-    padding: 1rem;
+    padding: 1.15rem;
   }
 
   .metrics {

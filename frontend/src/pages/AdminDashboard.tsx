@@ -47,7 +47,7 @@ const donationsByChannel = [
   { channel: 'Direct', amount: 17900 },
 ];
 
-const channelColors = ['#0F8F7D', '#FF9F43', '#66C8BA', '#637A96', '#CB5768'];
+const channelColors = ['#e07a5f', '#8b7ec8', '#7d9f8f', '#d4a24c', '#f0a28e'];
 
 type Severity = 'Low' | 'Medium' | 'High' | 'Critical';
 
@@ -89,10 +89,10 @@ const recentDonations: RecentDonation[] = [
 ];
 
 const severityConfig: Record<Severity, { color: string; bg: string; border: string }> = {
-  Low: { color: '#247D6C', bg: '#0F8F7D18', border: '#0F8F7D40' },
-  Medium: { color: '#BA6E1B', bg: '#FF9F4318', border: '#FF9F4340' },
-  High: { color: '#A35A15', bg: '#D46F1518', border: '#D46F1540' },
-  Critical: { color: '#A33C4B', bg: '#CB576818', border: '#CB576840' },
+  Low: { color: '#5a8a74', bg: '#7d9f8f18', border: '#7d9f8f40' },
+  Medium: { color: '#b58a2e', bg: '#d4a24c18', border: '#d4a24c40' },
+  High: { color: '#c25a40', bg: '#e07a5f18', border: '#e07a5f40' },
+  Critical: { color: '#b73f50', bg: '#d45d6b18', border: '#d45d6b40' },
 };
 
 /* ── Tooltips ──────────────────────────────────────────── */
@@ -270,7 +270,7 @@ export default function AdminDashboard() {
             <ResponsiveContainer width="100%" height={160}>
               <BarChart data={donationsByChannel} layout="vertical" barCategoryGap="25%">
                 <XAxis type="number" hide />
-                <YAxis dataKey="channel" type="category" tick={{ fontSize: 12, fill: '#8A8078' }} axisLine={false} tickLine={false} width={55} />
+                <YAxis dataKey="channel" type="category" tick={{ fontSize: 12, fill: '#7e8098' }} axisLine={false} tickLine={false} width={55} />
                 <Tooltip content={<ChartTooltip prefix="₱" />} cursor={{ fill: 'rgba(212, 168, 83, 0.06)' }} />
                 <Bar dataKey="amount" radius={[0, 4, 4, 0]}>
                   {donationsByChannel.map((_, i) => (
@@ -294,15 +294,15 @@ export default function AdminDashboard() {
             <AreaChart data={activeResidentsOverTime}>
               <defs>
                 <linearGradient id="gradActive" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#1B2838" stopOpacity={0.12} />
-                  <stop offset="100%" stopColor="#1B2838" stopOpacity={0.01} />
+                  <stop offset="0%" stopColor="#8b7ec8" stopOpacity={0.18} />
+                  <stop offset="100%" stopColor="#8b7ec8" stopOpacity={0.02} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E8E0D4" vertical={false} />
-              <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#8A8078' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: '#8A8078' }} axisLine={false} tickLine={false} domain={['dataMin - 5', 'dataMax + 3']} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e8e4df" vertical={false} />
+              <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#7e8098' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: '#7e8098' }} axisLine={false} tickLine={false} domain={['dataMin - 5', 'dataMax + 3']} />
               <Tooltip content={<ChartTooltip />} />
-              <Area type="monotone" dataKey="count" stroke="#1B2838" strokeWidth={2} fill="url(#gradActive)" />
+              <Area type="monotone" dataKey="count" stroke="#8b7ec8" strokeWidth={2} fill="url(#gradActive)" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -316,15 +316,15 @@ export default function AdminDashboard() {
             <AreaChart data={flaggedCasesOverTime}>
               <defs>
                 <linearGradient id="gradFlagged" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#C4756E" stopOpacity={0.12} />
-                  <stop offset="100%" stopColor="#C4756E" stopOpacity={0.01} />
+                  <stop offset="0%" stopColor="#d45d6b" stopOpacity={0.18} />
+                  <stop offset="100%" stopColor="#d45d6b" stopOpacity={0.02} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E8E0D4" vertical={false} />
-              <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#8A8078' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: '#8A8078' }} axisLine={false} tickLine={false} domain={[0, 'dataMax + 2']} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e8e4df" vertical={false} />
+              <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#7e8098' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: '#7e8098' }} axisLine={false} tickLine={false} domain={[0, 'dataMax + 2']} />
               <Tooltip content={<ChartTooltip />} />
-              <Area type="monotone" dataKey="count" stroke="#C4756E" strokeWidth={2} fill="url(#gradFlagged)" />
+              <Area type="monotone" dataKey="count" stroke="#d45d6b" strokeWidth={2} fill="url(#gradFlagged)" />
             </AreaChart>
           </ResponsiveContainer>
         </div>

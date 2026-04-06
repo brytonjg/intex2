@@ -39,16 +39,16 @@ const allocationData = [
 ];
 
 const CHART_COLORS = {
-  primary: '#0F8F7D',
-  primaryLight: '#66C8BA',
-  grid: '#DDE2EB',
-  text: '#5F6D7F',
-  tooltipBg: '#1B2838',
+  primary: '#e07a5f',
+  primaryLight: '#f0a28e',
+  grid: '#e8e4df',
+  text: '#7e8098',
+  tooltipBg: '#2b2d42',
 };
 
 const allocationColors = [
-  '#0F8F7D', '#FF9F43', '#637A96', '#CB5768',
-  '#66C8BA', '#D46F15', '#1D3048', '#A5B3C5',
+  '#e07a5f', '#8b7ec8', '#7d9f8f', '#d4a24c',
+  '#f0a28e', '#b5abde', '#5c5f78', '#f0ca7a',
 ];
 
 /* ── Custom Tooltip ────────────────────────────────────── */

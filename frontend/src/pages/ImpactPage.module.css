@@ -2,8 +2,13 @@
   min-height: 100vh;
 }
 
+/* ── Stats Banner ───────────────────────────────────────── */
 .statsBanner {
-  padding: 4.8rem 1.25rem 2.5rem;
+  padding: 5rem 1.5rem 3rem;
+  background:
+    radial-gradient(ellipse 50% 60% at 20% 20%, rgba(224, 122, 95, 0.08), transparent),
+    radial-gradient(ellipse 40% 50% at 85% 80%, rgba(139, 126, 200, 0.06), transparent),
+    var(--ivory);
 }
 
 .statsInner,
@@ -17,8 +22,8 @@
 
 .statsInner {
   display: grid;
-  grid-template-columns: minmax(260px, 1fr) minmax(0, 1.2fr);
-  gap: 2rem;
+  grid-template-columns: minmax(240px, 1fr) minmax(0, 1.3fr);
+  gap: 2.5rem;
   align-items: start;
 }
 
@@ -26,15 +31,15 @@
   font-family: var(--font-display);
   font-size: clamp(2rem, 3.5vw, 2.8rem);
   font-weight: 600;
-  color: var(--text-strong);
+  color: var(--charcoal);
   line-height: 1.1;
   letter-spacing: -0.02em;
-  margin-bottom: 0.45rem;
+  margin-bottom: 0.5rem;
 }
 
 .statsUpdated {
   font-size: 0.88rem;
-  color: var(--text-muted);
+  color: var(--muted);
 }
 
 .statsGrid {
@@ -44,64 +49,68 @@
 }
 
 .statItem {
-  border: 1px solid rgba(15, 27, 45, 0.09);
-  background: #fff;
-  border-radius: 14px;
-  padding: 1.1rem;
-  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(43, 45, 66, 0.07);
+  background: var(--warm-white);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-soft);
+  border-left: 3px solid var(--coral-light);
 }
 
 .statNumber {
   display: block;
   font-family: var(--font-display);
   font-size: clamp(2rem, 3.2vw, 2.8rem);
+  font-weight: 700;
   line-height: 1;
-  color: var(--text-strong);
+  color: var(--charcoal);
 }
 
 .statDesc {
   display: block;
   margin-top: 0.45rem;
   font-size: 0.86rem;
-  color: var(--text-muted);
+  color: var(--slate);
 }
 
+/* ── Chart Sections ─────────────────────────────────────── */
 .chartSection {
-  padding: 0 1.25rem 1.1rem;
+  padding: 0 1.5rem 1.25rem;
 }
 
 .chartInner {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), #ffffff);
-  border: 1px solid rgba(15, 27, 45, 0.1);
-  border-radius: 18px;
-  padding: 1.3rem 1.3rem 1rem;
-  box-shadow: var(--shadow-sm);
+  background: var(--warm-white);
+  border: 1px solid rgba(43, 45, 66, 0.07);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-soft);
 }
 
 .chartHeader {
-  margin-bottom: 1.1rem;
+  margin-bottom: 1.25rem;
 }
 
 .chartLabel {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   font-weight: 700;
-  color: var(--text-muted);
-  margin-bottom: 0.45rem;
+  color: var(--muted);
+  margin-bottom: 0.4rem;
 }
 
 .chartHighlight {
   display: inline-flex;
   align-items: baseline;
-  gap: 0.6rem;
+  gap: 0.65rem;
   flex-wrap: wrap;
 }
 
 .chartBigNumber {
   font-family: var(--font-display);
   font-size: clamp(1.9rem, 3vw, 2.5rem);
-  color: var(--text-strong);
+  font-weight: 700;
+  color: var(--charcoal);
   line-height: 1;
 }
 
@@ -109,62 +118,74 @@
   display: inline-flex;
   align-items: center;
   gap: 0.2rem;
-  font-size: 0.83rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  color: var(--color-sage);
+  color: var(--sage);
 }
 
 .chartSubtext {
   font-size: 0.84rem;
-  color: var(--text-muted);
+  color: var(--muted);
 }
 
 .chartContainer {
   width: 100%;
 }
 
+/* ── Tooltip ────────────────────────────────────────────── */
 .tooltip {
-  background: rgba(15, 27, 45, 0.96);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 0.55rem 0.75rem;
+  background: var(--charcoal);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0.55rem 0.8rem;
   border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(43, 45, 66, 0.3);
 }
 
 .tooltipLabel {
   font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.65);
-  margin-bottom: 0.2rem;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 0.15rem;
 }
 
 .tooltipValue {
   font-family: var(--font-display);
-  font-size: 1rem;
+  font-size: 1.05rem;
+  font-weight: 600;
   color: #fff;
 }
 
+/* ── Metric Cards ───────────────────────────────────────── */
 .metricsSection {
-  padding: 0 1.25rem 2.4rem;
+  padding: 0 1.5rem 2.5rem;
 }
 
 .metricsGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.9rem;
+  gap: 1rem;
+  margin-top: 0.75rem;
 }
 
 .metricCard {
-  border: 1px solid rgba(15, 27, 45, 0.09);
-  border-radius: 14px;
-  padding: 1.1rem;
-  background: #fff;
-  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(43, 45, 66, 0.07);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  background: var(--warm-white);
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.3s var(--ease-out), box-shadow 0.3s;
+}
+
+.metricCard:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lifted);
 }
 
 .metricNumber {
   display: block;
   font-family: var(--font-display);
-  font-size: 2rem;
-  color: var(--text-strong);
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: var(--charcoal);
   line-height: 1;
 }
 
@@ -172,7 +193,7 @@
   display: block;
   margin-top: 0.35rem;
   font-size: 0.84rem;
-  color: var(--text-muted);
+  color: var(--slate);
 }
 
 .metricChange {
@@ -182,23 +203,24 @@
   margin-top: 0.45rem;
   font-size: 0.78rem;
   font-weight: 700;
-  color: var(--color-sage);
+  color: var(--sage);
 }
 
+/* ── Stories of Hope ────────────────────────────────────── */
 .stories {
-  padding: 2.2rem 1.25rem 2.7rem;
+  padding: 2.5rem 1.5rem 3rem;
 }
 
 .storiesInner {
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
+  gap: 1.5rem;
 }
 
 .storyRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.2rem;
+  gap: 1.5rem;
   align-items: stretch;
 }
 
@@ -211,92 +233,110 @@
 }
 
 .storyText {
-  border: 1px solid rgba(15, 27, 45, 0.08);
-  border-radius: 16px;
-  padding: 1.5rem;
-  background: #fff;
-  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(43, 45, 66, 0.07);
+  border-radius: var(--radius-lg);
+  padding: 2rem 1.75rem;
+  background: var(--warm-white);
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .storyTag {
-  font-size: 0.73rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   font-weight: 700;
-  color: var(--color-sage);
+  color: var(--coral);
+  background: rgba(224, 122, 95, 0.1);
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  width: fit-content;
 }
 
 .storyTitle {
   font-family: var(--font-display);
   font-size: clamp(1.7rem, 3vw, 2.4rem);
-  color: var(--text-strong);
-  margin: 0.5rem 0 0.7rem;
+  font-weight: 600;
+  color: var(--charcoal);
+  margin: 0.65rem 0 0.75rem;
 }
 
 .storyBody {
   font-size: 0.95rem;
-  line-height: 1.72;
-  color: var(--text-muted);
+  line-height: 1.75;
+  color: var(--slate);
   margin-bottom: 0.75rem;
 }
 
 .storyNote {
   font-size: 0.8rem;
   font-style: italic;
-  color: var(--color-light-gray);
+  color: var(--fog);
 }
 
 .storyImage {
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  min-height: 270px;
-  border: 1px solid rgba(15, 27, 45, 0.08);
+  min-height: 280px;
+  border: 1px solid rgba(43, 45, 66, 0.07);
 }
 
 .storyImagePlaceholder {
   width: 100%;
-  min-height: 270px;
+  min-height: 280px;
   height: 100%;
   background:
-    radial-gradient(circle at 20% 20%, rgba(15, 143, 125, 0.18), transparent 38%),
-    linear-gradient(140deg, #ecf2fa, #fdf6ef);
+    radial-gradient(ellipse at 30% 30%, rgba(224, 122, 95, 0.15), transparent 50%),
+    radial-gradient(ellipse at 70% 70%, rgba(139, 126, 200, 0.12), transparent 50%),
+    linear-gradient(145deg, var(--rose-tint), #f0ecff);
 }
 
+/* ── Bottom CTA ─────────────────────────────────────────── */
 .bottomCta {
-  padding: 4.5rem 1.25rem;
+  padding: 5rem 1.5rem;
   background:
-    radial-gradient(circle at 10% 12%, rgba(255, 194, 116, 0.18), transparent 42%),
-    linear-gradient(130deg, #11233c, #1f3a58);
+    radial-gradient(ellipse 50% 60% at 80% 20%, rgba(224, 122, 95, 0.14), transparent),
+    radial-gradient(ellipse 40% 50% at 20% 80%, rgba(139, 126, 200, 0.12), transparent),
+    linear-gradient(140deg, var(--charcoal), var(--charcoal-soft));
   text-align: center;
 }
 
 .ctaTitle {
   font-family: var(--font-display);
-  font-size: clamp(1.8rem, 3.6vw, 2.8rem);
+  font-size: clamp(1.8rem, 3.8vw, 2.8rem);
+  font-weight: 600;
   color: rgba(255, 255, 255, 0.96);
   line-height: 1.2;
-  margin-bottom: 1.2rem;
+  margin-bottom: 1.5rem;
+  max-width: 550px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .ctaButton {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  min-height: 46px;
+  gap: 0.5rem;
+  min-height: 48px;
   border-radius: 999px;
-  padding: 0.8rem 1.4rem;
-  background: linear-gradient(120deg, var(--color-amber), var(--color-amber-light));
-  color: #332003;
+  padding: 0.85rem 1.6rem;
+  background: linear-gradient(135deg, var(--coral), var(--coral-light));
+  color: #fff;
   font-weight: 700;
+  font-size: 0.95rem;
   text-decoration: none;
-  transition: transform 0.24s, filter 0.24s;
+  transition: transform 0.25s, box-shadow 0.25s;
+  box-shadow: 0 8px 24px rgba(224, 122, 95, 0.35);
 }
 
 .ctaButton:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.02);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(224, 122, 95, 0.45);
 }
 
+/* ── Responsive ─────────────────────────────────────────── */
 @media (max-width: 1024px) {
   .metricsGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -305,7 +345,7 @@
 
 @media (max-width: 768px) {
   .statsBanner {
-    padding: 3.8rem 1rem 1.8rem;
+    padding: 3.5rem 1.15rem 2rem;
   }
 
   .statsInner {
@@ -316,8 +356,8 @@
   .metricsSection,
   .stories,
   .bottomCta {
-    padding-left: 1rem;
-    padding-right: 1rem;
+    padding-left: 1.15rem;
+    padding-right: 1.15rem;
   }
 
   .metricsGrid,
@@ -326,11 +366,6 @@
     grid-template-columns: 1fr;
   }
 
-  .storyRowReverse .storyText {
-    order: 1;
-  }
-
-  .storyRowReverse .storyImage {
-    order: 2;
-  }
+  .storyRowReverse .storyText { order: 1; }
+  .storyRowReverse .storyImage { order: 2; }
 }
