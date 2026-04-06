@@ -3,6 +3,7 @@ import { ArrowUpRight, AlertTriangle, Calendar, UserPlus, DollarSign, FileText }
 import { apiFetch } from '../api';
 import { formatMonthLabel } from '../constants';
 import { ChartTooltip } from '../components/ChartTooltip';
+import { ApiError } from '../components/ApiError';
 import {
   AreaChart,
   Area,
@@ -16,40 +17,6 @@ import {
   Cell,
 } from 'recharts';
 import styles from './AdminDashboard.module.css';
-
-/* ── Fallback static data ──────────────────────────────── */
-
-const fallbackResidentsOverTime = [
-  { month: 'Jul 24', count: 47 },
-  { month: 'Aug', count: 45 },
-  { month: 'Sep', count: 50 },
-  { month: 'Oct', count: 48 },
-  { month: 'Nov', count: 51 },
-  { month: 'Dec', count: 49 },
-  { month: 'Jan 25', count: 52 },
-  { month: 'Feb', count: 53 },
-  { month: 'Mar', count: 55 },
-];
-
-const fallbackFlaggedCases = [
-  { month: 'Jul 24', count: 6 },
-  { month: 'Aug', count: 4 },
-  { month: 'Sep', count: 5 },
-  { month: 'Oct', count: 3 },
-  { month: 'Nov', count: 4 },
-  { month: 'Dec', count: 5 },
-  { month: 'Jan 25', count: 4 },
-  { month: 'Feb', count: 6 },
-  { month: 'Mar', count: 7 },
-];
-
-const fallbackChannels = [
-  { channel: 'Social', amount: 48200 },
-  { channel: 'Church', amount: 62100 },
-  { channel: 'Event', amount: 31400 },
-  { channel: 'Partner', amount: 22800 },
-  { channel: 'Direct', amount: 17900 },
-];
 
 const channelColors = ['#D4A853', '#B8913A', '#7A9E7E', '#5A6B7A', '#C4756E'];
 
@@ -65,17 +32,6 @@ interface ResidentRow {
   lastSession: string;
 }
 
-const residentsTable: ResidentRow[] = [
-  { code: 'LS-0007', safehouse: 'SH03 Davao', category: 'Trafficked', riskLevel: 'Critical', admittedDate: '2023-08-02', socialWorker: 'SW-14', lastSession: '2 days ago' },
-  { code: 'LS-0001', safehouse: 'SH04 Iloilo', category: 'Neglected', riskLevel: 'High', admittedDate: '2023-10-17', socialWorker: 'SW-15', lastSession: '5 days ago' },
-  { code: 'LS-0012', safehouse: 'SH01 QC', category: 'Sexual Abuse', riskLevel: 'High', admittedDate: '2023-12-05', socialWorker: 'SW-20', lastSession: '1 day ago' },
-  { code: 'LS-0003', safehouse: 'SH01 QC', category: 'Surrendered', riskLevel: 'Medium', admittedDate: '2024-05-24', socialWorker: 'SW-20', lastSession: '3 days ago' },
-  { code: 'LS-0009', safehouse: 'SH05 Baguio', category: 'At Risk', riskLevel: 'Medium', admittedDate: '2024-01-15', socialWorker: 'SW-18', lastSession: '1 week ago' },
-  { code: 'LS-0018', safehouse: 'SH02 Cebu', category: 'Neglected', riskLevel: 'Medium', admittedDate: '2024-03-08', socialWorker: 'SW-14', lastSession: '4 days ago' },
-  { code: 'LS-0004', safehouse: 'SH02 Cebu', category: 'CICL', riskLevel: 'Low', admittedDate: '2024-09-27', socialWorker: 'SW-15', lastSession: '2 days ago' },
-  { code: 'LS-0015', safehouse: 'SH06 CDO', category: 'At Risk', riskLevel: 'Low', admittedDate: '2024-07-19', socialWorker: 'SW-12', lastSession: '6 days ago' },
-];
-
 interface RecentDonation {
   supporter: string;
   type: string;
@@ -83,14 +39,6 @@ interface RecentDonation {
   date: string;
   campaign: string;
 }
-
-const recentDonations: RecentDonation[] = [
-  { supporter: 'Noah Chen', type: 'Monetary', amount: '₱1,075', date: 'Mar 28', campaign: 'Year-End Hope' },
-  { supporter: 'Aria Brown', type: 'Time', amount: '12 hrs', date: 'Mar 26', campaign: '—' },
-  { supporter: 'Liam Diaz', type: 'Monetary', amount: '₱2,400', date: 'Mar 25', campaign: 'Back to School' },
-  { supporter: 'Mila Alvarez', type: 'In-Kind', amount: '₱850 est.', date: 'Mar 24', campaign: '—' },
-  { supporter: 'Sofia Reyes', type: 'Monetary', amount: '₱500', date: 'Mar 22', campaign: 'Summer of Safety' },
-];
 
 const severityConfig: Record<Severity, { color: string; bg: string; border: string }> = {
   Low: { color: '#4A7A4E', bg: '#7A9E7E18', border: '#7A9E7E40' },
@@ -137,17 +85,20 @@ export default function AdminDashboard() {
   const dateStr = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
   const [metrics, setMetrics] = useState<Metrics | null>(null);
-  const [residents, setResidents] = useState<ResidentRow[]>(residentsTable);
-  const [donations, setDonations] = useState<RecentDonation[]>(recentDonations);
-  const [activeResidentsChart, setActiveResidentsChart] = useState(fallbackResidentsOverTime);
-  const [flaggedChart, setFlaggedChart] = useState(fallbackFlaggedCases);
-  const [channels, setChannels] = useState(fallbackChannels);
+  const [residents, setResidents] = useState<ResidentRow[]>([]);
+  const [donations, setDonations] = useState<RecentDonation[]>([]);
+  const [activeResidentsChart, setActiveResidentsChart] = useState<Array<{ month: string; count: number }>>([]);
+  const [flaggedChart, setFlaggedChart] = useState<Array<{ month: string; count: number }>>([]);
+  const [channels, setChannels] = useState<Array<{ channel: string; amount: number }>>([]);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    apiFetch<Metrics>('/api/admin/metrics').then(setMetrics).catch(e => console.error('API fetch failed', e));
+    const onErr = (e: unknown) => { console.error('API fetch failed', e); setError(true); };
+
+    apiFetch<Metrics>('/api/admin/metrics').then(setMetrics).catch(onErr);
 
     apiFetch<ApiResident[]>('/api/admin/residents').then(data => {
-      const mapped: ResidentRow[] = data.map(r => {
+      setResidents(data.map(r => {
         let lastSessionStr = 'Unknown';
         if (r.lastSession) {
           const days = Math.floor((Date.now() - new Date(r.lastSession).getTime()) / 86400000);
@@ -162,45 +113,36 @@ export default function AdminDashboard() {
           socialWorker: r.assignedSocialWorker ?? '',
           lastSession: lastSessionStr,
         };
-      });
-      if (mapped.length > 0) setResidents(mapped);
-    }).catch(e => console.error('API fetch failed', e));
+      }));
+    }).catch(onErr);
 
     apiFetch<ApiDonation[]>('/api/admin/recent-donations').then(data => {
-      const mapped: RecentDonation[] = data.map(d => ({
+      setDonations(data.map(d => ({
         supporter: d.supporter ?? 'Anonymous',
         type: d.donationType ?? '',
         amount: d.amount ? `₱${Number(d.amount).toLocaleString()}` : d.estimatedValue ? `₱${Number(d.estimatedValue).toLocaleString()} est.` : '—',
         date: d.donationDate ? new Date(d.donationDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '',
         campaign: d.campaignName ?? '—',
-      }));
-      if (mapped.length > 0) setDonations(mapped);
-    }).catch(e => console.error('API fetch failed', e));
+      })));
+    }).catch(onErr);
 
     apiFetch<Array<{ year: number; month: number; count: number }>>('/api/admin/active-residents-trend').then(data => {
-      const mapped = data.map(d => ({ month: formatMonthLabel(d.year, d.month), count: d.count }));
-      if (mapped.length > 0) setActiveResidentsChart(mapped);
-    }).catch(e => console.error('API fetch failed', e));
+      setActiveResidentsChart(data.map(d => ({ month: formatMonthLabel(d.year, d.month), count: d.count })));
+    }).catch(onErr);
 
     apiFetch<Array<{ year: number; month: number; count: number }>>('/api/admin/flagged-cases-trend').then(data => {
-      const mapped = data.map(d => ({ month: formatMonthLabel(d.year, d.month), count: d.count }));
-      if (mapped.length > 0) setFlaggedChart(mapped);
-    }).catch(e => console.error('API fetch failed', e));
+      setFlaggedChart(data.map(d => ({ month: formatMonthLabel(d.year, d.month), count: d.count })));
+    }).catch(onErr);
 
     apiFetch<Array<{ channel: string; count: number }>>('/api/admin/donations-by-channel').then(data => {
-      const mapped = data.map(d => ({ channel: d.channel, amount: d.count }));
-      if (mapped.length > 0) setChannels(mapped);
-    }).catch(e => console.error('API fetch failed', e));
+      setChannels(data.map(d => ({ channel: d.channel, amount: d.count })));
+    }).catch(onErr);
   }, []);
-
-  const m = metrics ?? {
-    activeResidents: 55, openIncidents: 7, criticalIncidents: 2, highIncidents: 2,
-    monthlyDonations: 182400, monthlyDonationCount: 42, donationChange: 18,
-    upcomingConferences: 5, nextConference: null,
-  };
 
   return (
     <div className={styles.page}>
+      {error && <ApiError />}
+
       {/* ── Header ─────────────────────────────────────── */}
       <header className={styles.header}>
         <div>
@@ -227,45 +169,45 @@ export default function AdminDashboard() {
       </header>
 
       {/* ── Metric Cards ───────────────────────────────── */}
-      <section className={styles.metrics}>
+      {metrics && <section className={styles.metrics}>
         <div className={styles.metricCard}>
           <span className={styles.metricLabel}>Active Residents</span>
           <div className={styles.metricRow}>
-            <span className={styles.metricNumber}>{m.activeResidents}</span>
+            <span className={styles.metricNumber}>{metrics.activeResidents}</span>
           </div>
           <span className={styles.metricSub}>across all safehouses</span>
         </div>
         <div className={styles.metricCard}>
           <span className={styles.metricLabel}>Open Incidents</span>
           <div className={styles.metricRow}>
-            <span className={styles.metricNumber}>{m.openIncidents}</span>
-            {m.criticalIncidents > 0 && (
-              <span className={styles.metricDanger}><AlertTriangle size={14} />{m.criticalIncidents} critical</span>
+            <span className={styles.metricNumber}>{metrics.openIncidents}</span>
+            {metrics.criticalIncidents > 0 && (
+              <span className={styles.metricDanger}><AlertTriangle size={14} />{metrics.criticalIncidents} critical</span>
             )}
           </div>
-          <span className={styles.metricSub}>{m.highIncidents} high severity</span>
+          <span className={styles.metricSub}>{metrics.highIncidents} high severity</span>
         </div>
         <div className={styles.metricCard}>
           <span className={styles.metricLabel}>Monthly Donations</span>
           <div className={styles.metricRow}>
-            <span className={styles.metricNumber}>₱{(Number(m.monthlyDonations) / 1000).toFixed(1)}k</span>
-            {m.donationChange !== 0 && (
-              <span className={styles.metricUp}><ArrowUpRight size={14} />{m.donationChange > 0 ? '+' : ''}{m.donationChange}%</span>
+            <span className={styles.metricNumber}>₱{(Number(metrics.monthlyDonations) / 1000).toFixed(1)}k</span>
+            {metrics.donationChange !== 0 && (
+              <span className={styles.metricUp}><ArrowUpRight size={14} />{metrics.donationChange > 0 ? '+' : ''}{metrics.donationChange}%</span>
             )}
           </div>
-          <span className={styles.metricSub}>{m.monthlyDonationCount} donations this month</span>
+          <span className={styles.metricSub}>{metrics.monthlyDonationCount} donations this month</span>
         </div>
         <div className={styles.metricCard}>
           <span className={styles.metricLabel}>Case Conferences</span>
           <div className={styles.metricRow}>
-            <span className={styles.metricNumber}>{m.upcomingConferences}</span>
-            {m.nextConference && (
-              <span className={styles.metricDate}><Calendar size={14} />Next: {new Date(m.nextConference).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+            <span className={styles.metricNumber}>{metrics.upcomingConferences}</span>
+            {metrics.nextConference && (
+              <span className={styles.metricDate}><Calendar size={14} />Next: {new Date(metrics.nextConference!).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
             )}
           </div>
           <span className={styles.metricSub}>upcoming</span>
         </div>
-      </section>
+      </section>}
 
       {/* ── Two-column: Table + Donations ──────────────── */}
       <section className={styles.mainGrid}>
