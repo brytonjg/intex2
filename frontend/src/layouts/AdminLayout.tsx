@@ -26,12 +26,10 @@ export default function AdminLayout() {
     <div className={styles.layout}>
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
-          <div className={styles.teamAvatars}>
-            <div className={styles.avatar} />
-            <div className={styles.avatar} />
-            <div className={styles.avatar} />
-            <div className={styles.avatar} />
-          </div>
+          <NavLink to="/" className={styles.logo}>
+            <span className={styles.logoIcon}>&#9670;</span>
+            <span className={styles.logoText}>Beacon of Hope</span>
+          </NavLink>
         </div>
 
         <nav className={styles.nav}>
