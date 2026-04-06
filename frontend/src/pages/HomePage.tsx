@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { apiFetch } from '../api';
 import type { ImpactSummary } from '../types';
+import { ApiError } from '../components/ApiError';
 import {
   Heart,
   Shield,
@@ -63,17 +64,13 @@ export default function HomePage() {
   const donateRef = useReveal();
 
   const [impact, setImpact] = useState<ImpactSummary | null>(null);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     apiFetch<ImpactSummary>('/api/impact/summary')
       .then(setImpact)
-      .catch((e) => { console.error('Failed to fetch impact summary', e); setImpact({ totalResidents: 247, activeSafehouses: 9, totalDonations: 4200000, reintegrationRate: 68 }); });
+      .catch((e) => { console.error('Failed to fetch impact summary', e); setError(true); });
   }, []);
-
-  const residents = impact?.totalResidents ?? 247;
-  const safehouses = impact?.activeSafehouses ?? 9;
-  const donations = impact ? Math.round(impact.totalDonations / 1000000) : 4;
-  const reintRate = impact?.reintegrationRate ?? 68;
 
   return (
     <main>
@@ -114,32 +111,35 @@ export default function HomePage() {
             <span className={styles.impactDot} />
             Our Impact
           </div>
-          <div className={`${styles.impactGrid} reveal-stagger`}>
-            <div className={`${styles.statCard} reveal`}>
-              <span className={styles.statNumber}>
-                <Counter end={residents} />
-              </span>
-              <span className={styles.statDesc}>Girls served since founding</span>
+          {error && <ApiError />}
+          {impact && (
+            <div className={`${styles.impactGrid} reveal-stagger`}>
+              <div className={`${styles.statCard} reveal`}>
+                <span className={styles.statNumber}>
+                  <Counter end={impact.totalResidents} />
+                </span>
+                <span className={styles.statDesc}>Girls served since founding</span>
+              </div>
+              <div className={`${styles.statCard} reveal`}>
+                <span className={styles.statNumber}>
+                  <Counter end={impact.reintegrationRate} suffix="%" />
+                </span>
+                <span className={styles.statDesc}>Successfully reintegrated</span>
+              </div>
+              <div className={`${styles.statCard} reveal`}>
+                <span className={styles.statNumber}>
+                  <Counter end={Math.round(impact.totalDonations / 1000000)} prefix="&#8369;" suffix="M" />
+                </span>
+                <span className={styles.statDesc}>Donations received</span>
+              </div>
+              <div className={`${styles.statCard} reveal`}>
+                <span className={styles.statNumber}>
+                  <Counter end={impact.activeSafehouses} />
+                </span>
+                <span className={styles.statDesc}>Active safehouses</span>
+              </div>
             </div>
-            <div className={`${styles.statCard} reveal`}>
-              <span className={styles.statNumber}>
-                <Counter end={reintRate} suffix="%" />
-              </span>
-              <span className={styles.statDesc}>Successfully reintegrated</span>
-            </div>
-            <div className={`${styles.statCard} reveal`}>
-              <span className={styles.statNumber}>
-                <Counter end={donations} prefix="&#8369;" suffix="M" />
-              </span>
-              <span className={styles.statDesc}>Donations received</span>
-            </div>
-            <div className={`${styles.statCard} reveal`}>
-              <span className={styles.statNumber}>
-                <Counter end={safehouses} />
-              </span>
-              <span className={styles.statDesc}>Active safehouses</span>
-            </div>
-          </div>
+          )}
         </div>
       </section>
 

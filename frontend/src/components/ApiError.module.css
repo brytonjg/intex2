@@ -1,0 +1,14 @@
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1.25rem;
+  background: rgba(196, 117, 110, 0.08);
+  border: 1px solid rgba(196, 117, 110, 0.25);
+  border-radius: 10px;
+  color: #A5524D;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin: 1.5rem auto;
+  max-width: var(--max-width);
+}
