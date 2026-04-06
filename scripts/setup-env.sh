@@ -30,7 +30,7 @@ cat > "$ROOT_DIR/backend/appsettings.Development.json" <<EOF
   },
   "Supabase": {
     "Url": "$API_URL",
-    "AnonKey": "$ANON_KEY"
+    "PublishableKey": "$ANON_KEY"
   }
 }
 EOF
