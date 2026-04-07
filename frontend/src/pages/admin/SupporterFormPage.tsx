@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { apiFetch } from '../../api';
+import { SUPPORTER_TYPES, SUPPORTER_STATUSES, ACQUISITION_CHANNELS } from '../../domain';
 import styles from './SupporterFormPage.module.css';
 
-const SUPPORTER_TYPES = ['MonetaryDonor', 'Volunteer', 'SkillsContributor', 'SocialMediaAdvocate'];
-const STATUSES = ['Active', 'Inactive', 'Prospective', 'Lapsed'];
-const CHANNELS = ['Referral', 'SocialMedia', 'Church', 'Event', 'Website', 'Partner', 'Other'];
+const STATUSES = SUPPORTER_STATUSES;
+const CHANNELS = ACQUISITION_CHANNELS;
 
 interface FormData {
   supporterType: string;

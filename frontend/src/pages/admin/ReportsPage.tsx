@@ -71,7 +71,7 @@ function OverviewTab() {
       try {
         const [s, health] = await Promise.all([
           apiFetch<SummaryData>('/api/impact/summary'),
-          apiFetch<HealthRow[]>('/api/admin/reports/health-scores'),
+          apiFetch<HealthRow[]>('/api/impact/health-trends'),
         ]);
         if (cancelled) return;
         setSummary(s);
@@ -132,7 +132,7 @@ function DonationsTab() {
     async function load() {
       try {
         const [t, s, c] = await Promise.all([
-          apiFetch<MonthRow[]>('/api/admin/reports/donation-trends'),
+          apiFetch<MonthRow[]>('/api/impact/donations-by-month'),
           apiFetch<SourceRow[]>('/api/admin/reports/donations-by-source'),
           apiFetch<CampaignRow[]>('/api/admin/reports/donations-by-campaign'),
         ]);
@@ -221,8 +221,8 @@ function OutcomesTab() {
       try {
         const [o, e, h] = await Promise.all([
           apiFetch<OutcomeData>('/api/admin/reports/resident-outcomes'),
-          apiFetch<EduRow[]>('/api/admin/reports/education-progress'),
-          apiFetch<HealthRow[]>('/api/admin/reports/health-scores'),
+          apiFetch<EduRow[]>('/api/impact/education-trends'),
+          apiFetch<HealthRow[]>('/api/impact/health-trends'),
         ]);
         if (cancelled) return;
         setOutcomes(o);

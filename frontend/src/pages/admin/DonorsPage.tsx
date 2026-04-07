@@ -5,6 +5,7 @@ import { apiFetch } from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatDate, formatAmount } from '../../constants';
 import Pagination from '../../components/admin/Pagination';
+import { SUPPORTER_TYPES, SUPPORTER_STATUSES, DONATION_TYPES } from '../../domain';
 import styles from './DonorsPage.module.css';
 
 /* ── Types ──────────────────────────────────────────────── */
@@ -47,9 +48,7 @@ interface PagedResult<T> {
   pageSize: number;
 }
 
-const SUPPORTER_TYPES = ['MonetaryDonor', 'Volunteer', 'SkillsContributor', 'SocialMediaAdvocate'];
-const STATUSES = ['Active', 'Inactive', 'Prospective', 'Lapsed'];
-const DONATION_TYPES = ['Monetary', 'InKind', 'Time', 'Skills', 'SocialMedia'];
+const STATUSES = SUPPORTER_STATUSES;
 
 /* ── Component ──────────────────────────────────────────── */
 

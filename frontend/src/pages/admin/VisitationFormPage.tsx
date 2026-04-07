@@ -2,24 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, AlertTriangle } from 'lucide-react';
 import { apiFetch } from '../../api';
+import { VISIT_TYPES, COOPERATION_LEVELS } from '../../domain';
 import styles from './VisitationFormPage.module.css';
-
-/* ── Constants ──────────────────────────────────────── */
-
-const VISIT_TYPES = [
-  'Initial Assessment',
-  'Routine Follow-Up',
-  'Reintegration Assessment',
-  'Post-Placement Monitoring',
-  'Emergency',
-];
-
-const COOPERATION_LEVELS = [
-  'Cooperative',
-  'Partially Cooperative',
-  'Uncooperative',
-  'Hostile',
-];
 
 interface ResidentOption {
   residentId: number;

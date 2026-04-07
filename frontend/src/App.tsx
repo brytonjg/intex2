@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { CookieConsentProvider } from './contexts/CookieConsentContext';
@@ -7,26 +8,28 @@ import CookieConsent from './components/CookieConsent';
 import CookiePreferencesModal from './components/CookiePreferencesModal';
 import AnalyticsLoader from './components/AnalyticsLoader';
 import ProtectedRoute from './components/ProtectedRoute';
+// Public pages — eagerly loaded (common entry points)
 import HomePage from './pages/HomePage';
 import ImpactPage from './pages/ImpactPage';
 import LoginPage from './pages/LoginPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
-import AdminLayout from './layouts/AdminLayout';
-import AdminDashboard from './pages/AdminDashboard';
-import ReportsPage from './pages/admin/ReportsPage';
-import VisitationsPage from './pages/admin/VisitationsPage';
-import VisitationDetailPage from './pages/admin/VisitationDetailPage';
-import VisitationFormPage from './pages/admin/VisitationFormPage';
-import CaseloadPage from './pages/admin/CaseloadPage';
-import ResidentDetailPage from './pages/admin/ResidentDetailPage';
-import ResidentFormPage from './pages/admin/ResidentFormPage';
-import ProcessRecordingsPage from './pages/admin/ProcessRecordingsPage';
-import RecordingDetailPage from './pages/admin/RecordingDetailPage';
-import RecordingFormPage from './pages/admin/RecordingFormPage';
-import DonorsPage from './pages/admin/DonorsPage';
-import SupporterDetailPage from './pages/admin/SupporterDetailPage';
-import SupporterFormPage from './pages/admin/SupporterFormPage';
-import DonationFormPage from './pages/admin/DonationFormPage';
+// Admin pages — lazy loaded (code-split)
+const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const ReportsPage = lazy(() => import('./pages/admin/ReportsPage'));
+const VisitationsPage = lazy(() => import('./pages/admin/VisitationsPage'));
+const VisitationDetailPage = lazy(() => import('./pages/admin/VisitationDetailPage'));
+const VisitationFormPage = lazy(() => import('./pages/admin/VisitationFormPage'));
+const CaseloadPage = lazy(() => import('./pages/admin/CaseloadPage'));
+const ResidentDetailPage = lazy(() => import('./pages/admin/ResidentDetailPage'));
+const ResidentFormPage = lazy(() => import('./pages/admin/ResidentFormPage'));
+const ProcessRecordingsPage = lazy(() => import('./pages/admin/ProcessRecordingsPage'));
+const RecordingDetailPage = lazy(() => import('./pages/admin/RecordingDetailPage'));
+const RecordingFormPage = lazy(() => import('./pages/admin/RecordingFormPage'));
+const DonorsPage = lazy(() => import('./pages/admin/DonorsPage'));
+const SupporterDetailPage = lazy(() => import('./pages/admin/SupporterDetailPage'));
+const SupporterFormPage = lazy(() => import('./pages/admin/SupporterFormPage'));
+const DonationFormPage = lazy(() => import('./pages/admin/DonationFormPage'));
 
 function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -51,10 +54,12 @@ function App() {
             <Route path="/privacy-policy" element={<PublicLayout><PrivacyPolicyPage /></PublicLayout>} />
             <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
 
-            {/* Admin portal */}
+            {/* Admin portal — lazy-loaded with Suspense */}
             <Route path="/admin" element={
               <ProtectedRoute allowedRoles={['Admin', 'Staff']}>
-                <AdminLayout />
+                <Suspense fallback={<div>Loading...</div>}>
+                  <AdminLayout />
+                </Suspense>
               </ProtectedRoute>
             }>
               <Route index element={<AdminDashboard />} />

@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { apiFetch } from '../../api';
+import { DONATION_TYPES } from '../../domain';
 import styles from './DonationFormPage.module.css';
-
-const DONATION_TYPES = ['Monetary', 'InKind', 'Time', 'Skills', 'SocialMedia'];
 const CURRENCIES = ['PHP', 'USD', 'EUR', 'GBP', 'AUD', 'CAD'];
 
 interface SupporterOption {

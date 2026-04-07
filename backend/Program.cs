@@ -340,7 +340,10 @@ app.MapGet("/api/impact/health-trends", async (AppDbContext db) =>
         {
             year = g.Key.Year,
             month = g.Key.Month,
-            avgHealth = Math.Round(g.Average(h => (double?)h.GeneralHealthScore ?? 0), 2)
+            avgHealth = Math.Round(g.Average(h => (double?)h.GeneralHealthScore ?? 0), 2),
+            avgNutrition = Math.Round(g.Average(h => (double?)h.NutritionScore ?? 0), 2),
+            avgSleep = Math.Round(g.Average(h => (double?)h.SleepQualityScore ?? 0), 2),
+            avgEnergy = Math.Round(g.Average(h => (double?)h.EnergyLevelScore ?? 0), 2)
         })
         .OrderBy(x => x.year).ThenBy(x => x.month)
         .ToListAsync();
@@ -597,57 +600,8 @@ app.MapPost("/api/admin/residents", async (HttpContext httpContext, AppDbContext
     if (body == null)
         return Results.BadRequest(new { error = "Request body is required." });
 
-    var resident = new Resident
-    {
-        CaseControlNo = body.CaseControlNo,
-        InternalCode = body.InternalCode,
-        SafehouseId = body.SafehouseId,
-        CaseStatus = body.CaseStatus,
-        Sex = body.Sex,
-        DateOfBirth = body.DateOfBirth,
-        BirthStatus = body.BirthStatus,
-        PlaceOfBirth = body.PlaceOfBirth,
-        Religion = body.Religion,
-        CaseCategory = body.CaseCategory,
-        SubCatOrphaned = body.SubCatOrphaned,
-        SubCatTrafficked = body.SubCatTrafficked,
-        SubCatChildLabor = body.SubCatChildLabor,
-        SubCatPhysicalAbuse = body.SubCatPhysicalAbuse,
-        SubCatSexualAbuse = body.SubCatSexualAbuse,
-        SubCatOsaec = body.SubCatOsaec,
-        SubCatCicl = body.SubCatCicl,
-        SubCatAtRisk = body.SubCatAtRisk,
-        SubCatStreetChild = body.SubCatStreetChild,
-        SubCatChildWithHiv = body.SubCatChildWithHiv,
-        IsPwd = body.IsPwd,
-        PwdType = body.PwdType,
-        HasSpecialNeeds = body.HasSpecialNeeds,
-        SpecialNeedsDiagnosis = body.SpecialNeedsDiagnosis,
-        FamilyIs4ps = body.FamilyIs4ps,
-        FamilySoloParent = body.FamilySoloParent,
-        FamilyIndigenous = body.FamilyIndigenous,
-        FamilyParentPwd = body.FamilyParentPwd,
-        FamilyInformalSettler = body.FamilyInformalSettler,
-        DateOfAdmission = body.DateOfAdmission,
-        AgeUponAdmission = body.AgeUponAdmission,
-        PresentAge = body.PresentAge,
-        LengthOfStay = body.LengthOfStay,
-        ReferralSource = body.ReferralSource,
-        ReferringAgencyPerson = body.ReferringAgencyPerson,
-        DateColbRegistered = body.DateColbRegistered,
-        DateColbObtained = body.DateColbObtained,
-        AssignedSocialWorker = body.AssignedSocialWorker,
-        InitialCaseAssessment = body.InitialCaseAssessment,
-        DateCaseStudyPrepared = body.DateCaseStudyPrepared,
-        ReintegrationType = body.ReintegrationType,
-        ReintegrationStatus = body.ReintegrationStatus,
-        InitialRiskLevel = body.InitialRiskLevel,
-        CurrentRiskLevel = body.CurrentRiskLevel,
-        DateEnrolled = body.DateEnrolled,
-        DateClosed = body.DateClosed,
-        CreatedAt = DateTime.UtcNow,
-        NotesRestricted = body.NotesRestricted
-    };
+    var resident = new Resident { CreatedAt = DateTime.UtcNow };
+    EntityMapper.MapResident(resident, body);
 
     db.Residents.Add(resident);
     await db.SaveChangesAsync();
@@ -664,53 +618,7 @@ app.MapPut("/api/admin/residents/{id:int}", async (int id, HttpContext httpConte
     if (body == null)
         return Results.BadRequest(new { error = "Request body is required." });
 
-    resident.CaseControlNo = body.CaseControlNo;
-    resident.InternalCode = body.InternalCode;
-    resident.SafehouseId = body.SafehouseId;
-    resident.CaseStatus = body.CaseStatus;
-    resident.Sex = body.Sex;
-    resident.DateOfBirth = body.DateOfBirth;
-    resident.BirthStatus = body.BirthStatus;
-    resident.PlaceOfBirth = body.PlaceOfBirth;
-    resident.Religion = body.Religion;
-    resident.CaseCategory = body.CaseCategory;
-    resident.SubCatOrphaned = body.SubCatOrphaned;
-    resident.SubCatTrafficked = body.SubCatTrafficked;
-    resident.SubCatChildLabor = body.SubCatChildLabor;
-    resident.SubCatPhysicalAbuse = body.SubCatPhysicalAbuse;
-    resident.SubCatSexualAbuse = body.SubCatSexualAbuse;
-    resident.SubCatOsaec = body.SubCatOsaec;
-    resident.SubCatCicl = body.SubCatCicl;
-    resident.SubCatAtRisk = body.SubCatAtRisk;
-    resident.SubCatStreetChild = body.SubCatStreetChild;
-    resident.SubCatChildWithHiv = body.SubCatChildWithHiv;
-    resident.IsPwd = body.IsPwd;
-    resident.PwdType = body.PwdType;
-    resident.HasSpecialNeeds = body.HasSpecialNeeds;
-    resident.SpecialNeedsDiagnosis = body.SpecialNeedsDiagnosis;
-    resident.FamilyIs4ps = body.FamilyIs4ps;
-    resident.FamilySoloParent = body.FamilySoloParent;
-    resident.FamilyIndigenous = body.FamilyIndigenous;
-    resident.FamilyParentPwd = body.FamilyParentPwd;
-    resident.FamilyInformalSettler = body.FamilyInformalSettler;
-    resident.DateOfAdmission = body.DateOfAdmission;
-    resident.AgeUponAdmission = body.AgeUponAdmission;
-    resident.PresentAge = body.PresentAge;
-    resident.LengthOfStay = body.LengthOfStay;
-    resident.ReferralSource = body.ReferralSource;
-    resident.ReferringAgencyPerson = body.ReferringAgencyPerson;
-    resident.DateColbRegistered = body.DateColbRegistered;
-    resident.DateColbObtained = body.DateColbObtained;
-    resident.AssignedSocialWorker = body.AssignedSocialWorker;
-    resident.InitialCaseAssessment = body.InitialCaseAssessment;
-    resident.DateCaseStudyPrepared = body.DateCaseStudyPrepared;
-    resident.ReintegrationType = body.ReintegrationType;
-    resident.ReintegrationStatus = body.ReintegrationStatus;
-    resident.InitialRiskLevel = body.InitialRiskLevel;
-    resident.CurrentRiskLevel = body.CurrentRiskLevel;
-    resident.DateEnrolled = body.DateEnrolled;
-    resident.DateClosed = body.DateClosed;
-    resident.NotesRestricted = body.NotesRestricted;
+    EntityMapper.MapResident(resident, body);
 
     await db.SaveChangesAsync();
     return Results.Ok(new { resident.ResidentId });
@@ -888,19 +796,7 @@ app.MapPut("/api/admin/visitations/{id}", async (AppDbContext db, int id, HomeVi
     var existing = await db.HomeVisitations.FindAsync(id);
     if (existing is null) return Results.NotFound();
 
-    existing.ResidentId = body.ResidentId;
-    existing.VisitDate = body.VisitDate;
-    existing.SocialWorker = body.SocialWorker;
-    existing.VisitType = body.VisitType;
-    existing.LocationVisited = body.LocationVisited;
-    existing.FamilyMembersPresent = body.FamilyMembersPresent;
-    existing.Purpose = body.Purpose;
-    existing.Observations = body.Observations;
-    existing.FamilyCooperationLevel = body.FamilyCooperationLevel;
-    existing.SafetyConcernsNoted = body.SafetyConcernsNoted;
-    existing.FollowUpNeeded = body.FollowUpNeeded;
-    existing.FollowUpNotes = body.FollowUpNotes;
-    existing.VisitOutcome = body.VisitOutcome;
+    EntityMapper.MapVisitation(existing, body);
 
     await db.SaveChangesAsync();
     return Results.Ok(new { id });
@@ -977,23 +873,6 @@ app.MapGet("/api/admin/residents-list", async (AppDbContext db) =>
 
 // ── Reports & Analytics endpoints ──────────────────────
 
-app.MapGet("/api/admin/reports/donation-trends", async (AppDbContext db) =>
-{
-    var data = await db.Donations
-        .Where(d => d.DonationDate != null && d.Amount != null)
-        .GroupBy(d => new { d.DonationDate!.Value.Year, d.DonationDate!.Value.Month })
-        .Select(g => new
-        {
-            year = g.Key.Year,
-            month = g.Key.Month,
-            total = g.Sum(d => (decimal?)d.Amount ?? 0),
-            count = g.Count()
-        })
-        .OrderBy(x => x.year).ThenBy(x => x.month)
-        .ToListAsync();
-
-    return data;
-}).RequireAuthorization();
 
 app.MapGet("/api/admin/reports/donations-by-source", async (AppDbContext db) =>
 {
@@ -1064,42 +943,6 @@ app.MapGet("/api/admin/reports/resident-outcomes", async (AppDbContext db) =>
     };
 }).RequireAuthorization();
 
-app.MapGet("/api/admin/reports/education-progress", async (AppDbContext db) =>
-{
-    var data = await db.EducationRecords
-        .Where(e => e.RecordDate != null && e.ProgressPercent != null)
-        .GroupBy(e => new { e.RecordDate!.Value.Year, e.RecordDate!.Value.Month })
-        .Select(g => new
-        {
-            year = g.Key.Year,
-            month = g.Key.Month,
-            avgProgress = Math.Round(g.Average(e => (double?)e.ProgressPercent ?? 0), 1)
-        })
-        .OrderBy(x => x.year).ThenBy(x => x.month)
-        .ToListAsync();
-
-    return data;
-}).RequireAuthorization();
-
-app.MapGet("/api/admin/reports/health-scores", async (AppDbContext db) =>
-{
-    var data = await db.HealthWellbeingRecords
-        .Where(h => h.RecordDate != null && h.GeneralHealthScore != null)
-        .GroupBy(h => new { h.RecordDate!.Value.Year, h.RecordDate!.Value.Month })
-        .Select(g => new
-        {
-            year = g.Key.Year,
-            month = g.Key.Month,
-            avgHealth = Math.Round(g.Average(h => (double?)h.GeneralHealthScore ?? 0), 2),
-            avgNutrition = Math.Round(g.Average(h => (double?)h.NutritionScore ?? 0), 2),
-            avgSleep = Math.Round(g.Average(h => (double?)h.SleepQualityScore ?? 0), 2),
-            avgEnergy = Math.Round(g.Average(h => (double?)h.EnergyLevelScore ?? 0), 2)
-        })
-        .OrderBy(x => x.year).ThenBy(x => x.month)
-        .ToListAsync();
-
-    return data;
-}).RequireAuthorization();
 
 app.MapGet("/api/admin/reports/safehouse-comparison", async (AppDbContext db) =>
 {
@@ -1325,23 +1168,8 @@ app.MapPost("/api/admin/recordings", async (HttpContext httpContext, AppDbContex
     if (!resident)
         return Results.BadRequest(new { error = "Resident not found." });
 
-    var recording = new ProcessRecording
-    {
-        ResidentId = body.ResidentId,
-        SessionDate = body.SessionDate,
-        SocialWorker = body.SocialWorker,
-        SessionType = body.SessionType,
-        SessionDurationMinutes = body.SessionDurationMinutes,
-        EmotionalStateObserved = body.EmotionalStateObserved,
-        EmotionalStateEnd = body.EmotionalStateEnd,
-        SessionNarrative = body.SessionNarrative,
-        InterventionsApplied = body.InterventionsApplied,
-        FollowUpActions = body.FollowUpActions,
-        ProgressNoted = body.ProgressNoted,
-        ConcernsFlagged = body.ConcernsFlagged,
-        ReferralMade = body.ReferralMade,
-        NotesRestricted = body.NotesRestricted
-    };
+    var recording = new ProcessRecording();
+    EntityMapper.MapRecording(recording, body);
 
     db.ProcessRecordings.Add(recording);
     await db.SaveChangesAsync();
@@ -1359,20 +1187,7 @@ app.MapPut("/api/admin/recordings/{id:int}", async (int id, HttpContext httpCont
     if (recording == null)
         return Results.NotFound(new { error = "Recording not found." });
 
-    recording.ResidentId = body.ResidentId;
-    recording.SessionDate = body.SessionDate;
-    recording.SocialWorker = body.SocialWorker;
-    recording.SessionType = body.SessionType;
-    recording.SessionDurationMinutes = body.SessionDurationMinutes;
-    recording.EmotionalStateObserved = body.EmotionalStateObserved;
-    recording.EmotionalStateEnd = body.EmotionalStateEnd;
-    recording.SessionNarrative = body.SessionNarrative;
-    recording.InterventionsApplied = body.InterventionsApplied;
-    recording.FollowUpActions = body.FollowUpActions;
-    recording.ProgressNoted = body.ProgressNoted;
-    recording.ConcernsFlagged = body.ConcernsFlagged;
-    recording.ReferralMade = body.ReferralMade;
-    recording.NotesRestricted = body.NotesRestricted;
+    EntityMapper.MapRecording(recording, body);
 
     await db.SaveChangesAsync();
     return Results.Ok(new { recording.RecordingId });
@@ -1509,22 +1324,9 @@ app.MapPost("/api/admin/supporters", async (AppDbContext db, HttpContext httpCon
     var body = await httpContext.Request.ReadFromJsonAsync<SupporterRequest>();
     if (body == null) return Results.BadRequest(new { error = "Request body is required." });
 
-    var supporter = new backend.Models.Supporter
-    {
-        SupporterType = body.SupporterType,
-        DisplayName = body.DisplayName,
-        OrganizationName = body.OrganizationName,
-        FirstName = body.FirstName,
-        LastName = body.LastName,
-        RelationshipType = body.RelationshipType,
-        Email = body.Email,
-        Phone = body.Phone,
-        Region = body.Region,
-        Country = body.Country,
-        Status = body.Status ?? "Active",
-        AcquisitionChannel = body.AcquisitionChannel,
-        CreatedAt = DateTime.UtcNow
-    };
+    var supporter = new backend.Models.Supporter { CreatedAt = DateTime.UtcNow };
+    EntityMapper.MapSupporter(supporter, body);
+    supporter.Status ??= "Active";
 
     db.Supporters.Add(supporter);
     await db.SaveChangesAsync();
@@ -1539,18 +1341,7 @@ app.MapPut("/api/admin/supporters/{id:int}", async (int id, AppDbContext db, Htt
     var supporter = await db.Supporters.FindAsync(id);
     if (supporter == null) return Results.NotFound();
 
-    supporter.SupporterType = body.SupporterType;
-    supporter.DisplayName = body.DisplayName;
-    supporter.OrganizationName = body.OrganizationName;
-    supporter.FirstName = body.FirstName;
-    supporter.LastName = body.LastName;
-    supporter.RelationshipType = body.RelationshipType;
-    supporter.Email = body.Email;
-    supporter.Phone = body.Phone;
-    supporter.Region = body.Region;
-    supporter.Country = body.Country;
-    supporter.Status = body.Status;
-    supporter.AcquisitionChannel = body.AcquisitionChannel;
+    EntityMapper.MapSupporter(supporter, body);
 
     await db.SaveChangesAsync();
     return Results.Ok(new { supporter.SupporterId });
@@ -1621,20 +1412,8 @@ app.MapPost("/api/admin/donations", async (AppDbContext db, HttpContext httpCont
     var body = await httpContext.Request.ReadFromJsonAsync<DonationRequest>();
     if (body == null) return Results.BadRequest(new { error = "Request body is required." });
 
-    var donation = new backend.Models.Donation
-    {
-        SupporterId = body.SupporterId,
-        DonationType = body.DonationType,
-        DonationDate = body.DonationDate,
-        ChannelSource = body.ChannelSource,
-        CurrencyCode = body.CurrencyCode,
-        Amount = body.Amount,
-        EstimatedValue = body.EstimatedValue,
-        ImpactUnit = body.ImpactUnit,
-        IsRecurring = body.IsRecurring,
-        CampaignName = body.CampaignName,
-        Notes = body.Notes
-    };
+    var donation = new backend.Models.Donation();
+    EntityMapper.MapDonation(donation, body);
 
     db.Donations.Add(donation);
     await db.SaveChangesAsync();
@@ -1649,17 +1428,7 @@ app.MapPut("/api/admin/donations/{id:int}", async (int id, AppDbContext db, Http
     var donation = await db.Donations.FindAsync(id);
     if (donation == null) return Results.NotFound();
 
-    donation.SupporterId = body.SupporterId;
-    donation.DonationType = body.DonationType;
-    donation.DonationDate = body.DonationDate;
-    donation.ChannelSource = body.ChannelSource;
-    donation.CurrencyCode = body.CurrencyCode;
-    donation.Amount = body.Amount;
-    donation.EstimatedValue = body.EstimatedValue;
-    donation.ImpactUnit = body.ImpactUnit;
-    donation.IsRecurring = body.IsRecurring;
-    donation.CampaignName = body.CampaignName;
-    donation.Notes = body.Notes;
+    EntityMapper.MapDonation(donation, body);
 
     await db.SaveChangesAsync();
     return Results.Ok(new { donation.DonationId });
@@ -1716,6 +1485,128 @@ app.MapGet("/api/admin/allocations/by-safehouse", async (AppDbContext db) =>
 }).RequireAuthorization();
 
 app.Run();
+
+// ── Entity mapping helpers ─────────────────────────────────
+
+static class EntityMapper
+{
+    public static void MapResident(Resident entity, ResidentRequest body)
+    {
+        entity.CaseControlNo = body.CaseControlNo;
+        entity.InternalCode = body.InternalCode;
+        entity.SafehouseId = body.SafehouseId;
+        entity.CaseStatus = body.CaseStatus;
+        entity.Sex = body.Sex;
+        entity.DateOfBirth = body.DateOfBirth;
+        entity.BirthStatus = body.BirthStatus;
+        entity.PlaceOfBirth = body.PlaceOfBirth;
+        entity.Religion = body.Religion;
+        entity.CaseCategory = body.CaseCategory;
+        entity.SubCatOrphaned = body.SubCatOrphaned;
+        entity.SubCatTrafficked = body.SubCatTrafficked;
+        entity.SubCatChildLabor = body.SubCatChildLabor;
+        entity.SubCatPhysicalAbuse = body.SubCatPhysicalAbuse;
+        entity.SubCatSexualAbuse = body.SubCatSexualAbuse;
+        entity.SubCatOsaec = body.SubCatOsaec;
+        entity.SubCatCicl = body.SubCatCicl;
+        entity.SubCatAtRisk = body.SubCatAtRisk;
+        entity.SubCatStreetChild = body.SubCatStreetChild;
+        entity.SubCatChildWithHiv = body.SubCatChildWithHiv;
+        entity.IsPwd = body.IsPwd;
+        entity.PwdType = body.PwdType;
+        entity.HasSpecialNeeds = body.HasSpecialNeeds;
+        entity.SpecialNeedsDiagnosis = body.SpecialNeedsDiagnosis;
+        entity.FamilyIs4ps = body.FamilyIs4ps;
+        entity.FamilySoloParent = body.FamilySoloParent;
+        entity.FamilyIndigenous = body.FamilyIndigenous;
+        entity.FamilyParentPwd = body.FamilyParentPwd;
+        entity.FamilyInformalSettler = body.FamilyInformalSettler;
+        entity.DateOfAdmission = body.DateOfAdmission;
+        entity.AgeUponAdmission = body.AgeUponAdmission;
+        entity.PresentAge = body.PresentAge;
+        entity.LengthOfStay = body.LengthOfStay;
+        entity.ReferralSource = body.ReferralSource;
+        entity.ReferringAgencyPerson = body.ReferringAgencyPerson;
+        entity.DateColbRegistered = body.DateColbRegistered;
+        entity.DateColbObtained = body.DateColbObtained;
+        entity.AssignedSocialWorker = body.AssignedSocialWorker;
+        entity.InitialCaseAssessment = body.InitialCaseAssessment;
+        entity.DateCaseStudyPrepared = body.DateCaseStudyPrepared;
+        entity.ReintegrationType = body.ReintegrationType;
+        entity.ReintegrationStatus = body.ReintegrationStatus;
+        entity.InitialRiskLevel = body.InitialRiskLevel;
+        entity.CurrentRiskLevel = body.CurrentRiskLevel;
+        entity.DateEnrolled = body.DateEnrolled;
+        entity.DateClosed = body.DateClosed;
+        entity.NotesRestricted = body.NotesRestricted;
+    }
+
+    public static void MapRecording(ProcessRecording entity, RecordingRequest body)
+    {
+        entity.ResidentId = body.ResidentId;
+        entity.SessionDate = body.SessionDate;
+        entity.SocialWorker = body.SocialWorker;
+        entity.SessionType = body.SessionType;
+        entity.SessionDurationMinutes = body.SessionDurationMinutes;
+        entity.EmotionalStateObserved = body.EmotionalStateObserved;
+        entity.EmotionalStateEnd = body.EmotionalStateEnd;
+        entity.SessionNarrative = body.SessionNarrative;
+        entity.InterventionsApplied = body.InterventionsApplied;
+        entity.FollowUpActions = body.FollowUpActions;
+        entity.ProgressNoted = body.ProgressNoted;
+        entity.ConcernsFlagged = body.ConcernsFlagged;
+        entity.ReferralMade = body.ReferralMade;
+        entity.NotesRestricted = body.NotesRestricted;
+    }
+
+    public static void MapSupporter(backend.Models.Supporter entity, SupporterRequest body)
+    {
+        entity.SupporterType = body.SupporterType;
+        entity.DisplayName = body.DisplayName;
+        entity.OrganizationName = body.OrganizationName;
+        entity.FirstName = body.FirstName;
+        entity.LastName = body.LastName;
+        entity.RelationshipType = body.RelationshipType;
+        entity.Email = body.Email;
+        entity.Phone = body.Phone;
+        entity.Region = body.Region;
+        entity.Country = body.Country;
+        entity.Status = body.Status;
+        entity.AcquisitionChannel = body.AcquisitionChannel;
+    }
+
+    public static void MapDonation(backend.Models.Donation entity, DonationRequest body)
+    {
+        entity.SupporterId = body.SupporterId;
+        entity.DonationType = body.DonationType;
+        entity.DonationDate = body.DonationDate;
+        entity.ChannelSource = body.ChannelSource;
+        entity.CurrencyCode = body.CurrencyCode;
+        entity.Amount = body.Amount;
+        entity.EstimatedValue = body.EstimatedValue;
+        entity.ImpactUnit = body.ImpactUnit;
+        entity.IsRecurring = body.IsRecurring;
+        entity.CampaignName = body.CampaignName;
+        entity.Notes = body.Notes;
+    }
+
+    public static void MapVisitation(HomeVisitation entity, HomeVisitation body)
+    {
+        entity.ResidentId = body.ResidentId;
+        entity.VisitDate = body.VisitDate;
+        entity.SocialWorker = body.SocialWorker;
+        entity.VisitType = body.VisitType;
+        entity.LocationVisited = body.LocationVisited;
+        entity.FamilyMembersPresent = body.FamilyMembersPresent;
+        entity.Purpose = body.Purpose;
+        entity.Observations = body.Observations;
+        entity.FamilyCooperationLevel = body.FamilyCooperationLevel;
+        entity.SafetyConcernsNoted = body.SafetyConcernsNoted;
+        entity.FollowUpNeeded = body.FollowUpNeeded;
+        entity.FollowUpNotes = body.FollowUpNotes;
+        entity.VisitOutcome = body.VisitOutcome;
+    }
+}
 
 // ── Request DTOs ────────────────────────────────────────────
 
