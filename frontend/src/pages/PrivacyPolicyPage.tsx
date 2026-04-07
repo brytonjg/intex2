@@ -65,8 +65,8 @@ export default function PrivacyPolicyPage() {
             <p>We process personal data only with a lawful basis, as follows:</p>
             <ul className={styles.list}>
               <li><strong>Donor data:</strong> Contract performance (processing your donation) and consent (communications and newsletters).</li>
-              <li><strong>Staff data:</strong> Contract performance (employment relationship) and legal obligation (DSWD reporting requirements).</li>
-              <li><strong>Resident data:</strong> Legal obligation (DSWD mandate for accredited child welfare organizations) and legitimate interest (child welfare and protection).</li>
+              <li><strong>Staff data:</strong> Contract performance (employment relationship) and legal obligation (federal and Guam reporting requirements).</li>
+              <li><strong>Resident data:</strong> Legal obligation (child welfare regulations under Guam and federal law) and legitimate interest (child welfare and protection).</li>
               <li><strong>Visitor data:</strong> Consent (analytics cookies) and legitimate interest (essential site functionality and security).</li>
             </ul>
           </section>
@@ -76,12 +76,12 @@ export default function PrivacyPolicyPage() {
             <h2 className={styles.sectionTitle}>3. Protection of Minors' Data</h2>
             <p>Beacon of Hope is dedicated to the protection of children and their personal information. This section describes the special safeguards we apply to data related to the minors in our care.</p>
             <ul className={styles.list}>
-              <li>Resident data -- including names, case histories, counseling notes, and health records -- is classified as <strong>highly sensitive personal information</strong> under both GDPR Article 9 and the Philippine Data Privacy Act (RA 10173, Section 3(l)).</li>
+              <li>Resident data -- including names, case histories, counseling notes, and health records -- is classified as <strong>highly sensitive personal information</strong> under GDPR Article 9 and applicable U.S. federal and Guam territorial privacy laws.</li>
               <li>Access is restricted to authorized staff members who have a direct case relationship with the resident.</li>
-              <li>Resident data is <strong>never</strong> shared with third parties except as required by Philippine law (e.g., DSWD reporting obligations).</li>
+              <li>Resident data is <strong>never</strong> shared with third parties except as required by law (e.g., mandatory reporting obligations under Guam and federal child welfare statutes).</li>
               <li>Resident data is <strong>never</strong> used in marketing materials, public reports, or impact dashboards in any identifiable form. All public-facing statistics are aggregated and anonymized.</li>
-              <li>Legal basis for processing without parental consent: DSWD regulatory mandate for accredited child welfare organizations acting <em>in loco parentis</em>.</li>
-              <li>Data is anonymized or securely deleted when a resident turns 18 or exits the program, subject to DSWD retention requirements.</li>
+              <li>Legal basis for processing without parental consent: regulatory mandate for accredited child welfare organizations acting <em>in loco parentis</em> under applicable law.</li>
+              <li>Data is anonymized or securely deleted when a resident turns 18 or exits the program, subject to applicable retention requirements.</li>
               <li>If you believe that a minor's data has been inadvertently disclosed, please contact us immediately at <a href="mailto:privacy@beaconofhope.org">privacy@beaconofhope.org</a>. We commit to investigating and remediating within 48 hours.</li>
             </ul>
           </section>
@@ -116,7 +116,7 @@ export default function PrivacyPolicyPage() {
                 </tbody>
               </table>
             </div>
-            <p><strong>Your data is never sold.</strong> Resident data is never shared with any third party except as required by Philippine law. Data Processing Agreements (DPAs) are in place with all processors; copies are available on request at <a href="mailto:privacy@beaconofhope.org">privacy@beaconofhope.org</a>.</p>
+            <p><strong>Your data is never sold.</strong> Resident data is never shared with any third party except as required by law. Data Processing Agreements (DPAs) are in place with all processors; copies are available on request at <a href="mailto:privacy@beaconofhope.org">privacy@beaconofhope.org</a>.</p>
           </section>
 
           {/* Section 5 */}
@@ -127,7 +127,7 @@ export default function PrivacyPolicyPage() {
               <li>Backend hosted on Microsoft Azure (West US 2 region).</li>
               <li>Frontend hosted on Vercel (global CDN).</li>
               <li>Legal mechanism for cross-border transfers: Standard Contractual Clauses (SCCs) where applicable.</li>
-              <li>Beacon of Hope honors the more protective standard -- either GDPR or the Philippine Data Privacy Act -- for all users regardless of location.</li>
+              <li>Beacon of Hope honors the more protective standard -- either GDPR or applicable U.S. privacy law -- for all users regardless of location.</li>
             </ul>
           </section>
 
@@ -149,7 +149,7 @@ export default function PrivacyPolicyPage() {
                   </tr>
                   <tr>
                     <td>Resident case records</td>
-                    <td>Duration of stay + 5 years (DSWD requirement)</td>
+                    <td>Duration of stay + 5 years (child welfare compliance)</td>
                   </tr>
                   <tr>
                     <td>Staff account data</td>
@@ -184,14 +184,14 @@ export default function PrivacyPolicyPage() {
               <li><strong>Object</strong> -- object to processing based on legitimate interest.</li>
             </ul>
 
-            <h3 className={styles.subTitle}>Philippine DPA Rights (RA 10173)</h3>
-            <p>Under the Philippine Data Privacy Act, you have the right to:</p>
+            <h3 className={styles.subTitle}>U.S. Privacy Rights</h3>
+            <p>Under applicable U.S. federal and territorial law, you have the right to:</p>
             <ul className={styles.list}>
               <li><strong>Be informed</strong> -- know how your data is being collected and processed.</li>
               <li><strong>Access</strong> -- obtain a copy of your personal data.</li>
               <li><strong>Correction</strong> -- have inaccurate data corrected.</li>
-              <li><strong>Erasure or blocking</strong> -- request deletion or blocking of data.</li>
-              <li><strong>Data portability</strong> -- receive data in an electronic or structured format.</li>
+              <li><strong>Deletion</strong> -- request deletion of your data, subject to legal retention requirements.</li>
+              <li><strong>Opt-out</strong> -- opt out of the sale or sharing of your personal data (we do not sell your data).</li>
             </ul>
 
             <p>To exercise any of these rights, email <a href="mailto:privacy@beaconofhope.org">privacy@beaconofhope.org</a>. We will respond within 30 days.</p>
@@ -261,7 +261,7 @@ export default function PrivacyPolicyPage() {
             <h2 className={styles.sectionTitle}>10. Data Breach Notification</h2>
             <p>In the event of a personal data breach, Beacon of Hope commits to:</p>
             <ul className={styles.list}>
-              <li>Notifying the National Privacy Commission (NPC) within 72 hours of discovery, as required by RA 10173.</li>
+              <li>Notifying the relevant supervisory authority within 72 hours of discovery, as required by GDPR and applicable U.S. law.</li>
               <li>Promptly notifying affected data subjects when the breach is likely to result in a risk to their rights and freedoms.</li>
               <li>Following a structured response process: detect, contain, assess, notify, and remediate.</li>
             </ul>
@@ -273,7 +273,7 @@ export default function PrivacyPolicyPage() {
             <ul className={styles.contactList}>
               <li><strong>Data Protection Officer:</strong> <a href="mailto:dpo@beaconofhope.org">dpo@beaconofhope.org</a></li>
               <li><strong>General Privacy Inquiries:</strong> <a href="mailto:privacy@beaconofhope.org">privacy@beaconofhope.org</a></li>
-              <li><strong>National Privacy Commission (Philippines):</strong> <a href="https://www.privacy.gov.ph/" target="_blank" rel="noopener noreferrer">www.privacy.gov.ph</a></li>
+              <li><strong>Federal Trade Commission (FTC):</strong> <a href="https://www.ftc.gov/" target="_blank" rel="noopener noreferrer">www.ftc.gov</a></li>
             </ul>
           </section>
 
