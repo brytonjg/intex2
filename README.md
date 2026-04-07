@@ -16,6 +16,9 @@ A web application for **Beacon of Hope**, a nonprofit organization supporting su
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - [Node.js 20+](https://nodejs.org/)
+### First-time setup
+
+Create a `.env` file in `backend/` with your connection string (see `.env.example`).
 
 ### Backend
 
@@ -53,7 +56,7 @@ These accounts are created automatically when the backend seeds the database on 
 
 - **Frontend** — Auto-deploys to Vercel from the `main` branch
 - **Backend** — Deployed to Microsoft Azure
-- **Database** — Azure PostgreSQL
+- **Database** — Azure Database for PostgreSQL Flexible Server
 
 ## Team Workflow
 
@@ -63,7 +66,7 @@ These accounts are created automatically when the backend seeds the database on 
 
 ## Database Migrations
 
-EF Core is the sole schema manager. Migrations run automatically at app startup via `MigrateAsync()`.
+The production database is Azure Database for PostgreSQL Flexible Server (`intex-db.postgres.database.azure.com`). Migrations run automatically at app startup via `MigrateAsync()`.
 
 ### Workflow
 
@@ -75,6 +78,7 @@ EF Core is the sole schema manager. Migrations run automatically at app startup 
 2. **The backend applies it on next startup** — no manual step needed.
 
 3. **Commit and push** the migration files.
+
 
 ## ML Artifacts
 

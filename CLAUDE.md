@@ -91,14 +91,6 @@ intex2/
 
 5. [PROCESS] Before modifying any existing code, check what tests cover that code. Update or add tests to reflect the new behavior before making the code change. After the change, run the full test suite to ensure nothing is broken.
 
-6. [DATA] Superseded by rule 11.
+6. [DATA] The database is Azure Database for PostgreSQL Flexible Server (`intex-db.postgres.database.azure.com`), managed entirely by EF Core. `MigrateAsync()` runs at startup in Program.cs. To add/change tables: edit C# models → `dotnet ef migrations add <Name>` → the backend applies it on next startup. Only manage your own tables (AspNet*, domain tables) in the DbContext.
 
-7. [DATA] Superseded by rule 11.
-
-8. [DATA] Superseded by rule 11.
-
-9. [DATA] Superseded by rule 11.
-
-10. [DATA] Superseded by rule 11.
-
-11. [DATA] The database is Azure PostgreSQL, managed entirely by EF Core. `MigrateAsync()` runs at startup in Program.cs. To add/change tables: edit C# models → `dotnet ef migrations add <Name>` → the backend applies it on next startup. `DataSeeder.SeedAsync()` also runs at startup and populates domain data (safehouses, residents, etc.) if tables are empty. Only manage your own tables (AspNet*, domain tables) in the DbContext.
+7. [DATA] For Npgsql connection strings, use camelCase key names without spaces: `SslMode` (not `SSL Mode`), `TrustServerCertificate` (not `Trust Server Certificate`), `Username` (not `User Id`). Npgsql 10.x is strict about this.
