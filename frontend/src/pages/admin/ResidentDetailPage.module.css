@@ -18,7 +18,7 @@
   gap: 0.35rem;
   font-size: 0.82rem;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--color-amber-dark);
   background: none;
   border: none;
   cursor: pointer;
@@ -189,7 +189,7 @@
 }
 
 .sectionIcon {
-  color: var(--color-sage);
+  color: var(--color-amber-dark);
 }
 
 .sectionBody {

@@ -34,9 +34,9 @@
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: var(--color-sage);
-  background: rgba(15, 143, 125, 0.12);
-  border: 1px solid rgba(15, 143, 125, 0.24);
+  color: var(--color-amber-dark);
+  background: rgba(212, 111, 21, 0.12);
+  border: 1px solid rgba(212, 111, 21, 0.24);
   padding: 0.2rem 0.5rem;
   border-radius: 999px;
 }
@@ -133,7 +133,7 @@
 }
 
 .metricUp {
-  color: var(--color-sage);
+  color: var(--color-amber-dark);
 }
 
 .metricDanger {
@@ -316,7 +316,7 @@
 .viewAllBtn {
   font-size: 0.74rem;
   font-weight: 700;
-  color: var(--color-sage);
+  color: var(--color-amber-dark);
   cursor: pointer;
   border: none;
   background: none;
@@ -403,7 +403,7 @@
 }
 
 .chartCallout {
-  color: var(--color-sage);
+  color: var(--color-amber-dark);
 }
 
 .chartCalloutDanger {

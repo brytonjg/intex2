@@ -96,8 +96,8 @@
 .tabCount {
   font-size: 0.7rem;
   font-weight: 700;
-  background: rgba(15, 143, 125, 0.15);
-  color: var(--color-sage);
+  background: rgba(212, 111, 21, 0.15);
+  color: var(--color-amber-dark);
   padding: 0.1rem 0.45rem;
   border-radius: 999px;
 }

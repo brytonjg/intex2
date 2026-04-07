@@ -227,9 +227,9 @@
 }
 
 .flagProgress {
-  background: rgba(15, 143, 125, 0.1);
-  color: var(--color-sage);
-  border: 1px solid rgba(15, 143, 125, 0.25);
+  background: rgba(212, 111, 21, 0.1);
+  color: var(--color-amber-dark);
+  border: 1px solid rgba(212, 111, 21, 0.25);
 }
 
 .flagsCell {

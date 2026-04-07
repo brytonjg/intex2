@@ -61,7 +61,7 @@
 
 .heroHeadline em {
   font-style: italic;
-  color: var(--color-amber);
+  color: var(--color-amber-dark);
 }
 
 .heroSub {
@@ -384,7 +384,7 @@
 }
 
 .involvedIcon {
-  color: var(--color-sage);
+  color: var(--color-amber-dark);
   margin-bottom: 0.75rem;
 }
 
@@ -453,7 +453,7 @@
   font-size: clamp(2rem, 4vw, 2.4rem);
   font-weight: 600;
   line-height: 1;
-  color: var(--color-sage);
+  color: var(--color-amber-dark);
 }
 
 .donateDesc {
