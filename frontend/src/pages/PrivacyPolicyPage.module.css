@@ -1,0 +1,255 @@
+.page {
+  background: var(--color-cream);
+  min-height: 100vh;
+  padding: 3rem 1.5rem 5rem;
+}
+
+.container {
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: var(--color-deep-navy);
+  margin-bottom: 0.5rem;
+}
+
+.lastUpdated {
+  font-size: 0.85rem;
+  color: var(--color-warm-gray);
+  margin-bottom: 1rem;
+}
+
+.printBtn {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.45rem 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-light-gray);
+  background: var(--color-warm-white);
+  color: var(--color-slate);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.printBtn:hover {
+  border-color: var(--color-amber);
+  color: var(--color-amber-dark);
+}
+
+/* Table of Contents */
+.toc {
+  background: var(--color-warm-white);
+  border: 1px solid rgba(212, 168, 83, 0.15);
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  margin-bottom: 3rem;
+}
+
+.tocTitle {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--color-deep-navy);
+  margin-bottom: 0.75rem;
+}
+
+.tocList {
+  columns: 2;
+  column-gap: 2rem;
+  list-style: none;
+  padding: 0;
+}
+
+.tocLink {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--color-slate);
+  text-decoration: none;
+  padding: 0.3rem 0;
+  transition: color 0.2s;
+}
+
+.tocLink:hover {
+  color: var(--color-amber-dark);
+}
+
+/* Content */
+.content section {
+  margin-bottom: 2.5rem;
+  scroll-margin-top: calc(var(--header-height) + 1rem);
+}
+
+.sectionTitle {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--color-deep-navy);
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-light-gray);
+}
+
+.subTitle {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-navy-soft);
+  margin-top: 1.25rem;
+  margin-bottom: 0.4rem;
+}
+
+.content p {
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: var(--color-deep-navy);
+  margin-bottom: 0.75rem;
+}
+
+.content a {
+  color: var(--color-amber-dark);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.content a:hover {
+  color: var(--color-amber);
+}
+
+.list {
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.list li {
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: var(--color-deep-navy);
+  margin-bottom: 0.4rem;
+}
+
+.contactList {
+  list-style: none;
+  padding: 0;
+}
+
+.contactList li {
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: var(--color-deep-navy);
+  margin-bottom: 0.5rem;
+  padding-left: 0;
+}
+
+/* Table */
+.tableWrapper {
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.table th,
+.table td {
+  padding: 0.65rem 0.85rem;
+  text-align: left;
+  border: 1px solid var(--color-light-gray);
+}
+
+.table th {
+  background: var(--color-sand);
+  font-weight: 600;
+  color: var(--color-deep-navy);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.table td {
+  background: var(--color-warm-white);
+  color: var(--color-deep-navy);
+}
+
+.table a {
+  color: var(--color-amber-dark);
+}
+
+/* Manage preferences button */
+.managePrefsBtn {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  border: none;
+  background: var(--color-amber);
+  color: var(--color-deep-navy);
+  cursor: pointer;
+  transition: all 0.25s;
+  margin-top: 0.5rem;
+}
+
+.managePrefsBtn:hover {
+  background: var(--color-amber-light);
+}
+
+/* Print styles */
+@media print {
+  .page {
+    padding: 0;
+    background: white;
+  }
+
+  .printBtn,
+  .managePrefsBtn {
+    display: none;
+  }
+
+  .toc {
+    break-after: page;
+  }
+
+  .sectionTitle {
+    break-after: avoid;
+  }
+
+  .content section {
+    break-inside: avoid;
+  }
+}
+
+@media (max-width: 768px) {
+  .title {
+    font-size: 2rem;
+  }
+
+  .tocList {
+    columns: 1;
+  }
+
+  .toc {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .table {
+    font-size: 0.78rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.5rem 0.65rem;
+  }
+}

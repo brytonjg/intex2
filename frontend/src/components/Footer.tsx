@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom';
 import { Heart } from 'lucide-react';
+import { useCookieConsent } from '../contexts/CookieConsentContext';
 import styles from './Footer.module.css';
 
 export default function Footer() {
+  const { openPreferencesModal } = useCookieConsent();
+
   return (
     <footer className={styles.footer}>
       <div className={styles.inner}>
@@ -25,8 +28,10 @@ export default function Footer() {
             </div>
             <div className={styles.linkGroup}>
               <h4 className={styles.linkGroupTitle}>Legal</h4>
-              <Link to="/privacy">Privacy Policy</Link>
-              <button className={styles.cookieBtn}>Cookie Settings</button>
+              <Link to="/privacy-policy">Privacy Policy</Link>
+              <button className={styles.cookieBtn} onClick={openPreferencesModal}>
+                Cookie Settings
+              </button>
             </div>
             <div className={styles.linkGroup}>
               <h4 className={styles.linkGroupTitle}>Connect</h4>

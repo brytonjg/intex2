@@ -1,28 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useCookieConsent } from '../contexts/CookieConsentContext';
 import styles from './CookieConsent.module.css';
 
 export default function CookieConsent() {
-  const [visible, setVisible] = useState(false);
+  const { showBanner, updateConsent, openPreferencesModal } = useCookieConsent();
 
-  useEffect(() => {
-    const consent = localStorage.getItem('cookie-consent');
-    if (!consent) {
-      const timer = setTimeout(() => setVisible(true), 1200);
-      return () => clearTimeout(timer);
-    }
-  }, []);
+  if (!showBanner) return null;
 
-  function accept() {
-    localStorage.setItem('cookie-consent', 'accepted');
-    setVisible(false);
+  function acceptAll() {
+    updateConsent({ analytics: true, functional: true });
   }
 
-  function decline() {
-    localStorage.setItem('cookie-consent', 'declined');
-    setVisible(false);
+  function rejectNonEssential() {
+    updateConsent({ analytics: false, functional: false });
   }
-
-  if (!visible) return null;
 
   return (
     <div className={styles.banner} role="dialog" aria-label="Cookie consent">
@@ -30,17 +20,20 @@ export default function CookieConsent() {
         <p className={styles.text}>
           We use cookies to improve your experience and analyze site usage.
           See our{' '}
-          <a href="/privacy" className={styles.link}>
+          <a href="/privacy-policy" className={styles.link}>
             Privacy Policy
           </a>{' '}
           for details.
         </p>
         <div className={styles.buttons}>
-          <button onClick={decline} className={styles.declineBtn}>
-            Decline
+          <button onClick={rejectNonEssential} className={styles.declineBtn}>
+            Reject Non-Essential
           </button>
-          <button onClick={accept} className={styles.acceptBtn}>
-            Accept Cookies
+          <button onClick={openPreferencesModal} className={styles.manageBtn}>
+            Manage Preferences
+          </button>
+          <button onClick={acceptAll} className={styles.acceptBtn}>
+            Accept All
           </button>
         </div>
       </div>

@@ -1,10 +1,16 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, User } from 'lucide-react';
+import { Menu, X, User, LogOut } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 import styles from './Header.module.css';
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { isAuthenticated, user, logout } = useAuth();
+
+  async function handleLogout() {
+    await logout();
+  }
 
   return (
     <header className={styles.header}>
@@ -30,10 +36,23 @@ export default function Header() {
         </nav>
 
         <div className={styles.actions}>
-          <Link to="/admin" className={styles.loginBtn}>
-            <User size={16} />
-            <span>Login</span>
-          </Link>
+          {isAuthenticated && user ? (
+            <>
+              <Link to="/admin" className={styles.loginBtn}>
+                <User size={16} />
+                <span>{user.firstName}</span>
+              </Link>
+              <button onClick={handleLogout} className={styles.loginBtn} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                <LogOut size={16} />
+                <span>Logout</span>
+              </button>
+            </>
+          ) : (
+            <Link to="/login" className={styles.loginBtn}>
+              <User size={16} />
+              <span>Login</span>
+            </Link>
+          )}
           <button
             className={styles.menuToggle}
             onClick={() => setMenuOpen(!menuOpen)}
