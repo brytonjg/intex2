@@ -32,6 +32,51 @@ This file contains a growing ruleset that improves over time. **At session start
 
 ---
 
+## Project Structure
+
+The repository follows a strict top-level layout. Do not create new top-level directories or move existing ones without explicit approval.
+
+```
+intex2/
+├── backend/          # .NET 10 C# Web API (ASP.NET, EF Core, Identity)
+├── backend.Tests/    # xUnit tests for backend (mirrors backend/ structure)
+├── frontend/         # React 19 + TypeScript + Vite
+│   └── src/
+│       ├── __tests__/    # Vitest tests
+│       ├── components/   # Reusable UI components
+│       ├── contexts/     # React contexts (auth, cookies, etc.)
+│       ├── hooks/        # Custom hooks
+│       ├── layouts/      # Page layouts
+│       ├── pages/        # Route-level page components
+│       ├── utils/        # Utility functions
+│       ├── api.ts        # API client
+│       ├── constants.ts  # App constants
+│       ├── domain.ts     # Domain types
+│       └── types.ts      # Shared TypeScript types
+├── ml/               # Python ML code, organized by model use-case
+│   ├── <model_name>/ # Each model gets its own subdirectory
+│   ├── config.py     # Shared ML configuration
+│   ├── utils_db.py   # DB utilities for ML scripts
+│   └── requirements.txt
+├── models/           # Trained model artifacts (.sav files) — planned move to ml/models/
+├── data/             # CSV seed/import data — planned move to supabase/data/
+├── scripts/          # Utility shell scripts (setup-env.sh, etc.)
+├── supabase/         # Database migrations and seed SQL
+├── INTEX/            # Project documentation, rubric, audit notes
+├── .github/          # CI/CD workflows (GitHub Actions)
+└── CLAUDE.md         # This file — agent instructions and rules
+```
+
+### Structure rules
+
+- **Never commit build artifacts.** `frontend/dist/`, `node_modules/`, `bin/`, `obj/` must stay gitignored.
+- **ML code goes in `ml/`.** Each model/prediction task gets its own subdirectory under `ml/`. Do not create separate top-level directories for ML scripts or notebooks.
+- **Tests live next to what they test.** Backend tests in `backend.Tests/`, frontend tests in `frontend/src/__tests__/`.
+- **New frontend files** go in the appropriate `src/` subdirectory (`components/`, `pages/`, `hooks/`, etc.). Do not add new subdirectories under `src/` without good reason.
+- **Configuration and environment files** follow existing patterns (`.env.example` templates committed, actual `.env` files gitignored).
+
+---
+
 ## Learned Rules
 
 <!-- New rules are appended below this line. Do not edit above this section. -->
