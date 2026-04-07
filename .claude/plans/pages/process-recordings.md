@@ -521,7 +521,7 @@ Ideas that go beyond IS413 minimum requirements to demonstrate technical depth, 
 
 **1. Auto-save with conflict resolution (US-2, US-5)**
 The plan specifies localStorage auto-save every 30 seconds. Go further:
-- Save drafts server-side (Supabase row with `status = 'draft'`) so drafts survive device changes and localStorage clearing.
+- Save drafts server-side (database row with `status = 'draft'`) so drafts survive device changes and localStorage clearing.
 - If two workers open the same resident's form, detect the conflict and warn: "Elena started a recording for this resident 5 minutes ago. Continue anyway?"
 - Show a "Last saved: 2:31 PM (server)" indicator that distinguishes local vs. server saves.
 - **Why it matters:** Social workers lose 30-minute narratives regularly to browser crashes, session timeouts, and shared computers. This directly addresses Elena's top frustration.
@@ -561,7 +561,7 @@ The plan specifies localStorage auto-save every 30 seconds. Go further:
 
 **7. Full-text search within recordings (critique)**
 - Add a search bar on the session history page that searches within `session_narrative` text.
-- Use Supabase's `to_tsvector` / `to_tsquery` for PostgreSQL full-text search.
+- Use PostgreSQL's `to_tsvector` / `to_tsquery` for full-text search.
 - Results highlight matching terms within the narrative preview.
 - **Why it matters:** Relief social workers need to quickly find specific topics across 50+ sessions. "Find the session where she talked about her sister" is a real use case that the current plan cannot support.
 

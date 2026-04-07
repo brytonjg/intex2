@@ -727,7 +727,7 @@ Ideas that go beyond minimum IS413/IS414 requirements and could earn extra credi
 
 ### Overview
 
-This plan covers the full-stack implementation of the Caseload Inventory page. The existing codebase uses .NET 10 minimal APIs (no controllers), React+Vite+TypeScript on the frontend, EF Core with PostgreSQL (Supabase), and a single `Program.cs` file for all endpoint definitions. There is already a basic `GET /api/admin/residents` endpoint that returns the top 20 active residents for the admin dashboard widget; the caseload page requires a complete replacement with full CRUD, filtering, pagination, and sorting.
+This plan covers the full-stack implementation of the Caseload Inventory page. The existing codebase uses .NET 10 minimal APIs (no controllers), React+Vite+TypeScript on the frontend, EF Core with Azure PostgreSQL, and a single `Program.cs` file for all endpoint definitions. There is already a basic `GET /api/admin/residents` endpoint that returns the top 20 active residents for the admin dashboard widget; the caseload page requires a complete replacement with full CRUD, filtering, pagination, and sorting.
 
 The current `apiFetch` helper in `frontend/src/api.ts` only supports GET. It must be extended to support POST/PUT/DELETE with JSON bodies. Auth is not yet wired up in the codebase -- endpoints below are written as if auth middleware exists; the actual `[Authorize]` setup is a separate task.
 
