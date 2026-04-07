@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowUpRight, AlertTriangle, Calendar, UserPlus, DollarSign, FileText } from 'lucide-react';
 import { apiFetch } from '../api';
-import { formatMonthLabel } from '../constants';
+import { formatMonthLabel, formatEnumLabel } from '../constants';
 import { ChartTooltip } from '../components/ChartTooltip';
 import { ApiError } from '../components/ApiError';
 import {
@@ -124,7 +124,7 @@ export default function AdminDashboard() {
     apiFetch<ApiDonation[]>('/api/admin/recent-donations').then(data => {
       setDonations(data.map(d => ({
         supporter: d.supporter ?? 'Anonymous',
-        type: d.donationType ?? '',
+        type: formatEnumLabel(d.donationType ?? ''),
         amount: d.amount ? `₱${Number(d.amount).toLocaleString()}` : d.estimatedValue ? `₱${Number(d.estimatedValue).toLocaleString()} est.` : '—',
         date: d.donationDate ? new Date(d.donationDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '',
         campaign: d.campaignName ?? '—',
@@ -140,7 +140,7 @@ export default function AdminDashboard() {
     }).catch(onErr);
 
     apiFetch<Array<{ channel: string; count: number }>>('/api/admin/donations-by-channel').then(data => {
-      setChannels(data.map(d => ({ channel: d.channel, amount: d.count })));
+      setChannels(data.map(d => ({ channel: formatEnumLabel(d.channel), amount: d.count })));
     }).catch(onErr);
 
   }, []);
