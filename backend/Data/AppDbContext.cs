@@ -47,10 +47,69 @@ public partial class AppDbContext : IdentityDbContext<ApplicationUser>
 
     public virtual DbSet<Supporter> Supporters { get; set; }
 
+    public virtual DbSet<MlPrediction> MlPredictions { get; set; }
+
+    public virtual DbSet<MlPredictionHistory> MlPredictionHistory { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.Entity<MlPrediction>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("ml_predictions_pkey");
+
+            entity.ToTable("ml_predictions");
+
+            entity.HasIndex(e => new { e.EntityType, e.EntityId, e.ModelName })
+                .IsUnique()
+                .HasDatabaseName("ml_predictions_entity_type_entity_id_model_name_key");
+
+            entity.HasIndex(e => new { e.EntityType, e.EntityId })
+                .HasDatabaseName("idx_ml_predictions_entity");
+
+            entity.HasIndex(e => new { e.ModelName, e.Score })
+                .IsDescending(false, true)
+                .HasDatabaseName("idx_ml_predictions_model_score");
+
+            entity.HasIndex(e => new { e.ModelName, e.ScoreLabel })
+                .HasDatabaseName("idx_ml_predictions_label");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.EntityType).HasColumnName("entity_type");
+            entity.Property(e => e.EntityId).HasColumnName("entity_id");
+            entity.Property(e => e.ModelName).HasColumnName("model_name");
+            entity.Property(e => e.ModelVersion).HasColumnName("model_version");
+            entity.Property(e => e.Score).HasColumnName("score").HasColumnType("numeric(6,2)");
+            entity.Property(e => e.ScoreLabel).HasColumnName("score_label");
+            entity.Property(e => e.PredictedAt).HasColumnName("predicted_at").HasDefaultValueSql("now()");
+            entity.Property(e => e.Metadata).HasColumnName("metadata").HasColumnType("jsonb");
+        });
+
+        modelBuilder.Entity<MlPredictionHistory>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("ml_prediction_history_pkey");
+
+            entity.ToTable("ml_prediction_history");
+
+            entity.HasIndex(e => new { e.EntityType, e.EntityId, e.ModelName, e.PredictedAt })
+                .IsDescending(false, false, false, true)
+                .HasDatabaseName("idx_ml_history_entity_model");
+
+            entity.HasIndex(e => new { e.ModelName, e.PredictedAt })
+                .IsDescending(false, true)
+                .HasDatabaseName("idx_ml_history_model");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.EntityType).HasColumnName("entity_type");
+            entity.Property(e => e.EntityId).HasColumnName("entity_id");
+            entity.Property(e => e.ModelName).HasColumnName("model_name");
+            entity.Property(e => e.ModelVersion).HasColumnName("model_version");
+            entity.Property(e => e.Score).HasColumnName("score").HasColumnType("numeric(6,2)");
+            entity.Property(e => e.ScoreLabel).HasColumnName("score_label");
+            entity.Property(e => e.PredictedAt).HasColumnName("predicted_at").HasDefaultValueSql("now()");
+            entity.Property(e => e.Metadata).HasColumnName("metadata").HasColumnType("jsonb");
+        });
 
         modelBuilder.Entity<Donation>(entity =>
         {
@@ -61,6 +120,12 @@ public partial class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.HasIndex(e => e.ReferralPostId, "donations_referral_post_id_idx");
 
             entity.HasIndex(e => e.SupporterId, "donations_supporter_id_idx");
+
+            entity.HasIndex(e => new { e.SupporterId, e.DonationType, e.DonationDate })
+                .HasDatabaseName("donations_supporter_type_date_idx");
+
+            entity.HasIndex(e => e.CampaignName)
+                .HasDatabaseName("donations_campaign_name_idx");
 
             entity.Property(e => e.DonationId).HasColumnName("donation_id");
             entity.Property(e => e.Amount).HasColumnName("amount");
@@ -487,6 +552,9 @@ public partial class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.HasKey(e => e.PostId).HasName("social_media_posts_pkey");
 
             entity.ToTable("social_media_posts");
+
+            entity.HasIndex(e => new { e.CampaignName, e.CreatedAt })
+                .HasDatabaseName("social_posts_campaign_created_idx");
 
             entity.Property(e => e.PostId).HasColumnName("post_id");
             entity.Property(e => e.AvgViewDurationSeconds).HasColumnName("avg_view_duration_seconds");
