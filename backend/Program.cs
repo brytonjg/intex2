@@ -72,12 +72,9 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// ── Apply pending migrations & seed data ────────────────────
-// Safe with direct PostgreSQL connections (localhost, Azure App Service).
+// ── Seed Identity roles and test accounts ───────────────────
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await db.Database.MigrateAsync();
     await IdentitySeeder.SeedAsync(scope.ServiceProvider);
     await DataSeeder.SeedAsync(scope.ServiceProvider);
 }
