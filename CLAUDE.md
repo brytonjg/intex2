@@ -46,10 +46,10 @@ This file contains a growing ruleset that improves over time. **At session start
 
 5. [PROCESS] Before modifying any existing code, check what tests cover that code. Update or add tests to reflect the new behavior before making the code change. After the change, run the full test suite to ensure nothing is broken.
 
-6. [DATA] Never run EF Core migrations at app startup (no `MigrateAsync()` or `Database.Migrate()` in Program.cs) — the Supabase transaction pooler (PgBouncer) does not support migration operations and will throw `ObjectDisposedException`. Migrations must be applied manually from a developer's local machine using the direct IPv6 connection.
+6. [DATA] The production database is Azure Database for PostgreSQL Flexible Server (`intex-db.postgres.database.azure.com`), not Supabase. EF Core has full control — migrations, reads, and writes all work directly without any pooler issues. Migrations auto-apply at startup via `MigrateAsync()` in Program.cs.
 
-7. [DATA] To apply EF Core migrations to the production Supabase database, use the direct IPv6 connection (port 5432), never the transaction pooler (port 6543). Command: `dotnet ef database update --project backend --connection "Host=2600:1f18:2e13:9d56:3f45:a9b1:dd9c:21a4;Port=5432;Database=postgres;User Id=postgres;Password=<password>;SSL Mode=Require;Trust Server Certificate=true"`. The IPv6 address is for `db.eetsyddzvjcqdihgvvew.supabase.co` which lacks an IPv4 record.
+7. [DATA] To apply EF Core migrations to the production database: `dotnet ef database update --project backend --connection "Host=intex-db.postgres.database.azure.com;Port=5432;Database=postgres;Username=postgres;Password=<password>;SslMode=Require;TrustServerCertificate=true"`. Developers must have their IP added to the Azure PostgreSQL firewall rules.
 
-8. [DATA] Never register Supabase-owned schemas (auth, realtime, storage, net, vault, graphql, extensions) in AppDbContext via `HasPostgresEnum` or `HasPostgresExtension` — EF Core will try to create them in migrations and fail with permission errors. Only manage your own tables (AspNet*, domain tables) in the DbContext.
+8. [DATA] Never register third-party-owned schemas in AppDbContext via `HasPostgresEnum` or `HasPostgresExtension` — only manage your own tables (AspNet*, domain tables) in the DbContext.
 
-9. [DATA] The Azure App Service runtime connection uses the Supabase transaction pooler (`Host=aws-1-us-east-1.pooler.supabase.com;Port=6543`) which works for normal queries. The direct connection is only needed for running migrations locally.
+9. [DATA] For Npgsql connection strings, use camelCase key names without spaces: `SslMode` (not `SSL Mode`), `TrustServerCertificate` (not `Trust Server Certificate`), `Username` (not `User Id`). Npgsql 10.x is strict about this.

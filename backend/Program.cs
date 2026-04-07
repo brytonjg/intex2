@@ -72,9 +72,11 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// ── Seed Identity roles and test accounts ───────────────────
+// ── Apply pending migrations & seed Identity ───────────────
 using (var scope = app.Services.CreateScope())
 {
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.MigrateAsync();
     await IdentitySeeder.SeedAsync(scope.ServiceProvider);
 }
 
