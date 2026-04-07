@@ -5,6 +5,7 @@ import { apiFetch } from '../api';
 import type { ImpactSummary } from '../types';
 import { formatMonthLabel } from '../constants';
 import { ChartTooltip } from '../components/ChartTooltip';
+import { ApiError } from '../components/ApiError';
 import {
   BarChart,
   Bar,
@@ -17,31 +18,6 @@ import {
 } from 'recharts';
 import styles from './ImpactPage.module.css';
 
-/* ── Fallback static data ──────────────────────────────── */
-
-const fallbackDonations = [
-  { month: 'Jan 23', total: 1380 },
-  { month: 'Apr 23', total: 5401 },
-  { month: 'Jul 23', total: 8230 },
-  { month: 'Oct 23', total: 6812 },
-  { month: 'Jan 24', total: 9120 },
-  { month: 'Apr 24', total: 7450 },
-  { month: 'Jul 24', total: 11340 },
-  { month: 'Oct 24', total: 9870 },
-  { month: 'Jan 25', total: 10250 },
-  { month: 'Apr 25', total: 12400 },
-];
-
-const fallbackAllocations = [
-  { area: 'Education', amount: 42800 },
-  { area: 'Health', amount: 31200 },
-  { area: 'Nutrition', amount: 18600 },
-  { area: 'Transport', amount: 12400 },
-  { area: 'Counseling', amount: 22100 },
-  { area: 'Housing', amount: 35800 },
-  { area: 'Supplies', amount: 8900 },
-  { area: 'Other', amount: 5200 },
-];
 
 
 const CHART_COLORS = {
@@ -68,36 +44,26 @@ export default function ImpactPage() {
   const ctaRef = useReveal();
 
   const [summary, setSummary] = useState<ImpactSummary | null>(null);
-  const [monthlyDonations, setMonthlyDonations] = useState(fallbackDonations);
-  const [allocationData, setAllocationData] = useState(fallbackAllocations);
+  const [monthlyDonations, setMonthlyDonations] = useState<Array<{ month: string; total: number }>>([]);
+  const [allocationData, setAllocationData] = useState<Array<{ area: string; amount: number }>>([]);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    apiFetch<ImpactSummary>('/api/impact/summary').then(setSummary).catch(e => console.error('API fetch failed', e));
+    apiFetch<ImpactSummary>('/api/impact/summary')
+      .then(setSummary)
+      .catch(e => { console.error('API fetch failed', e); setError(true); });
 
     apiFetch<Array<{ year: number; month: number; total: number }>>('/api/impact/donations-by-month')
-      .then(data => {
-        const formatted = data.map(d => ({
-          month: formatMonthLabel(d.year, d.month),
-          total: Math.round(Number(d.total)),
-        }));
-        if (formatted.length > 0) setMonthlyDonations(formatted);
-      })
-      .catch(e => console.error('API fetch failed', e));
+      .then(data => setMonthlyDonations(data.map(d => ({
+        month: formatMonthLabel(d.year, d.month),
+        total: Math.round(Number(d.total)),
+      }))))
+      .catch(e => { console.error('API fetch failed', e); setError(true); });
 
     apiFetch<Array<{ area: string; amount: number }>>('/api/impact/allocations-by-program')
-      .then(data => {
-        const formatted = data.map(d => ({ area: d.area, amount: Math.round(Number(d.amount)) }));
-        if (formatted.length > 0) setAllocationData(formatted);
-      })
-      .catch(e => console.error('API fetch failed', e));
+      .then(data => setAllocationData(data.map(d => ({ area: d.area, amount: Math.round(Number(d.amount)) }))))
+      .catch(e => { console.error('API fetch failed', e); setError(true); });
   }, []);
-
-  const stats = {
-    totalResidents: summary?.totalResidents ?? 247,
-    reintegrationRate: summary?.reintegrationRate ?? 68,
-    totalDonations: summary ? `₱${(Number(summary.totalDonations) / 1000000).toFixed(1)}M` : '₱4.2M',
-    activeSafehouses: summary?.activeSafehouses ?? 9,
-  };
 
   const latestDonation = monthlyDonations[monthlyDonations.length - 1];
 
@@ -108,26 +74,29 @@ export default function ImpactPage() {
         <div className={`${styles.statsInner} reveal`}>
           <div className={styles.statsLabel}>
             <h1 className={styles.statsHeadline}>Our impact, by the numbers</h1>
-            <p className={styles.statsUpdated}>Last updated: March 2025</p>
+            <p className={styles.statsUpdated}>Live data</p>
           </div>
-          <div className={`${styles.statsGrid} reveal-stagger`}>
-            <div className={`${styles.statItem} reveal`}>
-              <span className={styles.statNumber}>{stats.totalResidents}</span>
-              <span className={styles.statDesc}>Girls served</span>
+          {error && <ApiError />}
+          {summary && (
+            <div className={`${styles.statsGrid} reveal-stagger`}>
+              <div className={`${styles.statItem} reveal`}>
+                <span className={styles.statNumber}>{summary.totalResidents}</span>
+                <span className={styles.statDesc}>Girls served</span>
+              </div>
+              <div className={`${styles.statItem} reveal`}>
+                <span className={styles.statNumber}>{summary.reintegrationRate}%</span>
+                <span className={styles.statDesc}>Successfully reintegrated</span>
+              </div>
+              <div className={`${styles.statItem} reveal`}>
+                <span className={styles.statNumber}>₱{(Number(summary.totalDonations) / 1000000).toFixed(1)}M</span>
+                <span className={styles.statDesc}>Total donations</span>
+              </div>
+              <div className={`${styles.statItem} reveal`}>
+                <span className={styles.statNumber}>{summary.activeSafehouses}</span>
+                <span className={styles.statDesc}>Active safehouses</span>
+              </div>
             </div>
-            <div className={`${styles.statItem} reveal`}>
-              <span className={styles.statNumber}>{stats.reintegrationRate}%</span>
-              <span className={styles.statDesc}>Successfully reintegrated</span>
-            </div>
-            <div className={`${styles.statItem} reveal`}>
-              <span className={styles.statNumber}>{stats.totalDonations}</span>
-              <span className={styles.statDesc}>Total donations</span>
-            </div>
-            <div className={`${styles.statItem} reveal`}>
-              <span className={styles.statNumber}>{stats.activeSafehouses}</span>
-              <span className={styles.statDesc}>Active safehouses</span>
-            </div>
-          </div>
+          )}
         </div>
       </section>
 
@@ -137,9 +106,11 @@ export default function ImpactPage() {
           <div className={styles.chartHeader}>
             <div>
               <p className={styles.chartLabel}>Monthly donations over time</p>
-              <div className={styles.chartHighlight}>
-                <span className={styles.chartBigNumber}>₱{(latestDonation.total / 1000).toFixed(1)}k</span>
-              </div>
+              {latestDonation && (
+                <div className={styles.chartHighlight}>
+                  <span className={styles.chartBigNumber}>₱{(latestDonation.total / 1000).toFixed(1)}k</span>
+                </div>
+              )}
             </div>
           </div>
           <div className={styles.chartContainer}>

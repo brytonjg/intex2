@@ -12,13 +12,19 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "https://intex2-1.vercel.app")
+        policy.WithOrigins(
+                "http://localhost:5173",
+                "https://intex2-1.vercel.app",
+                "https://intex-backend-hehbb8gwb2e3b8b6.westus2-01.azurewebsites.net")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
 });
 
 var app = builder.Build();
+
+// DB connection is tested via /api/health — no startup check needed
+// (Startup checks corrupt the Npgsql connection pool with Supabase pooler)
 
 if (app.Environment.IsDevelopment())
 {
@@ -41,11 +47,32 @@ app.MapGet("/api/health", async (AppDbContext db) =>
     }
     catch { }
 
+    var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+    var buildDate = System.IO.File.GetLastWriteTimeUtc(assembly.Location).ToString("yyyy-MM-dd HH:mm:ss UTC");
+
     return new
     {
         status = canConnect ? "ok" : "degraded",
         database = canConnect ? "connected" : "unreachable",
-        environment = app.Environment.EnvironmentName
+        environment = app.Environment.EnvironmentName,
+        version = assembly.GetName().Version?.ToString() ?? "unknown",
+        buildDate,
+        endpoints = new[] {
+            "/api/health",
+            "/api/impact/summary",
+            "/api/impact/donations-by-month",
+            "/api/impact/allocations-by-program",
+            "/api/impact/education-trends",
+            "/api/impact/health-trends",
+            "/api/impact/safehouses",
+            "/api/impact/snapshots",
+            "/api/admin/metrics",
+            "/api/admin/residents",
+            "/api/admin/recent-donations",
+            "/api/admin/donations-by-channel",
+            "/api/admin/active-residents-trend",
+            "/api/admin/flagged-cases-trend"
+        }
     };
 });
 
