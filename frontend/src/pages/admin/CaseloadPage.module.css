@@ -229,7 +229,7 @@
 }
 
 .sortActive {
-  color: var(--color-sage);
+  color: var(--color-amber-dark);
 }
 
 .sortInactive {
@@ -286,9 +286,9 @@
 }
 
 .statusActive {
-  color: var(--color-sage);
-  background: rgba(15, 143, 125, 0.1);
-  border-color: rgba(15, 143, 125, 0.25);
+  color: var(--color-amber-dark);
+  background: rgba(212, 111, 21, 0.1);
+  border-color: rgba(212, 111, 21, 0.25);
 }
 
 .statusClosed {
