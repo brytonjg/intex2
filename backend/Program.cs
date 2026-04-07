@@ -14,8 +14,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(opts =>
 {
     opts.Password.RequiredLength = 12;
-    opts.Password.RequireUppercase = true;
-    opts.Password.RequireLowercase = true;
+    opts.Password.RequireUppercase = false;
+    opts.Password.RequireLowercase = false;
     opts.Password.RequireDigit = true;
     opts.Password.RequireNonAlphanumeric = true;
 
@@ -72,9 +72,11 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// ── Seed Identity roles and test accounts ───────────────────
+// ── Apply pending migrations & seed Identity ───────────────
 using (var scope = app.Services.CreateScope())
 {
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.MigrateAsync();
     await IdentitySeeder.SeedAsync(scope.ServiceProvider);
 }
 
