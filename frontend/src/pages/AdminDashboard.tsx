@@ -96,11 +96,13 @@ export default function AdminDashboard() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    const onErr = (e: unknown) => { console.error('API fetch failed', e); setError(true); };
+    const onErr = (e: unknown) => { console.error('API fetch failed', e); };
+    const onCriticalErr = (e: unknown) => { console.error('API fetch failed', e); setError(true); };
 
-    apiFetch<Metrics>('/api/admin/metrics').then(setMetrics).catch(onErr);
+    apiFetch<Metrics>('/api/admin/metrics').then(setMetrics).catch(onCriticalErr);
 
-    apiFetch<ApiResident[]>('/api/admin/residents').then(data => {
+    apiFetch<{ items: ApiResident[] }>('/api/admin/residents').then(resp => {
+      const data = resp.items ?? [];
       setResidents(data.map(r => {
         let lastSessionStr = 'Unknown';
         if (r.lastSession) {
@@ -240,8 +242,8 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {residents.map((r) => (
-                  <tr key={r.code} className={r.riskLevel === 'Critical' ? styles.rowCritical : ''}>
+                {residents.map((r, i) => (
+                  <tr key={`${r.code}-${i}`} className={r.riskLevel === 'Critical' ? styles.rowCritical : ''}>
                     <td>
                       <span className={styles.residentCode}>{r.code}</span>
                       <span className={styles.residentWorker}>{r.socialWorker}</span>
@@ -276,7 +278,7 @@ export default function AdminDashboard() {
           <div className={styles.donationsCard}>
             <div className={styles.cardHeader}>
               <h2 className={styles.cardTitle}>Recent Donations</h2>
-              <button className={styles.viewAllBtn}>View all</button>
+              <button className={styles.viewAllBtn} onClick={() => navigate('/admin/donors?tab=donations')}>View all</button>
             </div>
             <div className={styles.donationsList}>
               {donations.map((d, i) => (
