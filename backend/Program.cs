@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using backend.Data;
+using backend.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +9,49 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// ── ASP.NET Identity ────────────────────────────────────────
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(opts =>
+{
+    opts.Password.RequiredLength = 12;
+    opts.Password.RequireUppercase = true;
+    opts.Password.RequireLowercase = true;
+    opts.Password.RequireDigit = true;
+    opts.Password.RequireNonAlphanumeric = true;
+
+    opts.Lockout.MaxFailedAccessAttempts = 5;
+    opts.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+    opts.Lockout.AllowedForNewUsers = true;
+
+    opts.User.RequireUniqueEmail = true;
+})
+.AddEntityFrameworkStores<AppDbContext>()
+.AddDefaultTokenProviders();
+
+builder.Services.ConfigureApplicationCookie(opts =>
+{
+    opts.Cookie.HttpOnly = true;
+    opts.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+        ? CookieSecurePolicy.SameAsRequest
+        : CookieSecurePolicy.Always;
+    opts.Cookie.SameSite = SameSiteMode.Lax;
+    opts.Cookie.Name = "BeaconAuth";
+    opts.ExpireTimeSpan = TimeSpan.FromHours(8);
+    opts.SlidingExpiration = true;
+
+    opts.Events.OnRedirectToLogin = context =>
+    {
+        context.Response.StatusCode = 401;
+        return Task.CompletedTask;
+    };
+    opts.Events.OnRedirectToAccessDenied = context =>
+    {
+        context.Response.StatusCode = 403;
+        return Task.CompletedTask;
+    };
+});
+
+builder.Services.AddAuthorization();
 
 builder.Services.AddCors(options =>
 {
@@ -17,11 +62,18 @@ builder.Services.AddCors(options =>
                 "https://intex2-1.vercel.app",
                 "https://intex-backend-hehbb8gwb2e3b8b6.westus2-01.azurewebsites.net")
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
 var app = builder.Build();
+
+// ── Seed Identity roles and test accounts ───────────────────
+using (var scope = app.Services.CreateScope())
+{
+    await IdentitySeeder.SeedAsync(scope.ServiceProvider);
+}
 
 // DB connection is tested via /api/health — no startup check needed
 // (Startup checks corrupt the Npgsql connection pool with Supabase pooler)
@@ -31,8 +83,116 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
+app.UseCors("AllowFrontend");
+
+// ── Security headers ────────────────────────────────────────
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append(
+        "Content-Security-Policy",
+        "default-src 'self'; " +
+        "script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com; " +
+        "style-src 'self' 'unsafe-inline'; " +
+        "img-src 'self' data: https:; " +
+        "connect-src 'self' https://www.google-analytics.com https://*.supabase.co; " +
+        "font-src 'self' https://fonts.gstatic.com; " +
+        "frame-ancestors 'none'; " +
+        "form-action 'self'; " +
+        "base-uri 'self'"
+    );
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Append("X-Frame-Options", "DENY");
+    context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+    await next();
+});
+
+// ── Cache-control for auth endpoints ────────────────────────
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/api/auth"))
+    {
+        context.Response.Headers.Append("Cache-Control", "no-store, no-cache, must-revalidate");
+        context.Response.Headers.Append("Pragma", "no-cache");
+    }
+    await next();
+});
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+// ── Auth endpoints ──────────────────────────────────────────
+
+app.MapPost("/api/auth/login", async (
+    SignInManager<ApplicationUser> signInManager,
+    UserManager<ApplicationUser> userManager,
+    HttpContext httpContext) =>
+{
+    var body = await httpContext.Request.ReadFromJsonAsync<LoginRequest>();
+    if (body == null || string.IsNullOrWhiteSpace(body.Email) || string.IsNullOrWhiteSpace(body.Password))
+        return Results.BadRequest(new { error = "Email and password are required." });
+
+    var user = await userManager.FindByEmailAsync(body.Email);
+    if (user == null)
+        return Results.BadRequest(new { error = "Invalid email or password." });
+
+    if (await userManager.IsLockedOutAsync(user))
+    {
+        var lockoutEnd = await userManager.GetLockoutEndDateAsync(user);
+        return Results.Json(new
+        {
+            error = "Account temporarily locked. Try again later.",
+            lockoutEnd = lockoutEnd?.UtcDateTime.ToString("o")
+        }, statusCode: 423);
+    }
+
+    var result = await signInManager.PasswordSignInAsync(user, body.Password, body.RememberMe, lockoutOnFailure: true);
+    if (!result.Succeeded)
+    {
+        if (result.IsLockedOut)
+            return Results.Json(new { error = "Account temporarily locked due to multiple failed login attempts. Try again in 15 minutes." }, statusCode: 423);
+        return Results.BadRequest(new { error = "Invalid email or password." });
+    }
+
+    var roles = await userManager.GetRolesAsync(user);
+    return Results.Ok(new
+    {
+        email = user.Email,
+        firstName = user.FirstName,
+        lastName = user.LastName,
+        roles
+    });
+});
+
+app.MapPost("/api/auth/logout", async (SignInManager<ApplicationUser> signInManager) =>
+{
+    await signInManager.SignOutAsync();
+    return Results.Ok(new { message = "Logged out" });
+}).RequireAuthorization();
+
+app.MapGet("/api/auth/me", async (
+    HttpContext httpContext,
+    UserManager<ApplicationUser> userManager) =>
+{
+    if (httpContext.User.Identity?.IsAuthenticated != true)
+        return Results.Ok(new { isAuthenticated = false });
+
+    var user = await userManager.GetUserAsync(httpContext.User);
+    if (user == null)
+        return Results.Ok(new { isAuthenticated = false });
+
+    var roles = await userManager.GetRolesAsync(user);
+    return Results.Ok(new
+    {
+        isAuthenticated = true,
+        email = user.Email,
+        firstName = user.FirstName,
+        lastName = user.LastName,
+        roles
+    });
+});
+
+// ── Health endpoint ─────────────────────────────────────────
 
 app.MapGet("/api/health", async (AppDbContext db) =>
 {
@@ -59,6 +219,9 @@ app.MapGet("/api/health", async (AppDbContext db) =>
         buildDate,
         endpoints = new[] {
             "/api/health",
+            "/api/auth/login",
+            "/api/auth/logout",
+            "/api/auth/me",
             "/api/impact/summary",
             "/api/impact/donations-by-month",
             "/api/impact/allocations-by-program",
@@ -81,12 +244,8 @@ app.MapGet("/api/health", async (AppDbContext db) =>
 // Always await queries sequentially (one at a time).
 // Using Task.WhenAll causes ObjectDisposedException with Supabase pooler + Npgsql.
 //
-// ✅ var x = await db.Table1.CountAsync();
+// var x = await db.Table1.CountAsync();
 //    var y = await db.Table2.CountAsync();
-//
-// ❌ var t1 = db.Table1.CountAsync();
-//    var t2 = db.Table2.CountAsync();
-//    await Task.WhenAll(t1, t2);
 
 // ── Public endpoints (Impact page, Home page) ──────────────
 
@@ -393,3 +552,12 @@ app.MapGet("/api/admin/flagged-cases-trend", async (AppDbContext db) =>
 });
 
 app.Run();
+
+// ── Request DTOs ────────────────────────────────────────────
+
+public class LoginRequest
+{
+    public string Email { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public bool RememberMe { get; set; }
+}

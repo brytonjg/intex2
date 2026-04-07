@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
@@ -10,6 +10,7 @@ import {
   LogOut,
   UserCircle,
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 import styles from './AdminLayout.module.css';
 
 const navItems = [
@@ -22,6 +23,19 @@ const navItems = [
 ];
 
 export default function AdminLayout() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  async function handleLogout() {
+    await logout();
+    navigate('/login', { replace: true });
+  }
+
+  const displayName = user
+    ? `${user.firstName} ${user.lastName}`
+    : 'User';
+  const displayRole = user?.roles?.[0] ?? 'Staff';
+
   return (
     <div className={styles.layout}>
       <aside className={styles.sidebar}>
@@ -56,18 +70,18 @@ export default function AdminLayout() {
             <Settings size={18} />
             <span>Settings</span>
           </NavLink>
-          <a href="/" className={styles.navItem}>
+          <button onClick={handleLogout} className={styles.navItem} style={{ border: 'none', background: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }}>
             <LogOut size={18} />
             <span>Logout</span>
-          </a>
+          </button>
         </nav>
 
         <div className={styles.userProfile}>
           <div className={styles.userAvatar}>
             <UserCircle size={56} strokeWidth={1} />
           </div>
-          <p className={styles.userName}>Joe Hernando</p>
-          <p className={styles.userRole}>Admin</p>
+          <p className={styles.userName}>{displayName}</p>
+          <p className={styles.userRole}>{displayRole}</p>
           <button className={styles.editProfileBtn}>Edit Profile</button>
         </div>
       </aside>

@@ -1,0 +1,242 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    160deg,
+    var(--color-cream) 0%,
+    var(--color-sand) 50%,
+    var(--color-cream) 100%
+  );
+  padding: 2rem 1rem;
+}
+
+.container {
+  width: 100%;
+  max-width: 440px;
+}
+
+.card {
+  background: var(--color-warm-white);
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  box-shadow:
+    0 4px 24px rgba(27, 40, 56, 0.06),
+    0 1px 4px rgba(27, 40, 56, 0.04);
+  border: 1px solid rgba(212, 168, 83, 0.12);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.logoIcon {
+  display: inline-block;
+  font-size: 2rem;
+  color: var(--color-amber);
+  margin-bottom: 0.5rem;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--color-deep-navy);
+  margin-bottom: 0.25rem;
+}
+
+.subtitle {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-style: italic;
+  color: var(--color-slate);
+  margin-bottom: 0.25rem;
+}
+
+.nonprofit {
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-warm-gray);
+}
+
+.errorBanner {
+  background: rgba(196, 117, 110, 0.1);
+  border: 1px solid var(--color-rose);
+  color: var(--color-rose);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.4;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-deep-navy);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.input {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--color-light-gray);
+  border-radius: 8px;
+  background: var(--color-cream);
+  color: var(--color-deep-navy);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--color-warm-gray);
+}
+
+.input:focus {
+  border-color: var(--color-amber);
+  box-shadow: 0 0 0 3px rgba(212, 168, 83, 0.15);
+}
+
+.inputError {
+  border-color: var(--color-rose);
+}
+
+.inputError:focus {
+  box-shadow: 0 0 0 3px rgba(196, 117, 110, 0.15);
+}
+
+.fieldError {
+  font-size: 0.78rem;
+  color: var(--color-rose);
+  margin-top: 0.15rem;
+}
+
+.passwordWrapper {
+  position: relative;
+}
+
+.passwordInput {
+  width: 100%;
+  padding-right: 2.75rem;
+}
+
+.eyeBtn {
+  position: absolute;
+  right: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--color-warm-gray);
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+
+.eyeBtn:hover {
+  color: var(--color-deep-navy);
+}
+
+.options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rememberMe {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--color-slate);
+  cursor: pointer;
+}
+
+.rememberMe input {
+  accent-color: var(--color-amber);
+  width: 15px;
+  height: 15px;
+}
+
+.submitBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  background: var(--color-deep-navy);
+  color: white;
+  cursor: pointer;
+  transition: all 0.25s;
+  margin-top: 0.5rem;
+}
+
+.submitBtn:hover:not(:disabled) {
+  background: var(--color-navy-soft);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(27, 40, 56, 0.2);
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.spinner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.footer {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-light-gray);
+}
+
+.backLink {
+  font-size: 0.85rem;
+  color: var(--color-slate);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.backLink:hover {
+  color: var(--color-amber-dark);
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 2rem 1.5rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+}
