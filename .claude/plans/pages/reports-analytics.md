@@ -661,9 +661,9 @@ For each deployed ML pipeline, generate a "Model Card" (a standardized document 
 
 ## Implementation Plan
 
-This plan translates the user stories and ML integration points above into concrete backend endpoints, frontend components, chart specifications, and file-level implementation details. The tech stack is .NET 10 minimal APIs (`Program.cs`), React + Vite + TypeScript, Recharts, EF Core + PostgreSQL (Supabase).
+This plan translates the user stories and ML integration points above into concrete backend endpoints, frontend components, chart specifications, and file-level implementation details. The tech stack is .NET 10 minimal APIs (`Program.cs`), React + Vite + TypeScript, Recharts, EF Core + Azure PostgreSQL.
 
-**Critical constraint from existing codebase:** DbContext is NOT thread-safe with the Supabase pooler. All queries within a single endpoint must be awaited sequentially -- never use `Task.WhenAll()` with multiple DB queries on the same `AppDbContext` instance. See the warning at line 79 of `Program.cs`.
+**Critical constraint from existing codebase:** DbContext is NOT thread-safe with the connection pooler. All queries within a single endpoint must be awaited sequentially -- never use `Task.WhenAll()` with multiple DB queries on the same `AppDbContext` instance. See the warning at line 79 of `Program.cs`.
 
 ---
 
@@ -1240,8 +1240,8 @@ Each `ReportTable` component has a built-in CSV export button.
 
 | File | Purpose |
 |------|---------|
-| `supabase/migrations/YYYYMMDD_add_ml_scores_tables.sql` | SQL migration for `ml_reintegration_scores`, `ml_donor_churn_scores`, `ml_intervention_effects` |
-| `supabase/migrations/YYYYMMDD_add_dswd_targets.sql` | SQL migration for `dswd_targets` table (optional) |
+| `backend/Migrations/YYYYMMDD_add_ml_scores_tables.cs` | EF Core migration for `ml_reintegration_scores`, `ml_donor_churn_scores`, `ml_intervention_effects` |
+| `backend/Migrations/YYYYMMDD_add_dswd_targets.cs` | EF Core migration for `dswd_targets` table (optional) |
 
 ---
 
@@ -1261,7 +1261,7 @@ Each phase builds on the previous. Estimated effort assumes a team of 2-3 develo
 
 1. **Backend:** `/api/reports/dashboard/kpis`, `/api/reports/donations/monthly`, `/api/reports/donations/by-source`, `/api/reports/donations/by-type`, `/api/reports/donations/yoy`.
 2. **Frontend:** `ReportsDashboard` (KPI cards + safehouse summary cards), `DonationAnalytics` (trend line chart, donut charts, campaign table).
-3. Test with real data from Supabase.
+3. Test with real data from the database.
 
 #### Phase 3: Resident Outcomes (Days 5-6)
 

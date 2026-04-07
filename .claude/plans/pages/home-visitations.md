@@ -576,7 +576,7 @@ When creating a new visit, auto-suggest the visit type based on the resident's c
 
 This plan is grounded in the actual codebase: .NET 10 minimal APIs in `Program.cs`, EF Core models in `backend/Models/`, a single `AppDbContext` in `backend/Data/`, and a React+Vite+TypeScript frontend with pages in `frontend/src/pages/` and shared types in `frontend/src/types.ts`. All API calls go through `apiFetch()` in `frontend/src/api.ts`.
 
-### 1. Schema Changes (PostgreSQL via Supabase)
+### 1. Schema Changes (Azure PostgreSQL)
 
 #### 1a. Alter `home_visitations` -- add columns for safety detail and mobile workflow
 
@@ -1060,7 +1060,7 @@ The page handles its own tab routing via URL search params, not separate routes.
 | `frontend/src/components/conferences/ConferenceDetail.tsx` | New | Detail view |
 | `frontend/src/components/follow-ups/FollowUpDashboard.tsx` | New | Follow-up list |
 | `frontend/src/components/shared/StatusBadge.tsx` | New | Reusable badge |
-| `supabase/migrations/YYYYMMDD_case_conferences.sql` | New | Migration script |
+| `backend/Migrations/YYYYMMDD_case_conferences.cs` | New | EF Core migration |
 
 ### 9. Files to Modify
 
@@ -1078,7 +1078,7 @@ The page handles its own tab routing via URL search params, not separate routes.
 ### 10. Suggested Implementation Order
 
 #### Phase 1: Database + Models (Day 1)
-1. Run the SQL migration against Supabase (ALTER TABLE + 2 CREATE TABLE statements)
+1. Run the EF Core migration (ALTER TABLE + 2 CREATE TABLE statements)
 2. Update `HomeVisitation.cs` with new properties
 3. Create `CaseConference.cs` and `FollowUpAction.cs`
 4. Update `AppDbContext.cs` (DbSets + entity configuration)
