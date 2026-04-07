@@ -16,6 +16,14 @@ eval "$(npx supabase status -o env 2>/dev/null)"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 
+# Parse DB_URL (postgresql://user:pass@host:port/db) into Npgsql key-value format
+DB_USER=$(echo "$DB_URL" | sed -n 's|.*://\([^:]*\):.*|\1|p')
+DB_PASS=$(echo "$DB_URL" | sed -n 's|.*://[^:]*:\([^@]*\)@.*|\1|p')
+DB_HOST=$(echo "$DB_URL" | sed -n 's|.*@\([^:]*\):.*|\1|p')
+DB_PORT=$(echo "$DB_URL" | sed -n 's|.*:\([0-9]*\)/.*|\1|p')
+DB_NAME=$(echo "$DB_URL" | sed -n 's|.*/\([^?]*\).*|\1|p')
+NPGSQL_CONN="Host=$DB_HOST;Port=$DB_PORT;Database=$DB_NAME;Username=$DB_USER;Password=$DB_PASS"
+
 # Backend: appsettings.Development.json
 cat > "$ROOT_DIR/backend/appsettings.Development.json" <<EOF
 {
@@ -26,7 +34,7 @@ cat > "$ROOT_DIR/backend/appsettings.Development.json" <<EOF
     }
   },
   "ConnectionStrings": {
-    "DefaultConnection": "$DB_URL"
+    "DefaultConnection": "$NPGSQL_CONN"
   },
   "Supabase": {
     "Url": "$API_URL",
