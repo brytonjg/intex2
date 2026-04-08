@@ -80,7 +80,7 @@ export default function DonatePage() {
               className={`${styles.modeBtn} ${mode === 'recurring' ? styles.modeBtnActive : ''}`}
               onClick={() => setMode('recurring')}
             >
-              Monthly Giving
+              Auto-Recurring
             </button>
           </div>
 
