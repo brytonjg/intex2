@@ -396,10 +396,10 @@ export default function RecordingFormPage() {
 
   // Load residents for dropdown
   useEffect(() => {
-    apiFetch<Array<Record<string, unknown>>>('/api/admin/residents?page=1&pageSize=500&sortBy=code_asc')
-      .then((data) => {
+    apiFetch<{ items: Array<Record<string, unknown>> }>('/api/admin/residents?page=1&pageSize=500')
+      .then((resp) => {
         setResidents(
-          data.map((r) => ({
+          resp.items.map((r) => ({
             residentId: r.residentId as number,
             internalCode: (r.internalCode as string) ?? '',
           }))
