@@ -106,15 +106,15 @@ export default function Header() {
           <Link to="/" className={styles.navLink} onClick={() => setMenuOpen(false)}>
             Home
           </Link>
-          <a href="/#mission" className={styles.navLink} onClick={() => setMenuOpen(false)}>
+          <Link to="/#mission" className={styles.navLink} onClick={() => setMenuOpen(false)}>
             Our Mission
-          </a>
+          </Link>
           <Link to="/impact" className={styles.navLink} onClick={() => setMenuOpen(false)}>
             Impact
           </Link>
-          <a href="/#involved" className={styles.navLink} onClick={() => setMenuOpen(false)}>
+          <Link to="/#involved" className={styles.navLink} onClick={() => setMenuOpen(false)}>
             Get Involved
-          </a>
+          </Link>
         </nav>
 
         <div className={styles.actions}>

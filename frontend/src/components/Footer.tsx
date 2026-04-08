@@ -22,9 +22,9 @@ export default function Footer() {
           <div className={styles.links}>
             <div className={styles.linkGroup}>
               <h4 className={styles.linkGroupTitle}>Organization</h4>
-              <a href="/#mission">Our Mission</a>
-              <a href="/#impact">Our Impact</a>
-              <a href="/#involved">Get Involved</a>
+              <Link to="/#mission">Our Mission</Link>
+              <Link to="/#impact">Our Impact</Link>
+              <Link to="/#involved">Get Involved</Link>
             </div>
             <div className={styles.linkGroup}>
               <h4 className={styles.linkGroupTitle}>Legal</h4>
