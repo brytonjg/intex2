@@ -92,6 +92,24 @@ app.UseHttpsRedirection();
 app.UseHsts();
 app.UseCors("AllowFrontend");
 
+// ── Global error handler (ensures CORS headers on errors) ──
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (Exception ex)
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+        var logger = context.RequestServices.GetRequiredService<ILoggerFactory>()
+            .CreateLogger("GlobalErrorHandler");
+        logger.LogError(ex, "Unhandled exception on {Method} {Path}", context.Request.Method, context.Request.Path);
+        await context.Response.WriteAsJsonAsync(new { error = "An internal error occurred." });
+    }
+});
+
 // ── Security headers ────────────────────────────────────────
 app.Use(async (context, next) =>
 {

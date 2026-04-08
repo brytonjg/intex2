@@ -211,7 +211,7 @@ export default function ImpactPage() {
             <div>
               <p className={styles.chartLabel}>Where your donations go</p>
               <div className={styles.chartHighlight}>
-                <span className={styles.chartBigNumber}>$177k</span>
+                <span className={styles.chartBigNumber}>${Math.round(allocationData.reduce((sum, d) => sum + d.amount, 0) / 1000)}k</span>
                 <span className={styles.chartSubtext}>total allocated</span>
               </div>
             </div>
