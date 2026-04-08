@@ -4,7 +4,7 @@
 }
 
 .statsBanner {
-  padding: 4.8rem 1.25rem 2.5rem;
+  padding: 3.5rem 1.25rem 2rem;
   border-bottom: 1px solid rgba(15, 27, 45, 0.08);
 }
 
@@ -14,7 +14,7 @@
   display: grid;
   grid-template-columns: minmax(260px, 1fr) minmax(0, 1.2fr);
   gap: 2rem;
-  align-items: start;
+  align-items: center;
 }
 
 .statsLabel {
