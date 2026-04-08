@@ -84,8 +84,7 @@ interface ApiDonation {
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const today = new Date();
-  const dateStr = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  const dateStr = 'Data as of February 15, 2026';
 
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [residents, setResidents] = useState<ResidentRow[]>([]);
