@@ -68,7 +68,7 @@ function App() {
             <Route path="/login" element={<PublicLayout><LoginPage /></PublicLayout>} />
             <Route path="/privacy-policy" element={<PublicLayout><PrivacyPolicyPage /></PublicLayout>} />
             <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
-            <Route path="/signup" element={<PublicLayout><SignupPage /></PublicLayout>} />
+            <Route path="/signup" element={<Navigate to="/donate" replace />} />
             <Route path="/newsletter" element={<PublicLayout><NewsletterPage /></PublicLayout>} />
             <Route path="/donate" element={<PublicLayout><DonatePage /></PublicLayout>} />
             <Route path="/donate/success" element={<PublicLayout><DonateSuccessPage /></PublicLayout>} />

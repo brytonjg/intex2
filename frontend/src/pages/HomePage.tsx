@@ -241,12 +241,12 @@ export default function HomePage() {
               <h3>Donate</h3>
               <p>Your financial support funds shelter, education, counseling, and care.</p>
             </Link>
-            <Link to="/signup" className={`${styles.involvedCard} reveal`} style={{ textDecoration: 'none', color: 'inherit' }}>
+            <Link to="/donate" className={`${styles.involvedCard} reveal`} style={{ textDecoration: 'none', color: 'inherit' }}>
               <Users size={28} className={styles.involvedIcon} />
               <h3>Volunteer</h3>
               <p>Give your time and skills to help our team on the ground.</p>
             </Link>
-            <Link to="/signup" className={`${styles.involvedCard} reveal`} style={{ textDecoration: 'none', color: 'inherit' }}>
+            <Link to="/donate" className={`${styles.involvedCard} reveal`} style={{ textDecoration: 'none', color: 'inherit' }}>
               <HandHeart size={28} className={styles.involvedIcon} />
               <h3>Partner</h3>
               <p>Bring your church, company, or community alongside our mission.</p>

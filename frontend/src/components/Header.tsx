@@ -131,9 +131,9 @@ export default function Header() {
             </>
           ) : (
             <>
-              <Link to="/signup" className={styles.signupBtn}>
+              <Link to="/donate" className={styles.signupBtn}>
                 <UserPlus size={16} />
-                <span>Become a Donor</span>
+                <span>Donate</span>
               </Link>
               <Link to="/login" className={styles.loginBtn}>
                 <User size={16} />
