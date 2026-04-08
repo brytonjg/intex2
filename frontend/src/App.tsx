@@ -32,6 +32,7 @@ const DonorsPage = lazy(() => import('./pages/admin/DonorsPage'));
 const SupporterDetailPage = lazy(() => import('./pages/admin/SupporterDetailPage'));
 const SupporterFormPage = lazy(() => import('./pages/admin/SupporterFormPage'));
 const DonationFormPage = lazy(() => import('./pages/admin/DonationFormPage'));
+const UsersPage = lazy(() => import('./pages/admin/UsersPage'));
 const DonorPortal = lazy(() => import('./pages/DonorPortal'));
 const DonatePage = lazy(() => import('./pages/DonatePage'));
 const DonateSuccessPage = lazy(() => import('./pages/DonateSuccessPage'));
@@ -108,6 +109,7 @@ function App() {
               <Route path="donors/:id/edit" element={<SupporterFormPage />} />
               <Route path="donations/new" element={<DonationFormPage />} />
               <Route path="donations/:id/edit" element={<DonationFormPage />} />
+              <Route path="users" element={<UsersPage />} />
             </Route>
           </Routes>
           <CookieConsent />

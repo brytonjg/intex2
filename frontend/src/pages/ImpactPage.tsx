@@ -107,10 +107,10 @@ export default function ImpactPage() {
                 </div>
                 <div className={styles.okrRight}>
                   <p className={styles.okrDesc}>
-                    {summary.completedReintegrations} girls have completed their journey — reunified with
-                    family, placed in foster care, or transitioned to independent living.
-                    Our goal is to reintegrate 40 girls by end of 2026, giving each one
-                    a real chance at a new life.
+                    Of {summary.totalResidents} girls served, {summary.activeResidents} are currently
+                    receiving care and {summary.completedReintegrations} have completed their
+                    journey — reunified with family, placed in foster care, or transitioned to
+                    independent living. Our goal is 40 successful reintegrations by end of 2026.
                   </p>
                   <div className={styles.okrBar}>
                     <div className={styles.okrFill} style={{ width: `${Math.min(100, (summary.completedReintegrations / 40) * 100)}%` }} />
