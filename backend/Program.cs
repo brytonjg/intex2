@@ -474,8 +474,13 @@ app.MapGet("/api/impact/snapshots", async (AppDbContext db) =>
 
 app.MapGet("/api/admin/metrics", async (AppDbContext db) =>
 {
-    var now = DateTime.UtcNow;
-    var startOfMonth = new DateOnly(now.Year, now.Month, 1);
+    // Use the latest donation date as the reference point (data may not extend to today)
+    var latestDonation = await db.Donations
+        .OrderByDescending(d => d.DonationDate)
+        .Select(d => d.DonationDate)
+        .FirstOrDefaultAsync();
+    var refDate = latestDonation != default ? latestDonation : DateOnly.FromDateTime(DateTime.UtcNow);
+    var startOfMonth = new DateOnly(refDate.Year, refDate.Month, 1);
     var startOfLastMonth = startOfMonth.AddMonths(-1);
 
     var activeResidents = await db.Residents.CountAsync(r => r.CaseStatus == "Active");
@@ -506,13 +511,13 @@ app.MapGet("/api/admin/metrics", async (AppDbContext db) =>
         .SumAsync(d => (decimal?)d.Amount ?? 0);
 
     var nextConference = await db.InterventionPlans
-        .Where(p => p.CaseConferenceDate > DateOnly.FromDateTime(now))
+        .Where(p => p.CaseConferenceDate > refDate)
         .OrderBy(p => p.CaseConferenceDate)
         .Select(p => p.CaseConferenceDate)
         .FirstOrDefaultAsync();
 
     var upcomingConferences = await db.InterventionPlans
-        .CountAsync(p => p.CaseConferenceDate > DateOnly.FromDateTime(now));
+        .CountAsync(p => p.CaseConferenceDate > refDate);
 
     var donationChange = lastMonthDonations > 0
         ? Math.Round((double)(currentMonth.total - lastMonthDonations) / (double)lastMonthDonations * 100, 1)
@@ -534,7 +539,8 @@ app.MapGet("/api/admin/metrics", async (AppDbContext db) =>
         monthlyDonationCount,
         donationChange,
         upcomingConferences,
-        nextConference
+        nextConference,
+        dataAsOf = refDate.ToString("MMMM d, yyyy")
     };
 }).RequireAuthorization();
 
