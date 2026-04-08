@@ -13,7 +13,7 @@ import HomePage from './pages/HomePage';
 import ImpactPage from './pages/ImpactPage';
 import LoginPage from './pages/LoginPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
-import SignupPage from './pages/SignupPage';
+// SignupPage removed — donors get accounts after donating
 const NewsletterPage = lazy(() => import('./pages/NewsletterPage'));
 // Admin pages — lazy loaded (code-split)
 const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
