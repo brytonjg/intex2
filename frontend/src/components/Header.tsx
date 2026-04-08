@@ -1,8 +1,53 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, User, UserPlus, LogOut } from 'lucide-react';
+import { Menu, X, User, UserPlus, LogOut, ArrowRight, Mail } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import styles from './Header.module.css';
+
+function NewsletterBar() {
+  const [email, setEmail] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (!email) return;
+    setSubmitted(true);
+  }
+
+  if (submitted) {
+    return (
+      <div className={styles.newsletterBar}>
+        <div className={styles.newsletterInner}>
+          <span className={styles.newsletterThanks}>Thanks for subscribing!</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.newsletterBar}>
+      <div className={styles.newsletterInner}>
+        <div className={styles.newsletterLabel}>
+          <Mail size={14} />
+          <span>Get monthly impact updates</span>
+        </div>
+        <form className={styles.newsletterForm} onSubmit={handleSubmit}>
+          <input
+            type="email"
+            required
+            placeholder="Your email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            className={styles.newsletterInput}
+          />
+          <button type="submit" className={styles.newsletterBtn} aria-label="Subscribe">
+            <ArrowRight size={14} />
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -13,6 +58,8 @@ export default function Header() {
   }
 
   return (
+    <>
+    <NewsletterBar />
     <header className={styles.header}>
       <div className={styles.inner}>
         <Link to="/" className={styles.logo}>
@@ -69,5 +116,6 @@ export default function Header() {
         </div>
       </div>
     </header>
+    </>
   );
 }
