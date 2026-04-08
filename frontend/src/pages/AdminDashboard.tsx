@@ -307,10 +307,10 @@ export default function AdminDashboard() {
               <h2 className={styles.cardTitle}>By Channel</h2>
               <span className={styles.cardSubtitle}>Acquisition source</span>
             </div>
-            <ResponsiveContainer width="100%" height={160}>
+            <ResponsiveContainer width="100%" height={220}>
               <BarChart data={channels} layout="vertical" barCategoryGap="25%">
                 <XAxis type="number" hide />
-                <YAxis dataKey="channel" type="category" tick={{ fontSize: 12, fill: '#8A8078' }} axisLine={false} tickLine={false} width={55} />
+                <YAxis dataKey="channel" type="category" tick={{ fontSize: 11, fill: '#8A8078' }} axisLine={false} tickLine={false} width={85} />
                 <Tooltip content={<ChartTooltip prefix="$" />} cursor={{ fill: 'rgba(212, 168, 83, 0.06)' }} />
                 <Bar dataKey="amount" radius={[0, 4, 4, 0]}>
                   {channels.map((_, i) => (
