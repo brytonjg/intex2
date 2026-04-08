@@ -21,18 +21,11 @@ MODELS_DIR   = PROJECT_ROOT / "models"              # where .sav files live
 load_dotenv(PROJECT_ROOT / ".env")
 load_dotenv(Path(__file__).resolve().parent / ".env")
 
-# ── Supabase credentials ───────────────────────────────────────────────────────
-# Read from environment only (typically loaded from .env in local development
-# and from CI/CD secret variables in production).
-SUPABASE_PROJECT_ID = os.environ["SUPABASE_PROJECT_ID"]
-SUPABASE_URL = os.environ["SUPABASE_URL"]
-SUPABASE_PUBLISHABLE_KEY = os.environ["SUPABASE_PUBLISHABLE_KEY"]
-SUPABASE_ANON_KEY = os.environ["SUPABASE_ANON_KEY"]
-# Backward-compatible fallback for older variable name.
-SUPABASE_SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ["SUPABASE_SERVICE_KEY"]
-SUPABASE_DB_URL = os.environ["SUPABASE_DB_URL"]
+# ── Database connection ────────────────────────────────────────────────────────
+# A standard PostgreSQL connection URL (Azure Database for PostgreSQL).
+DATABASE_URL = os.environ["DATABASE_URL"]
 
-# ── Supabase table names ───────────────────────────────────────────────────────
+# ── Table names ───────────────────────────────────────────────────────────────
 # Operational tables (read by ETL jobs)
 TABLE_RESIDENTS              = "residents"
 TABLE_HEALTH                 = "health_wellbeing_records"

@@ -431,7 +431,7 @@ Cross-reference of every IS414 rubric line item against login page user stories.
 | Integrity - Confirmation to delete data | 1 | (none in login plan) | Login page does not delete data. | Admin pages (Caseload, Donors, etc.) must implement confirmation dialogs before DELETE API calls. This is NOT the login page's responsibility, but the plan should note it as a dependency. |
 | Privacy - Privacy policy | 1 | (none in login plan) | Login page can link to privacy policy in footer. | Dedicated privacy policy page must be created and populated with GDPR-compliant content. |
 | Privacy - Cookie consent | 1 | (none in login plan) | Login page must render the existing CookieConsent component. | CookieConsent component needs to be verified as fully functional (actually blocking cookies until consent), not just cosmetic. Per the audit, component exists but functionality is unverified. |
-| Availability - Deployed publicly | 4 | (none in login plan) | Login page must work when deployed. | Deployment of frontend (Vercel), backend (Azure), and DB (Supabase) is a separate workstream. |
+| Availability - Deployed publicly | 4 | (none in login plan) | Login page must work when deployed. | Deployment of frontend (Vercel), backend (Azure), and DB (Azure PostgreSQL) is a separate workstream. |
 | Additional security features | 2 | US-23, US-24, US-27 | Third-party auth (Google OAuth), input sanitization, concurrent session handling. | These three features from the login page alone could earn the full 2 points, but the team may also contribute features from other pages (HSTS, browser-accessible cookie for user preferences, Docker deployment, 2FA). See "Above and Beyond Ideas" below. |
 
 ### NOT Covered by Login Page Plan (Owned by Other Pages/Workstreams)
@@ -542,7 +542,7 @@ This combination gives 5 demonstrable features for the 2-point category, providi
 
 ## Implementation Plan
 
-This plan is written for the existing stack: .NET 10 minimal APIs in `Program.cs` (no controllers), React + Vite + TypeScript frontend, PostgreSQL on Supabase via EF Core, deployed to Azure (backend) and Vercel (frontend).
+This plan is written for the existing stack: .NET 10 minimal APIs in `Program.cs` (no controllers), React + Vite + TypeScript frontend, Azure PostgreSQL via EF Core, deployed to Azure (backend) and Vercel (frontend).
 
 ---
 
@@ -562,14 +562,14 @@ Version numbers should match the existing `Microsoft.EntityFrameworkCore.Design`
 
 #### 1.2 Identity DbContext Decision: Shared
 
-Use the **shared DbContext** approach. `AppDbContext` will inherit from `IdentityDbContext<ApplicationUser>` instead of plain `DbContext`. This avoids managing two separate contexts and connection pools against the same Supabase database.
+Use the **shared DbContext** approach. `AppDbContext` will inherit from `IdentityDbContext<ApplicationUser>` instead of plain `DbContext`. This avoids managing two separate contexts and connection pools against the same database.
 
 Changes to `AppDbContext`:
 - Change base class: `public partial class AppDbContext : IdentityDbContext<ApplicationUser>`
 - Add `using Microsoft.AspNetCore.Identity.EntityFrameworkCore;`
 - The `ApplicationUser` class extends `IdentityUser` (see 1.3)
 
-**Why shared:** The app has one database (Supabase PostgreSQL). A second DbContext would require a second connection string to the same database, complicating the Supabase connection pooler that already causes issues (see the health endpoint comment in `Program.cs`).
+**Why shared:** The app has one database (Azure PostgreSQL). A second DbContext would require a second connection string to the same database, complicating the connection pooler that already causes issues (see the health endpoint comment in `Program.cs`).
 
 #### 1.3 ApplicationUser Model
 
@@ -1105,7 +1105,7 @@ dotnet ef migrations add AddIdentity
 dotnet ef database update
 ```
 
-**Supabase warning:** The existing `AppDbContext.OnModelCreating` includes Supabase-specific enums (`auth.aal_level`, etc.) and extensions. The migration should NOT attempt to create or modify these -- they are managed by Supabase. If the migration generator includes `DROP` or `CREATE` statements for these Supabase-owned objects, they must be manually removed from the migration file before applying.
+**Note:** The Supabase-specific enums (`auth.aal_level`, etc.) and extensions that were previously in `AppDbContext.OnModelCreating` have been removed as part of the migration to Azure PostgreSQL. The migration should only manage application-owned tables (AspNet*, domain tables).
 
 #### 4.3 Seed Test Accounts
 
@@ -1290,7 +1290,7 @@ Build in this sequence. Each phase results in a testable, demonstrable milestone
 3. Modify `AppDbContext.cs` to inherit from `IdentityDbContext<ApplicationUser>`
 4. Add Identity services and cookie configuration to `Program.cs`
 5. Run `dotnet ef migrations add AddIdentity` and `dotnet ef database update`
-   - **Checkpoint:** Inspect Supabase to confirm Identity tables were created without interfering with existing tables
+   - **Checkpoint:** Inspect database to confirm Identity tables were created without interfering with existing tables
 6. Create `IdentitySeeder.cs` and add seeding call to `Program.cs`
 7. Add `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me` endpoints
 8. Update CORS to include `.AllowCredentials()`

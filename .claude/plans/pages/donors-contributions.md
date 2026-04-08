@@ -512,7 +512,7 @@ These are features that go beyond the stated requirements and could earn distinc
 
 8. **Donor self-registration flow.** Allow Pastor Okafor (Persona 4) to register as a supporter from the public site, creating a pending supporter record that staff can approve. Bridges the gap between the public landing page and the authenticated donor portal.
 
-9. **Campaign thermometer widget.** Embeddable progress bar for active campaigns that could be shown on the public impact page. Shows goal, raised amount, donor count, days remaining. Updates in real time via Supabase subscriptions.
+9. **Campaign thermometer widget.** Embeddable progress bar for active campaigns that could be shown on the public impact page. Shows goal, raised amount, donor count, days remaining. Updates in real time via WebSocket subscriptions.
 
 10. **Donation heatmap calendar.** GitHub-style contribution calendar on the supporter detail page showing donation activity by day over the past year. Visually compelling and easy to implement with a library like `react-calendar-heatmap`.
 

@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using backend.Data;
@@ -31,10 +32,8 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(opts =>
 builder.Services.ConfigureApplicationCookie(opts =>
 {
     opts.Cookie.HttpOnly = true;
-    opts.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
-        ? CookieSecurePolicy.SameAsRequest
-        : CookieSecurePolicy.Always;
-    opts.Cookie.SameSite = SameSiteMode.Lax;
+    opts.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    opts.Cookie.SameSite = SameSiteMode.None;
     opts.Cookie.Name = "BeaconAuth";
     opts.ExpireTimeSpan = TimeSpan.FromHours(8);
     opts.SlidingExpiration = true;
@@ -598,6 +597,8 @@ app.MapPost("/api/admin/residents", async (HttpContext httpContext, AppDbContext
     var body = await httpContext.Request.ReadFromJsonAsync<ResidentRequest>();
     if (body == null)
         return Results.BadRequest(new { error = "Request body is required." });
+    var (valid, err) = DtoValidator.Validate(body);
+    if (!valid) return Results.BadRequest(new { error = err });
 
     var resident = new Resident { CreatedAt = DateTime.UtcNow };
     EntityMapper.MapResident(resident, body);
@@ -616,6 +617,8 @@ app.MapPut("/api/admin/residents/{id:int}", async (int id, HttpContext httpConte
     var body = await httpContext.Request.ReadFromJsonAsync<ResidentRequest>();
     if (body == null)
         return Results.BadRequest(new { error = "Request body is required." });
+    var (valid, err) = DtoValidator.Validate(body);
+    if (!valid) return Results.BadRequest(new { error = err });
 
     EntityMapper.MapResident(resident, body);
 
@@ -1162,6 +1165,8 @@ app.MapPost("/api/admin/recordings", async (HttpContext httpContext, AppDbContex
     var body = await httpContext.Request.ReadFromJsonAsync<RecordingRequest>();
     if (body == null || body.ResidentId <= 0)
         return Results.BadRequest(new { error = "Resident is required." });
+    var (valid, err) = DtoValidator.Validate(body);
+    if (!valid) return Results.BadRequest(new { error = err });
 
     var resident = await db.Residents.AnyAsync(r => r.ResidentId == body.ResidentId);
     if (!resident)
@@ -1181,6 +1186,8 @@ app.MapPut("/api/admin/recordings/{id:int}", async (int id, HttpContext httpCont
     var body = await httpContext.Request.ReadFromJsonAsync<RecordingRequest>();
     if (body == null)
         return Results.BadRequest(new { error = "Request body is required." });
+    var (valid, err) = DtoValidator.Validate(body);
+    if (!valid) return Results.BadRequest(new { error = err });
 
     var recording = await db.ProcessRecordings.FindAsync(id);
     if (recording == null)
@@ -1322,6 +1329,8 @@ app.MapPost("/api/admin/supporters", async (AppDbContext db, HttpContext httpCon
 {
     var body = await httpContext.Request.ReadFromJsonAsync<SupporterRequest>();
     if (body == null) return Results.BadRequest(new { error = "Request body is required." });
+    var (valid, err) = DtoValidator.Validate(body);
+    if (!valid) return Results.BadRequest(new { error = err });
 
     var supporter = new backend.Models.Supporter { CreatedAt = DateTime.UtcNow };
     EntityMapper.MapSupporter(supporter, body);
@@ -1336,6 +1345,8 @@ app.MapPut("/api/admin/supporters/{id:int}", async (int id, AppDbContext db, Htt
 {
     var body = await httpContext.Request.ReadFromJsonAsync<SupporterRequest>();
     if (body == null) return Results.BadRequest(new { error = "Request body is required." });
+    var (valid, err) = DtoValidator.Validate(body);
+    if (!valid) return Results.BadRequest(new { error = err });
 
     var supporter = await db.Supporters.FindAsync(id);
     if (supporter == null) return Results.NotFound();
@@ -1410,6 +1421,8 @@ app.MapPost("/api/admin/donations", async (AppDbContext db, HttpContext httpCont
 {
     var body = await httpContext.Request.ReadFromJsonAsync<DonationRequest>();
     if (body == null) return Results.BadRequest(new { error = "Request body is required." });
+    var (valid, err) = DtoValidator.Validate(body);
+    if (!valid) return Results.BadRequest(new { error = err });
 
     var donation = new backend.Models.Donation();
     EntityMapper.MapDonation(donation, body);
@@ -1423,6 +1436,8 @@ app.MapPut("/api/admin/donations/{id:int}", async (int id, AppDbContext db, Http
 {
     var body = await httpContext.Request.ReadFromJsonAsync<DonationRequest>();
     if (body == null) return Results.BadRequest(new { error = "Request body is required." });
+    var (valid, err) = DtoValidator.Validate(body);
+    if (!valid) return Results.BadRequest(new { error = err });
 
     var donation = await db.Donations.FindAsync(id);
     if (donation == null) return Results.NotFound();
@@ -1671,21 +1686,41 @@ public static class EntityMapper
 
 // ── Request DTOs ────────────────────────────────────────────
 
+public static class DtoValidator
+{
+    public static (bool IsValid, string? Error) Validate<T>(T obj)
+    {
+        var results = new List<ValidationResult>();
+        var context = new ValidationContext(obj!);
+        if (Validator.TryValidateObject(obj!, context, results, validateAllProperties: true))
+            return (true, null);
+        return (false, string.Join("; ", results.Select(r => r.ErrorMessage)));
+    }
+}
+
 public class LoginRequest
 {
+    [Required, EmailAddress]
     public string Email { get; set; } = string.Empty;
+    [Required, MinLength(12)]
     public string Password { get; set; } = string.Empty;
     public bool RememberMe { get; set; }
 }
 
 public class RecordingRequest
 {
+    [Required, Range(1, int.MaxValue, ErrorMessage = "ResidentId is required.")]
     public int ResidentId { get; set; }
     public DateOnly? SessionDate { get; set; }
+    [StringLength(200)]
     public string? SocialWorker { get; set; }
+    [StringLength(100)]
     public string? SessionType { get; set; }
+    [Range(0, 1440, ErrorMessage = "Duration must be between 0 and 1440 minutes.")]
     public int? SessionDurationMinutes { get; set; }
+    [StringLength(100)]
     public string? EmotionalStateObserved { get; set; }
+    [StringLength(100)]
     public string? EmotionalStateEnd { get; set; }
     public string? SessionNarrative { get; set; }
     public string? InterventionsApplied { get; set; }
@@ -1698,10 +1733,14 @@ public class RecordingRequest
 
 public class ResidentRequest
 {
+    [StringLength(50)]
     public string? CaseControlNo { get; set; }
+    [StringLength(50)]
     public string? InternalCode { get; set; }
     public int? SafehouseId { get; set; }
+    [StringLength(50)]
     public string? CaseStatus { get; set; }
+    [StringLength(20)]
     public string? Sex { get; set; }
     public DateOnly? DateOfBirth { get; set; }
     public string? BirthStatus { get; set; }
@@ -1749,31 +1788,50 @@ public class ResidentRequest
 
 public class SupporterRequest
 {
+    [StringLength(50)]
     public string? SupporterType { get; set; }
+    [StringLength(200)]
     public string? DisplayName { get; set; }
+    [StringLength(200)]
     public string? OrganizationName { get; set; }
+    [StringLength(100)]
     public string? FirstName { get; set; }
+    [StringLength(100)]
     public string? LastName { get; set; }
+    [StringLength(50)]
     public string? RelationshipType { get; set; }
+    [EmailAddress]
     public string? Email { get; set; }
+    [Phone]
     public string? Phone { get; set; }
+    [StringLength(100)]
     public string? Region { get; set; }
+    [StringLength(100)]
     public string? Country { get; set; }
+    [StringLength(50)]
     public string? Status { get; set; }
+    [StringLength(100)]
     public string? AcquisitionChannel { get; set; }
 }
 
 public class DonationRequest
 {
     public int? SupporterId { get; set; }
+    [StringLength(50)]
     public string? DonationType { get; set; }
     public DateOnly? DonationDate { get; set; }
+    [StringLength(100)]
     public string? ChannelSource { get; set; }
+    [StringLength(10)]
     public string? CurrencyCode { get; set; }
+    [Range(0, 100_000_000, ErrorMessage = "Amount must be non-negative.")]
     public decimal? Amount { get; set; }
+    [Range(0, 100_000_000, ErrorMessage = "Estimated value must be non-negative.")]
     public decimal? EstimatedValue { get; set; }
+    [StringLength(100)]
     public string? ImpactUnit { get; set; }
     public bool? IsRecurring { get; set; }
+    [StringLength(200)]
     public string? CampaignName { get; set; }
     public string? Notes { get; set; }
 }

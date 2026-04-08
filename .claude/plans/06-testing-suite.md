@@ -174,7 +174,7 @@ Testing pyramid for Beacon of Hope: unit tests at the base, integration tests in
 
 **Project:** `backend.IntegrationTests/` (xUnit + WebApplicationFactory)
 
-Uses a real PostgreSQL database (TestContainers or local Supabase) for true integration testing.
+Uses a real PostgreSQL database (TestContainers or local PostgreSQL) for true integration testing.
 
 ### 2.1 Database Operations (15 tests)
 | Test | What it verifies |
@@ -686,20 +686,20 @@ renderWithProviders(<CaseloadPage />, {
 
 ### 3. Database Strategy: TestContainers Is the Only Correct Choice
 
-The plan mentions "TestContainers or local Supabase" for integration tests. This needs to be a firm decision, not an either/or.
+The plan mentions "TestContainers or local PostgreSQL" for integration tests. This needs to be a firm decision, not an either/or.
 
 **In-memory SQLite will NOT work.** The codebase uses:
 - `DateOnly` properties extensively (50+ columns across 17 tables). SQLite has no native `date` type and the EF Core SQLite provider's `DateOnly` support is fragile.
 - `DateOnly.DayNumber` arithmetic in LINQ queries (line 932: `r.DateClosed!.Value.DayNumber - r.DateOfAdmission!.Value.DayNumber`). This translates to PostgreSQL's date subtraction but will throw at runtime on SQLite because SQLite has no concept of `DayNumber`.
 - `DateOnly` comparisons in `Where` clauses (line 1378: `d.DonationDate >= dateFrom.Value`). These rely on PostgreSQL's native date comparison operators.
-- Npgsql-specific connection string handling (Supabase pooler configuration).
+- Npgsql-specific connection string handling (connection pooler configuration).
 
 **EF Core InMemory provider will also fail.** It does not enforce foreign key constraints, which means the 5 FK-related integration tests (section 2.1) would be meaningless. It also does not support raw SQL or provider-specific translations.
 
 **Decision: Use TestContainers.PostgreSql unconditionally.** It provides:
 - Exact PostgreSQL behavior including `DateOnly` handling, FK constraints, and cascade deletes.
 - Isolated, disposable containers per test run (no shared state pollution).
-- No dependency on a running Supabase instance (which would break CI and other developers' machines).
+- No dependency on a running PostgreSQL instance (which would break CI and other developers' machines).
 - Realistic migration testing: apply `dotnet ef` migrations to the container to verify schema correctness.
 
 **Implementation pattern:**
@@ -1014,7 +1014,7 @@ Search endpoints use `.Contains()` which is parameterized by EF Core (safe from 
 
 The health endpoint has a try/catch for DB failures, but no test verifies the `"degraded"` response. No other endpoint is tested for DB unavailability.
 
-**Risk:** When Supabase has downtime, every endpoint returns raw 500 errors with stack traces instead of graceful error responses.
+**Risk:** When the database has downtime, every endpoint returns raw 500 errors with stack traces instead of graceful error responses.
 
 **Suggested tests:**
 - `Health_DbUnavailable_ReturnsDegradedStatus` -- mock/disable DB, assert `status: "degraded"`

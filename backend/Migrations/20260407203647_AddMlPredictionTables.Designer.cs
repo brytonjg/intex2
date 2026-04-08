@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using backend.Data;
@@ -11,9 +12,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260407203647_AddMlPredictionTables")]
+    partial class AddMlPredictionTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -288,12 +291,6 @@ namespace backend.Migrations
 
                     b.HasKey("DonationId")
                         .HasName("donations_pkey");
-
-                    b.HasIndex("CampaignName")
-                        .HasDatabaseName("donations_campaign_name_idx");
-
-                    b.HasIndex("SupporterId", "DonationType", "DonationDate")
-                        .HasDatabaseName("donations_supporter_type_date_idx");
 
                     b.HasIndex(new[] { "ReferralPostId" }, "donations_referral_post_id_idx");
 
@@ -1543,9 +1540,6 @@ namespace backend.Migrations
 
                     b.HasKey("PostId")
                         .HasName("social_media_posts_pkey");
-
-                    b.HasIndex("CampaignName", "CreatedAt")
-                        .HasDatabaseName("social_posts_campaign_created_idx");
 
                     b.ToTable("social_media_posts", (string)null);
                 });

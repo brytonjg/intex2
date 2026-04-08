@@ -20,13 +20,13 @@ models/
   social-media-content/
     model.sav
     model.json
-supabase/
-  migrations/
-    20260407120000_add_ml_predictions.sql
+backend/
+  Migrations/
+    20260407203647_AddMlPredictionTables.cs
 ```
 
 - `ml/social_media_content/features.py`: builds before-post feature matrix from raw `social_media_posts` data.
-- `ml/social_media_content/etl.py`: fetches `social_media_posts` from Supabase and delegates to `features.py` to produce a modelling-ready frame.
+- `ml/social_media_content/etl.py`: fetches `social_media_posts` from the database and delegates to `features.py` to produce a modelling-ready frame.
 - `ml/social_media_content/notebook.ipynb`: trains the explanatory model (OLS flow), saves artifacts.
 - `ml/social_media_content/artifacts.py`: saves/loads model bundle + run metadata.
 - `ml/social_media_content/infer.py`: reads trained coefficients and writes one `org_insight` record.

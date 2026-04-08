@@ -112,7 +112,7 @@ As Elena (social worker), I want to know how long case data is retained, so that
 **US-6: Third-party data sharing**
 As David (privacy-conscious visitor), I want to know what third parties receive my data, so that I can assess the privacy implications.
 - **Acceptance Criteria:**
-  - Lists all third-party services that receive user data (e.g., Supabase for database, payment processor for donations, analytics tool if any)
+  - Lists all third-party services that receive user data (e.g., Azure for database, payment processor for donations, analytics tool if any)
   - For each: name, purpose, data shared, their privacy policy link
   - States that data is never sold
   - States that resident data is never shared with third parties except as required by Philippine law (e.g., DSWD reporting)
@@ -223,7 +223,7 @@ As Director Reyes (admin), I want the system to maintain a record of user consen
 **US-18: Data processing agreement references**
 As Director Reyes (admin), I want the privacy policy to reference our data processing agreements with third-party services, so that our legal obligations are documented.
 - **Acceptance Criteria:**
-  - Section listing data processors (Supabase, payment processor, hosting provider)
+  - Section listing data processors (Azure, payment processor, hosting provider)
   - States that DPAs are in place with each processor
   - Explains that processors are contractually bound to protect data
   - Provides contact email for requesting copies of DPAs
@@ -300,7 +300,7 @@ The plan covers the major GDPR rights in US-7 (access, rectification, erasure, r
 - **Right to erasure (Art. 17):** US-7 mentions erasure but the acceptance criteria only say "some data may be retained for legal compliance." The plan should specify the mechanism -- even if it is just "email us and we process it manually within 30 days." For a class project, a contact email is sufficient; no automated self-service deletion portal is needed.
 - **Data Protection Officer (DPO):** US-4 names a "Data Protection Officer or responsible party" but the plan does not specify who this is or provide a placeholder. The policy page itself should name a real person or role (e.g., "The Data Protection Officer can be reached at dpo@beaconofhope.org"). This is a GDPR requirement under Art. 37-39 for organizations processing sensitive data about minors.
 - **Lawful basis for processing:** US-4 lists "legitimate interest" and "legal obligation." For donor data, the lawful basis is more likely **contract** (processing a donation) and **consent** (marketing emails, if any). The policy should distinguish lawful bases per data category, not lump them together.
-- **International data transfers:** The plan does not address cross-border data transfers. The organization operates in the Philippines but likely uses US-based cloud services (Supabase, hosting). GDPR Art. 44-49 requires disclosure of transfers outside the EEA. A simple statement like "Data is stored on servers in [region] operated by [provider]" is sufficient for a class project.
+- **International data transfers:** The plan does not address cross-border data transfers. The organization operates in the Philippines but likely uses US-based cloud services (Azure, hosting). GDPR Art. 44-49 requires disclosure of transfers outside the EEA. A simple statement like "Data is stored on servers in [region] operated by [provider]" is sufficient for a class project.
 
 ### 3. Cookie Consent -- Functional Implementation Concerns
 
@@ -387,7 +387,7 @@ Add the following to the existing US-10 acceptance criteria:
 **US-22: International data transfer disclosure** (NEW)
 As a privacy-conscious visitor from the EU, I want to know where my data is stored and whether it is transferred outside my jurisdiction, so that I understand the cross-border implications.
 - **Acceptance Criteria:**
-  - States the geographic region of primary data storage (e.g., "Data is stored on Supabase servers in [region]")
+  - States the geographic region of primary data storage (e.g., "Data is stored on Azure PostgreSQL servers in [region]")
   - Lists any cross-border transfers (e.g., Philippines to US-based cloud services)
   - References the legal mechanism for transfers (e.g., Standard Contractual Clauses, adequacy decision, or user consent)
   - Kept brief -- 1-2 paragraphs is sufficient for a class project
@@ -573,7 +573,7 @@ The page is a single React component rendering static JSX content. No API calls 
   Table format:
     | Service     | Purpose              | Data Shared           | Privacy Policy Link |
     |-------------|----------------------|-----------------------|---------------------|
-    | Supabase    | Database hosting     | All stored data       | [link]              |
+    | Azure PostgreSQL | Database hosting | All stored data       | [link]              |
     | [Payment]   | Donation processing  | Payment details       | [link]              |
     | Azure       | Backend hosting      | Server-side data      | [link]              |
     | Vercel      | Frontend hosting     | Static assets, logs   | [link]              |
@@ -581,7 +581,7 @@ The page is a single React component rendering static JSX content. No API calls 
   DPAs in place with all processors; copies available on request at [email].
 
 <h2 id="international-transfers">   5. International Data Transfers
-  - Primary storage: Supabase servers in [region]
+  - Primary storage: Azure PostgreSQL servers in [region]
   - Backend hosted on Azure West US 2
   - Frontend on Vercel (global CDN)
   - Legal mechanism: Standard Contractual Clauses where applicable
@@ -860,7 +860,7 @@ app.Use(async (context, next) =>
         "script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com; " +
         "style-src 'self' 'unsafe-inline'; " +   // CSS Modules inject inline styles
         "img-src 'self' data: https:; " +
-        "connect-src 'self' https://www.google-analytics.com https://*.supabase.co; " +
+        "connect-src 'self' https://www.google-analytics.com ; " +
         "font-src 'self' https://fonts.gstatic.com; " +
         "frame-ancestors 'none'; " +
         "form-action 'self'; " +
