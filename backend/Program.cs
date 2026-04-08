@@ -683,6 +683,15 @@ app.MapPost("/api/admin/seed-workflow-data", async (
     AppDbContext db) =>
 {
     var results = new List<string>();
+    // "Today" is February 15, 2026 — matching DATA_CUTOFF
+    var today = new DateOnly(2026, 2, 15);
+    var todayDt = new DateTime(2026, 2, 15, 0, 0, 0, DateTimeKind.Utc);
+
+    // ── 0. Clear old seeded workflow data so we can re-seed ──
+    var oldTasks = await db.StaffTasks.ToListAsync();
+    if (oldTasks.Count > 0) { db.StaffTasks.RemoveRange(oldTasks); await db.SaveChangesAsync(); results.Add($"Cleared {oldTasks.Count} old tasks"); }
+    var oldEvents = await db.CalendarEvents.ToListAsync();
+    if (oldEvents.Count > 0) { db.CalendarEvents.RemoveRange(oldEvents); await db.SaveChangesAsync(); results.Add($"Cleared {oldEvents.Count} old events"); }
 
     // ── 1. Create staff user accounts (SW-01 through SW-20) ──
     var staffNames = new Dictionary<string, (string first, string last)>
@@ -786,153 +795,170 @@ app.MapPost("/api/admin/seed-workflow-data", async (
 
     await db.SaveChangesAsync();
 
-    // ── 3. Create to-do tasks for active residents ──
+    // ── 3. Create dense to-do tasks for active residents ──
     var activeResidents = await db.Residents
         .Where(r => r.CaseStatus == "Active")
         .Select(r => new { r.ResidentId, r.InternalCode, r.AssignedSocialWorker, r.SafehouseId })
         .ToListAsync();
 
-    var existingTaskCount = await db.StaffTasks.CountAsync();
-    if (existingTaskCount == 0)
+    var taskCount = 0;
+    var random = new Random(42);
+
+    foreach (var r in activeResidents)
     {
-        var taskCount = 0;
-        var random = new Random(42); // deterministic
-        var now = DateTime.UtcNow;
+        var sw = r.AssignedSocialWorker ?? "SW-01";
+        if (!staffUserIds.ContainsKey(sw)) continue;
+        var userId = staffUserIds[sw];
+        var shId = r.SafehouseId ?? 1;
 
-        foreach (var r in activeResidents)
+        // Monthly doctor appointment
+        db.StaffTasks.Add(new StaffTask
         {
-            var sw = r.AssignedSocialWorker ?? "SW-01";
-            if (!staffUserIds.ContainsKey(sw)) continue;
-            var userId = staffUserIds[sw];
-            var shId = r.SafehouseId ?? 1;
+            StaffUserId = userId, ResidentId = r.ResidentId, SafehouseId = shId,
+            TaskType = "ScheduleDoctor", Title = $"Schedule doctor appointment for {r.InternalCode}",
+            Description = "Monthly medical checkup — due this week",
+            ContextJson = $"{{\"lastDoctorVisit\": \"{today.AddDays(-random.Next(28, 45)):yyyy-MM-dd}\"}}",
+            Status = "Pending", CreatedAt = todayDt.AddDays(-random.Next(0, 3))
+        });
+        taskCount++;
 
-            // Monthly doctor appointment task
+        // Monthly dentist appointment
+        db.StaffTasks.Add(new StaffTask
+        {
+            StaffUserId = userId, ResidentId = r.ResidentId, SafehouseId = shId,
+            TaskType = "ScheduleDentist", Title = $"Schedule dentist appointment for {r.InternalCode}",
+            Description = "Monthly dental checkup — due this week",
+            ContextJson = $"{{\"lastDentistVisit\": \"{today.AddDays(-random.Next(30, 60)):yyyy-MM-dd}\"}}",
+            Status = "Pending", CreatedAt = todayDt.AddDays(-random.Next(0, 4))
+        });
+        taskCount++;
+
+        // Update education records
+        db.StaffTasks.Add(new StaffTask
+        {
+            StaffUserId = userId, ResidentId = r.ResidentId, SafehouseId = shId,
+            TaskType = "UpdateEducation", Title = $"Update education records for {r.InternalCode}",
+            Description = "Monthly education progress update",
+            Status = "Pending", CreatedAt = todayDt.AddDays(-random.Next(0, 5))
+        });
+        taskCount++;
+
+        // Input health records (post-appointment)
+        if (random.Next(3) == 0)
+        {
             db.StaffTasks.Add(new StaffTask
             {
                 StaffUserId = userId, ResidentId = r.ResidentId, SafehouseId = shId,
-                TaskType = "ScheduleDoctor", Title = $"Schedule doctor appointment for {r.InternalCode}",
-                Description = "Monthly medical checkup scheduling",
-                ContextJson = $"{{\"lastDoctorVisit\": \"{now.AddDays(-random.Next(20, 45)):yyyy-MM-dd}\"}}",
-                Status = "Pending", CreatedAt = now.AddDays(-random.Next(1, 5))
+                TaskType = "InputHealthRecords", Title = $"Input health records for {r.InternalCode}",
+                Description = "Record data from recent medical appointment",
+                Status = "Pending", CreatedAt = todayDt.AddDays(-1)
             });
             taskCount++;
-
-            // Monthly dentist appointment task (for half the residents)
-            if (random.Next(2) == 0)
-            {
-                db.StaffTasks.Add(new StaffTask
-                {
-                    StaffUserId = userId, ResidentId = r.ResidentId, SafehouseId = shId,
-                    TaskType = "ScheduleDentist", Title = $"Schedule dentist appointment for {r.InternalCode}",
-                    Description = "Monthly dental checkup scheduling",
-                    ContextJson = $"{{\"lastDentistVisit\": \"{now.AddDays(-random.Next(25, 60)):yyyy-MM-dd}\"}}",
-                    Status = "Pending", CreatedAt = now.AddDays(-random.Next(1, 7))
-                });
-                taskCount++;
-            }
-
-            // Update education records (for 60% of residents)
-            if (random.Next(10) < 6)
-            {
-                db.StaffTasks.Add(new StaffTask
-                {
-                    StaffUserId = userId, ResidentId = r.ResidentId, SafehouseId = shId,
-                    TaskType = "UpdateEducation", Title = $"Update education records for {r.InternalCode}",
-                    Description = "Monthly education progress update",
-                    Status = "Pending", CreatedAt = now.AddDays(-random.Next(1, 10))
-                });
-                taskCount++;
-            }
-        }
-        await db.SaveChangesAsync();
-        results.Add($"Created {taskCount} to-do tasks");
-    }
-    else
-    {
-        results.Add($"Tasks already exist ({existingTaskCount}), skipping");
-    }
-
-    // ── 4. Create calendar events for next 2 weeks ──
-    var existingEventCount = await db.CalendarEvents.CountAsync();
-    if (existingEventCount == 0)
-    {
-        var eventCount = 0;
-        var random = new Random(123);
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
-        var eventTypes = new[] { "Counseling", "Counseling", "Counseling", "HomeVisit", "DoctorApt", "DentistApt", "GroupTherapy" };
-        var timeSlots = new[] { "08:00", "09:00", "09:30", "10:00", "10:30", "11:00", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00" };
-
-        foreach (var r in activeResidents)
-        {
-            var sw = r.AssignedSocialWorker ?? "SW-01";
-            if (!staffUserIds.ContainsKey(sw)) continue;
-            var userId = staffUserIds[sw];
-            var shId = r.SafehouseId ?? 1;
-
-            // 2-4 events per active resident over next 2 weeks
-            var numEvents = random.Next(2, 5);
-            for (int i = 0; i < numEvents; i++)
-            {
-                var daysAhead = random.Next(0, 14);
-                var eventDate = today.AddDays(daysAhead);
-                // Skip weekends
-                if (eventDate.DayOfWeek == DayOfWeek.Saturday || eventDate.DayOfWeek == DayOfWeek.Sunday)
-                    continue;
-
-                var eventType = eventTypes[random.Next(eventTypes.Length)];
-                var hasTime = random.Next(3) != 0; // 2/3 have times, 1/3 unscheduled
-                var timeSlot = hasTime ? timeSlots[random.Next(timeSlots.Length)] : null;
-
-                var title = eventType switch
-                {
-                    "Counseling" => $"Counseling session — {r.InternalCode}",
-                    "HomeVisit" => $"Home visit — {r.InternalCode}",
-                    "DoctorApt" => $"Doctor appointment — {r.InternalCode}",
-                    "DentistApt" => $"Dentist appointment — {r.InternalCode}",
-                    "GroupTherapy" => "Group therapy session",
-                    _ => $"Event — {r.InternalCode}"
-                };
-
-                db.CalendarEvents.Add(new CalendarEvent
-                {
-                    StaffUserId = userId, SafehouseId = shId, ResidentId = r.ResidentId,
-                    EventType = eventType, Title = title,
-                    EventDate = eventDate,
-                    StartTime = timeSlot != null ? TimeOnly.Parse(timeSlot) : null,
-                    EndTime = timeSlot != null ? TimeOnly.Parse(timeSlot).AddHours(1) : null,
-                    Status = "Scheduled",
-                    CreatedAt = DateTime.UtcNow
-                });
-                eventCount++;
-            }
         }
 
-        // Add Monday case conferences for each safehouse
-        var nextMonday = today;
-        while (nextMonday.DayOfWeek != DayOfWeek.Monday) nextMonday = nextMonday.AddDays(1);
-        for (int shId = 1; shId <= 9; shId++)
+        // Incident follow-up (for some residents)
+        if (random.Next(4) == 0)
         {
-            // Find a staff member at this safehouse
-            var shStaff = swToSafehouse.FirstOrDefault(kv => kv.Value.Contains(shId));
-            if (shStaff.Key == null || !staffUserIds.ContainsKey(shStaff.Key)) continue;
+            db.StaffTasks.Add(new StaffTask
+            {
+                StaffUserId = userId, ResidentId = r.ResidentId, SafehouseId = shId,
+                TaskType = "IncidentFollowUp", Title = $"Follow up on incident for {r.InternalCode}",
+                Description = $"Incident: Behavioral ({(random.Next(2) == 0 ? "Medium" : "High")}) — Review and determine next steps",
+                SourceEntityType = "IncidentReport",
+                Status = "Pending", CreatedAt = todayDt.AddDays(-random.Next(0, 2))
+            });
+            taskCount++;
+        }
+
+        // Schedule home visit
+        if (random.Next(3) == 0)
+        {
+            db.StaffTasks.Add(new StaffTask
+            {
+                StaffUserId = userId, ResidentId = r.ResidentId, SafehouseId = shId,
+                TaskType = "ScheduleHomeVisit", Title = $"Schedule home visit for {r.InternalCode}",
+                Description = "Routine follow-up home visit due",
+                Status = "Pending", CreatedAt = todayDt.AddDays(-random.Next(0, 3))
+            });
+            taskCount++;
+        }
+    }
+    await db.SaveChangesAsync();
+    results.Add($"Created {taskCount} to-do tasks");
+
+    // ── 4. Create dense calendar events around Feb 15 ──
+    var eventCount = 0;
+    var eventTypes = new[] { "Counseling", "Counseling", "Counseling", "HomeVisit", "DoctorApt", "DentistApt", "GroupTherapy" };
+    var timeSlots = new[] { "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00" };
+
+    foreach (var r in activeResidents)
+    {
+        var sw = r.AssignedSocialWorker ?? "SW-01";
+        if (!staffUserIds.ContainsKey(sw)) continue;
+        var userId = staffUserIds[sw];
+        var shId = r.SafehouseId ?? 1;
+
+        // 4-8 events per resident over 2 weeks around Feb 15
+        var numEvents = random.Next(4, 9);
+        for (int i = 0; i < numEvents; i++)
+        {
+            // Spread from Feb 9 (Mon) to Feb 27 (Fri), with more density near Feb 15
+            var daysOffset = random.Next(-5, 13);
+            var eventDate = today.AddDays(daysOffset);
+            if (eventDate.DayOfWeek == DayOfWeek.Saturday || eventDate.DayOfWeek == DayOfWeek.Sunday) continue;
+
+            var eventType = eventTypes[random.Next(eventTypes.Length)];
+            // 70% have a time, 30% unscheduled (shows in parking lot)
+            var hasTime = random.Next(10) < 7;
+            var timeSlot = hasTime ? timeSlots[random.Next(timeSlots.Length)] : null;
+
+            var title = eventType switch
+            {
+                "Counseling" => $"Counseling — {r.InternalCode}",
+                "HomeVisit" => $"Home visit — {r.InternalCode}",
+                "DoctorApt" => $"Doctor appt — {r.InternalCode}",
+                "DentistApt" => $"Dentist appt — {r.InternalCode}",
+                "GroupTherapy" => $"Group therapy — {r.InternalCode}",
+                _ => $"Event — {r.InternalCode}"
+            };
 
             db.CalendarEvents.Add(new CalendarEvent
             {
-                StaffUserId = staffUserIds[shStaff.Key], SafehouseId = shId,
-                EventType = "CaseConference", Title = $"Monday Case Conference — SH{shId:D2}",
-                EventDate = nextMonday, StartTime = TimeOnly.Parse("09:00"), EndTime = TimeOnly.Parse("10:00"),
-                Status = "Scheduled", CreatedAt = DateTime.UtcNow
+                StaffUserId = userId, SafehouseId = shId, ResidentId = r.ResidentId,
+                EventType = eventType, Title = title,
+                EventDate = eventDate,
+                StartTime = timeSlot != null ? TimeOnly.Parse(timeSlot) : null,
+                EndTime = timeSlot != null ? TimeOnly.Parse(timeSlot).AddMinutes(random.Next(2, 4) * 30) : null,
+                Status = daysOffset < 0 ? "Completed" : "Scheduled",
+                CreatedAt = todayDt.AddDays(daysOffset - 3)
             });
             eventCount++;
         }
+    }
 
-        await db.SaveChangesAsync();
-        results.Add($"Created {eventCount} calendar events");
-    }
-    else
+    // Monday case conferences — Feb 16 is a Monday
+    var confMonday = new DateOnly(2026, 2, 16);
+    for (int shId = 1; shId <= 9; shId++)
     {
-        results.Add($"Events already exist ({existingEventCount}), skipping");
+        var shStaff = swToSafehouse.FirstOrDefault(kv => kv.Value.Contains(shId));
+        if (shStaff.Key == null || !staffUserIds.ContainsKey(shStaff.Key)) continue;
+        // All staff at this safehouse get the conference
+        foreach (var (swCode, shIds) in swToSafehouse.Where(kv => kv.Value.Contains(shId)))
+        {
+            if (!staffUserIds.ContainsKey(swCode)) continue;
+            db.CalendarEvents.Add(new CalendarEvent
+            {
+                StaffUserId = staffUserIds[swCode], SafehouseId = shId,
+                EventType = "CaseConference", Title = $"Case Conference — SH{shId:D2}",
+                EventDate = confMonday, StartTime = TimeOnly.Parse("09:00"), EndTime = TimeOnly.Parse("10:00"),
+                Status = "Scheduled", CreatedAt = todayDt.AddDays(-1)
+            });
+            eventCount++;
+        }
     }
+
+    await db.SaveChangesAsync();
+    results.Add($"Created {eventCount} calendar events");
 
     // ── 5. Clear social worker from a few residents to make unclaimed queue ──
     var unclaimedCount = await db.Residents.CountAsync(r => (r.AssignedSocialWorker == null || r.AssignedSocialWorker == "") && r.CaseStatus == "Active");
