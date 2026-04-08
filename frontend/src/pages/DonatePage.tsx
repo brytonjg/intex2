@@ -44,7 +44,7 @@ export default function DonatePage() {
       });
       window.location.href = url;
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Something went wrong. Please try again.');
+      setError('Unable to process your donation right now. Please try again later.');
       setLoading(false);
     }
   };
@@ -166,7 +166,7 @@ export default function DonatePage() {
             </span>
           </div>
 
-          {error && <p className={styles.error}>{error}</p>}
+          {error && <p className={styles.error} role="alert">{error}</p>}
 
           <button
             className={styles.donateBtn}
@@ -176,7 +176,7 @@ export default function DonatePage() {
             {loading ? 'Redirecting to payment...' : (
               <>
                 <Heart size={18} />
-                Donate{mode === 'recurring' ? ` ${cadenceLabel}` : ''}
+                Donate ${displayAmount.toLocaleString()}{mode === 'recurring' ? cadenceLabel : ''}
               </>
             )}
           </button>

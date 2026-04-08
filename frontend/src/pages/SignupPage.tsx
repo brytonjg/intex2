@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { UserPlus } from 'lucide-react';
@@ -7,8 +7,16 @@ import { apiFetch } from '../api';
 import styles from './LoginPage.module.css';
 
 export default function SignupPage() {
-  const { login } = useAuth();
+  const { user, login } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect logged-in users to their portal
+  useEffect(() => {
+    if (user) {
+      const dest = user.roles?.includes('Admin') || user.roles?.includes('Staff') ? '/admin' : '/donor';
+      navigate(dest, { replace: true });
+    }
+  }, [user, navigate]);
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');

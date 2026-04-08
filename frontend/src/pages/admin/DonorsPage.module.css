@@ -10,6 +10,8 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 1.75rem;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .headerLeft h1 {
@@ -30,6 +32,7 @@
 .headerActions {
   display: flex;
   gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .btnPrimary {
@@ -42,6 +45,7 @@
   background: linear-gradient(120deg, var(--color-sage), #13a490);
   border: none;
   padding: 0.5rem 1rem;
+  white-space: nowrap;
   border-radius: 999px;
   cursor: pointer;
   font-family: var(--font-body);
@@ -64,6 +68,7 @@
   background: var(--surface-1);
   border: 1px solid rgba(15, 27, 45, 0.08);
   padding: 0.5rem 1rem;
+  white-space: nowrap;
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-family: var(--font-body);

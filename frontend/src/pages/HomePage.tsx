@@ -241,21 +241,21 @@ export default function HomePage() {
               <h3>Donate</h3>
               <p>Your financial support funds shelter, education, counseling, and care.</p>
             </Link>
-            <div className={`${styles.involvedCard} reveal`}>
+            <Link to="/signup" className={`${styles.involvedCard} reveal`} style={{ textDecoration: 'none', color: 'inherit' }}>
               <Users size={28} className={styles.involvedIcon} />
               <h3>Volunteer</h3>
               <p>Give your time and skills to help our team on the ground.</p>
-            </div>
-            <Link to="/login" className={`${styles.involvedCard} reveal`} style={{ textDecoration: 'none', color: 'inherit' }}>
+            </Link>
+            <Link to="/signup" className={`${styles.involvedCard} reveal`} style={{ textDecoration: 'none', color: 'inherit' }}>
               <HandHeart size={28} className={styles.involvedIcon} />
               <h3>Partner</h3>
               <p>Bring your church, company, or community alongside our mission.</p>
             </Link>
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className={`${styles.involvedCard} reveal`} style={{ textDecoration: 'none', color: 'inherit' }}>
+            <Link to="/newsletter" className={`${styles.involvedCard} reveal`} style={{ textDecoration: 'none', color: 'inherit' }}>
               <Megaphone size={28} className={styles.involvedIcon} />
               <h3>Advocate</h3>
               <p>Amplify our voice on social media and raise awareness.</p>
-            </a>
+            </Link>
           </div>
         </div>
       </section>
