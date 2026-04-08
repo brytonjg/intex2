@@ -334,6 +334,10 @@ app.MapGet("/api/health", async (AppDbContext db) =>
 // var x = await db.Table1.CountAsync();
 //    var y = await db.Table2.CountAsync();
 
+// ── Global data reference date ──────────────────────────────
+// All queries should treat this as "today" so dashboards are consistent
+var DATA_CUTOFF = new DateOnly(2026, 2, 15);
+
 // ── Public endpoints (Impact page, Home page) ──────────────
 
 app.MapGet("/api/impact/summary", async (AppDbContext db) =>
@@ -349,7 +353,9 @@ app.MapGet("/api/impact/summary", async (AppDbContext db) =>
         .FirstOrDefaultAsync() ?? new { total = 0, active = 0, completed = 0 };
 
     var activeSafehouses = await db.Safehouses.CountAsync(s => s.Status == "Active");
-    var totalDonations = await db.Donations.SumAsync(d => (decimal?)d.Amount ?? 0);
+    var totalDonations = await db.Donations
+        .Where(d => d.DonationDate <= DATA_CUTOFF)
+        .SumAsync(d => (decimal?)d.Amount ?? 0);
 
     return new
     {
@@ -365,7 +371,7 @@ app.MapGet("/api/impact/summary", async (AppDbContext db) =>
 app.MapGet("/api/impact/donations-by-month", async (AppDbContext db) =>
 {
     var data = await db.Donations
-        .Where(d => d.DonationDate != null && d.Amount != null)
+        .Where(d => d.DonationDate != null && d.Amount != null && d.DonationDate <= DATA_CUTOFF)
         .GroupBy(d => new { d.DonationDate!.Value.Year, d.DonationDate!.Value.Month })
         .Select(g => new
         {
@@ -383,7 +389,7 @@ app.MapGet("/api/impact/donations-by-month", async (AppDbContext db) =>
 app.MapGet("/api/impact/allocations-by-program", async (AppDbContext db) =>
 {
     var data = await db.DonationAllocations
-        .Where(a => a.ProgramArea != null)
+        .Where(a => a.ProgramArea != null && (a.AllocationDate == null || a.AllocationDate <= DATA_CUTOFF))
         .GroupBy(a => a.ProgramArea)
         .Select(g => new
         {
@@ -399,7 +405,7 @@ app.MapGet("/api/impact/allocations-by-program", async (AppDbContext db) =>
 app.MapGet("/api/impact/education-trends", async (AppDbContext db) =>
 {
     var data = await db.EducationRecords
-        .Where(e => e.RecordDate != null && e.ProgressPercent != null)
+        .Where(e => e.RecordDate != null && e.ProgressPercent != null && e.RecordDate <= DATA_CUTOFF)
         .GroupBy(e => new { e.RecordDate!.Value.Year, e.RecordDate!.Value.Month })
         .Select(g => new
         {
@@ -416,7 +422,7 @@ app.MapGet("/api/impact/education-trends", async (AppDbContext db) =>
 app.MapGet("/api/impact/health-trends", async (AppDbContext db) =>
 {
     var data = await db.HealthWellbeingRecords
-        .Where(h => h.RecordDate != null && h.GeneralHealthScore != null)
+        .Where(h => h.RecordDate != null && h.GeneralHealthScore != null && h.RecordDate <= DATA_CUTOFF)
         .GroupBy(h => new { h.RecordDate!.Value.Year, h.RecordDate!.Value.Month })
         .Select(g => new
         {
@@ -474,8 +480,7 @@ app.MapGet("/api/impact/snapshots", async (AppDbContext db) =>
 
 app.MapGet("/api/admin/metrics", async (AppDbContext db) =>
 {
-    // Fixed reference date — all data is accurate as of this date
-    var refDate = new DateOnly(2026, 2, 15);
+    var refDate = DATA_CUTOFF;
     var startOfMonth = new DateOnly(refDate.Year, refDate.Month, 1);
     var startOfLastMonth = startOfMonth.AddMonths(-1);
 
@@ -726,6 +731,7 @@ app.MapDelete("/api/admin/residents/{id:int}", async (int id, AppDbContext db) =
 app.MapGet("/api/admin/recent-donations", async (AppDbContext db) =>
 {
     var data = await db.Donations
+        .Where(d => d.DonationDate <= DATA_CUTOFF)
         .OrderByDescending(d => d.DonationDate)
         .Take(5)
         .Select(d => new
@@ -764,7 +770,7 @@ app.MapGet("/api/admin/donations-by-channel", async (AppDbContext db) =>
 app.MapGet("/api/admin/active-residents-trend", async (AppDbContext db) =>
 {
     var data = await db.SafehouseMonthlyMetrics
-        .Where(m => m.MonthStart != null)
+        .Where(m => m.MonthStart != null && m.MonthStart <= DATA_CUTOFF)
         .GroupBy(m => new { m.MonthStart!.Value.Year, m.MonthStart!.Value.Month })
         .Select(g => new
         {
@@ -781,7 +787,7 @@ app.MapGet("/api/admin/active-residents-trend", async (AppDbContext db) =>
 app.MapGet("/api/admin/flagged-cases-trend", async (AppDbContext db) =>
 {
     var data = await db.SafehouseMonthlyMetrics
-        .Where(m => m.MonthStart != null)
+        .Where(m => m.MonthStart != null && m.MonthStart <= DATA_CUTOFF)
         .GroupBy(m => new { m.MonthStart!.Value.Year, m.MonthStart!.Value.Month })
         .Select(g => new
         {
@@ -902,7 +908,7 @@ app.MapDelete("/api/admin/visitations/{id}", async (AppDbContext db, int id) =>
 
 app.MapGet("/api/admin/conferences", async (AppDbContext db) =>
 {
-    var now = DateOnly.FromDateTime(DateTime.UtcNow);
+    var now = DATA_CUTOFF;
 
     var upcoming = await db.InterventionPlans
         .Where(p => p.CaseConferenceDate != null && p.CaseConferenceDate > now)
@@ -965,7 +971,7 @@ app.MapGet("/api/admin/residents-list", async (AppDbContext db) =>
 app.MapGet("/api/admin/reports/donations-by-source", async (AppDbContext db) =>
 {
     var data = await db.Donations
-        .Where(d => d.ChannelSource != null && d.Amount != null)
+        .Where(d => d.ChannelSource != null && d.Amount != null && d.DonationDate <= DATA_CUTOFF)
         .GroupBy(d => d.ChannelSource)
         .Select(g => new
         {
@@ -982,7 +988,7 @@ app.MapGet("/api/admin/reports/donations-by-source", async (AppDbContext db) =>
 app.MapGet("/api/admin/reports/donations-by-campaign", async (AppDbContext db) =>
 {
     var data = await db.Donations
-        .Where(d => d.CampaignName != null && d.Amount != null)
+        .Where(d => d.CampaignName != null && d.Amount != null && d.DonationDate <= DATA_CUTOFF)
         .GroupBy(d => d.CampaignName)
         .Select(g => new
         {
@@ -1549,7 +1555,7 @@ app.MapDelete("/api/admin/donations/{id:int}", async (int id, AppDbContext db) =
 app.MapGet("/api/admin/allocations/by-program", async (AppDbContext db) =>
 {
     var data = await db.DonationAllocations
-        .Where(a => a.ProgramArea != null)
+        .Where(a => a.ProgramArea != null && (a.AllocationDate == null || a.AllocationDate <= DATA_CUTOFF))
         .GroupBy(a => a.ProgramArea)
         .Select(g => new
         {
@@ -1566,7 +1572,7 @@ app.MapGet("/api/admin/allocations/by-program", async (AppDbContext db) =>
 app.MapGet("/api/admin/allocations/by-safehouse", async (AppDbContext db) =>
 {
     var data = await db.DonationAllocations
-        .Where(a => a.SafehouseId != null)
+        .Where(a => a.SafehouseId != null && (a.AllocationDate == null || a.AllocationDate <= DATA_CUTOFF))
         .GroupBy(a => a.SafehouseId)
         .Select(g => new
         {

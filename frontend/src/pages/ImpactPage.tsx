@@ -90,7 +90,7 @@ export default function ImpactPage() {
                 <span className={styles.statDesc}>Successfully reintegrated</span>
               </div>
               <div className={styles.statItem}>
-                <span className={styles.statNumber}>${(Number(summary.totalDonations) / 1000000).toFixed(1)}M</span>
+                <span className={styles.statNumber}>${Math.round(Number(summary.totalDonations) / 1000)}K</span>
                 <span className={styles.statDesc}>Total donations</span>
               </div>
               <div className={styles.statItem}>
