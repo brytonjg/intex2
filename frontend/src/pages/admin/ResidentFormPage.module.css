@@ -58,7 +58,7 @@
   border: 1px solid rgba(15, 27, 45, 0.08);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-sm);
-  padding: 1.15rem;
+  padding: 1.25rem;
   margin: 0;
 }
 
@@ -67,7 +67,10 @@
   font-size: 1.05rem;
   font-weight: 600;
   color: var(--text-strong);
-  padding: 0 0.35rem;
+  float: left;
+  width: 100%;
+  padding: 0;
+  margin-bottom: 0.75rem;
 }
 
 .sectionHint {
