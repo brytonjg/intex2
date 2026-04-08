@@ -4,8 +4,7 @@
 }
 
 .statsBanner {
-  padding: 4.8rem 1.25rem 2.5rem;
-  border-bottom: 1px solid rgba(15, 27, 45, 0.08);
+  padding: 3.5rem 1.25rem 2rem;
 }
 
 .statsInner {
@@ -14,7 +13,7 @@
   display: grid;
   grid-template-columns: minmax(260px, 1fr) minmax(0, 1.2fr);
   gap: 2rem;
-  align-items: start;
+  align-items: center;
 }
 
 .statsLabel {
@@ -132,6 +131,12 @@
 .chartSubtext {
   font-size: 0.84rem;
   color: var(--text-muted);
+}
+
+.chartGoalText {
+  font-size: 0.84rem;
+  color: var(--color-teal);
+  font-weight: 600;
 }
 
 .chartContainer {
@@ -326,6 +331,31 @@
 .ctaInner {
   max-width: 600px;
   margin: 0 auto;
+}
+
+.goalProgress {
+  margin-bottom: 1.5rem;
+}
+
+.goalBar {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.goalFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-sage), var(--color-amber));
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+
+.goalText {
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
 }
 
 .ctaTitle {
