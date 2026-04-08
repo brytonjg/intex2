@@ -7,6 +7,7 @@ import {
   Eye,
   HandHeart,
   BarChart3,
+  Shield,
   LogOut,
   Menu,
   X,
@@ -21,6 +22,7 @@ const navItems = [
   { to: '/admin/visitations', icon: Eye, label: 'Visitations' },
   { to: '/admin/donors', icon: HandHeart, label: 'Donors' },
   { to: '/admin/reports', icon: BarChart3, label: 'Reports' },
+  { to: '/admin/users', icon: Shield, label: 'Users' },
 ];
 
 export default function AdminLayout() {

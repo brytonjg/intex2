@@ -334,6 +334,70 @@ app.MapGet("/api/health", async (AppDbContext db) =>
 // var x = await db.Table1.CountAsync();
 //    var y = await db.Table2.CountAsync();
 
+// ── User Management (Admin only) ────────────────────────────
+
+app.MapGet("/api/admin/users", async (UserManager<ApplicationUser> userManager) =>
+{
+    var users = userManager.Users.ToList();
+    var result = new List<object>();
+    foreach (var u in users)
+    {
+        var roles = await userManager.GetRolesAsync(u);
+        result.Add(new
+        {
+            id = u.Id,
+            email = u.Email,
+            firstName = u.FirstName,
+            lastName = u.LastName,
+            roles = roles.ToList(),
+            supporterId = u.SupporterId
+        });
+    }
+    return result;
+}).RequireAuthorization("AdminOnly");
+
+app.MapPost("/api/admin/users", async (
+    UserManager<ApplicationUser> userManager,
+    HttpContext httpContext) =>
+{
+    var body = await httpContext.Request.ReadFromJsonAsync<CreateUserRequest>();
+    if (body == null) return Results.BadRequest(new { error = "Request body is required." });
+    if (string.IsNullOrWhiteSpace(body.Email) || string.IsNullOrWhiteSpace(body.Password))
+        return Results.BadRequest(new { error = "Email and password are required." });
+    if (string.IsNullOrWhiteSpace(body.Role))
+        return Results.BadRequest(new { error = "Role is required." });
+
+    var existing = await userManager.FindByEmailAsync(body.Email);
+    if (existing != null)
+        return Results.BadRequest(new { error = "A user with this email already exists." });
+
+    var user = new ApplicationUser
+    {
+        UserName = body.Email,
+        Email = body.Email,
+        FirstName = body.FirstName ?? "",
+        LastName = body.LastName ?? "",
+        EmailConfirmed = true,
+    };
+    var result = await userManager.CreateAsync(user, body.Password);
+    if (!result.Succeeded)
+        return Results.BadRequest(new { error = string.Join("; ", result.Errors.Select(e => e.Description)) });
+
+    await userManager.AddToRoleAsync(user, body.Role);
+
+    return Results.Ok(new { id = user.Id, email = user.Email, role = body.Role });
+}).RequireAuthorization("AdminOnly");
+
+app.MapDelete("/api/admin/users/{id}", async (
+    string id,
+    UserManager<ApplicationUser> userManager) =>
+{
+    var user = await userManager.FindByIdAsync(id);
+    if (user == null) return Results.NotFound();
+    await userManager.DeleteAsync(user);
+    return Results.Ok(new { deleted = true });
+}).RequireAuthorization("AdminOnly");
+
 // ── Global data reference date ──────────────────────────────
 // All queries should treat this as "today" so dashboards are consistent
 var DATA_CUTOFF = new DateOnly(2026, 2, 15);
@@ -2064,6 +2128,18 @@ public class CreateCheckoutRequest
     public long? AmountCents { get; set; }
     [EmailAddress]
     public string? DonorEmail { get; set; }
+}
+
+public class CreateUserRequest
+{
+    [Required, EmailAddress]
+    public string Email { get; set; } = "";
+    [Required]
+    public string Password { get; set; } = "";
+    [Required]
+    public string Role { get; set; } = "Staff";
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
 }
 
 public partial class Program { }
