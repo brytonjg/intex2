@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, Users, ChevronRight } from 'lucide-react';
+import { Loader2, Users } from 'lucide-react';
 import { apiFetch } from '../../api';
-import { useSafehouse } from '../../contexts/SafehouseContext';
 import styles from './IncidentsPage.module.css';
 
 interface ConferenceItem {
@@ -20,7 +19,6 @@ interface ConferenceItem {
 
 export default function CaseConferencesPage() {
   const navigate = useNavigate();
-  const { activeSafehouseId } = useSafehouse();
   const [plans, setPlans] = useState<ConferenceItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

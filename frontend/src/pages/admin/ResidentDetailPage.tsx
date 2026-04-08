@@ -267,7 +267,6 @@ export default function ResidentDetailPage() {
           {predictions.map(p => {
             const color = ML_SCORE_COLORS[p.scoreLabel || ''] || '#95a5a6';
             const isIncidentModel = p.modelName.includes('incident');
-            const isReintegration = p.modelName.includes('reintegration');
             const label = p.modelName
               .replace('incident-early-warning-', '')
               .replace('reintegration-readiness', 'Reintegration Readiness')
