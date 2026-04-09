@@ -386,7 +386,7 @@ export default function HomePage() {
     setPopoverPos(null);
   }
 
-  // Close popover on click outside
+  // Close popover on click outside or scroll
   useEffect(() => {
     if (!selectedEvent) return;
     function handleClickOutside(e: MouseEvent) {
@@ -395,7 +395,11 @@ export default function HomePage() {
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('scroll', closePopover, true);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('scroll', closePopover, true);
+    };
   }, [selectedEvent]);
 
   function renderEventChip(evt: CalendarEventItem) {
