@@ -80,7 +80,8 @@ public static class DonorPortalEndpoints
             AppDbContext db,
             UserManager<ApplicationUser> userManager,
             IEmailNotificationService emailService,
-            IConfiguration config) =>
+            IConfiguration config,
+            ILoggerFactory loggerFactory) =>
         {
             var body = await httpContext.Request.ReadFromJsonAsync<CreateCheckoutRequest>();
             if (body == null) return Results.BadRequest(new { error = "Request body is required." });
@@ -133,7 +134,15 @@ public static class DonorPortalEndpoints
 
                     // Send login credentials email
                     var baseUrl = config["App:BaseUrl"] ?? "https://intex2.dawsonsprojects.com";
+                    var log = loggerFactory.CreateLogger("DonorPortal");
+                    log.LogInformation("Sending welcome email to {Email}", email);
                     await emailService.SendDonorWelcomeEmail(email, password, baseUrl);
+                    log.LogInformation("Welcome email sent to {Email}", email);
+                }
+                else
+                {
+                    var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
+                    loggerFactory.CreateLogger("DonorPortal").LogError("Failed to create donor account for {Email}: {Errors}", email, errors);
                 }
             }
 
