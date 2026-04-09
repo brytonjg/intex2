@@ -414,26 +414,30 @@ export default function ResidentFormPage() {
         {/* ── Health & Family ── */}
         <fieldset className={styles.fieldset}>
           <legend className={styles.legend}>Health & Family</legend>
-          <div className={styles.fieldGrid}>
+          <div className={styles.checkboxSection}>
             <label className={styles.checkbox}>
               <input type="checkbox" checked={form.isPwd} onChange={(e) => updateField('isPwd', e.target.checked)} />
               <span>Person with Disability (PWD)</span>
             </label>
             {form.isPwd && (
-              <label className={styles.label}>
-                PWD Type
-                <input className={styles.input} value={form.pwdType} onChange={(e) => updateField('pwdType', e.target.value)} placeholder="Type of disability" />
-              </label>
+              <div className={styles.conditionalField}>
+                <label className={styles.label}>
+                  PWD Type
+                  <input className={styles.input} value={form.pwdType} onChange={(e) => updateField('pwdType', e.target.value)} placeholder="Type of disability" />
+                </label>
+              </div>
             )}
             <label className={styles.checkbox}>
               <input type="checkbox" checked={form.hasSpecialNeeds} onChange={(e) => updateField('hasSpecialNeeds', e.target.checked)} />
               <span>Has Special Needs</span>
             </label>
             {form.hasSpecialNeeds && (
-              <label className={styles.label}>
-                Diagnosis
-                <input className={styles.input} value={form.specialNeedsDiagnosis} onChange={(e) => updateField('specialNeedsDiagnosis', e.target.value)} placeholder="Diagnosis details" />
-              </label>
+              <div className={styles.conditionalField}>
+                <label className={styles.label}>
+                  Diagnosis
+                  <input className={styles.input} value={form.specialNeedsDiagnosis} onChange={(e) => updateField('specialNeedsDiagnosis', e.target.value)} placeholder="Diagnosis details" />
+                </label>
+              </div>
             )}
           </div>
           <div className={styles.checkboxSection}>
@@ -452,14 +456,16 @@ export default function ResidentFormPage() {
         {/* ── Assessment & Notes ── */}
         <fieldset className={styles.fieldset}>
           <legend className={styles.legend}>Assessment & Notes</legend>
-          <label className={styles.label}>
-            Initial Case Assessment
-            <textarea className={styles.textarea} value={form.initialCaseAssessment} onChange={(e) => updateField('initialCaseAssessment', e.target.value)} rows={3} placeholder="Brief assessment of the resident's situation..." />
-          </label>
-          <label className={styles.label} style={{ marginTop: '0.75rem' }}>
-            Confidential Notes
-            <textarea className={styles.textarea} value={form.notesRestricted} onChange={(e) => updateField('notesRestricted', e.target.value)} rows={3} placeholder="Restricted notes — only visible to authorized staff" />
-          </label>
+          <div className={styles.fullWidthFields}>
+            <label className={styles.label}>
+              Initial Case Assessment
+              <textarea className={styles.textarea} value={form.initialCaseAssessment} onChange={(e) => updateField('initialCaseAssessment', e.target.value)} rows={3} placeholder="Brief assessment of the resident's situation..." />
+            </label>
+            <label className={styles.label}>
+              Confidential Notes
+              <textarea className={styles.textarea} value={form.notesRestricted} onChange={(e) => updateField('notesRestricted', e.target.value)} rows={3} placeholder="Restricted notes — only visible to authorized staff" />
+            </label>
+          </div>
           <div className={styles.fieldGrid} style={{ marginTop: '0.75rem' }}>
             <label className={styles.label}>
               Reintegration Type
