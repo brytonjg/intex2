@@ -944,7 +944,7 @@ export default function HomePage() {
                 </p>
                 {residentName(selectedEvent) && (
                   <p className={styles.popoverDetail}>
-                    Resident: <a href="#" className={styles.residentLink} onClick={e => { e.preventDefault(); navigate(`/admin/caseload/${selectedEvent.residentId}`); closePopover(); }}{residentName(selectedEvent)}</a>
+                    Resident: <a href="#" className={styles.residentLink} onClick={e => { e.preventDefault(); navigate(`/admin/caseload/${selectedEvent.residentId}`); closePopover(); }}>{residentName(selectedEvent)}</a>
                   </p>
                 )}
                 <p className={styles.popoverDetail}>Type: {selectedEvent.eventType}</p>
