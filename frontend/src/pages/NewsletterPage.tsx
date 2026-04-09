@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Mail, CheckCircle } from 'lucide-react';
+import { apiFetch } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import styles from './NewsletterPage.module.css';
@@ -9,12 +10,25 @@ export default function NewsletterPage() {
   const { isAuthenticated, user } = useAuth();
   const [email, setEmail] = useState(user?.email ?? '');
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!email) return;
-    // In a real app this would call an API endpoint
-    setSubmitted(true);
+    setLoading(true);
+    setError('');
+    try {
+      await apiFetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        body: JSON.stringify({ email, name: user?.firstName }),
+      });
+      setSubmitted(true);
+    } catch {
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (submitted) {
@@ -64,10 +78,11 @@ export default function NewsletterPage() {
               onChange={e => setEmail(e.target.value)}
               required
             />
-            <button type="submit" className={styles.submitBtn}>
-              Subscribe
+            <button type="submit" className={styles.submitBtn} disabled={loading}>
+              {loading ? 'Subscribing...' : 'Subscribe'}
             </button>
           </div>
+          {error && <p style={{ color: 'var(--color-error, #d32f2f)', marginTop: '0.5rem', fontSize: '0.9rem' }}>{error}</p>}
         </form>
 
         <div className={styles.preview}>

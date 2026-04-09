@@ -71,6 +71,10 @@ public partial class AppDbContext : IdentityDbContext<ApplicationUser>
     public virtual DbSet<MilestoneRule> MilestoneRules { get; set; }
     public virtual DbSet<AutomatedPost> AutomatedPosts { get; set; }
 
+    // Newsletter
+    public virtual DbSet<Newsletter> Newsletters { get; set; }
+    public virtual DbSet<NewsletterSubscriber> NewsletterSubscribers { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -955,6 +959,40 @@ public partial class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.HasOne(e => e.TalkingPoint).WithMany(t => t.AutomatedPosts).HasForeignKey(e => e.TalkingPointId).OnDelete(DeleteBehavior.SetNull).HasConstraintName("automated_posts_talking_point_id_fkey");
             entity.HasOne(e => e.MilestoneRule).WithMany(m => m.AutomatedPosts).HasForeignKey(e => e.MilestoneRuleId).OnDelete(DeleteBehavior.SetNull).HasConstraintName("automated_posts_milestone_rule_id_fkey");
             entity.HasOne(e => e.RecycledFrom).WithMany().HasForeignKey(e => e.RecycledFromId).OnDelete(DeleteBehavior.SetNull).HasConstraintName("automated_posts_recycled_from_id_fkey");
+        });
+
+        // Newsletter tables
+        modelBuilder.Entity<Newsletter>(entity =>
+        {
+            entity.HasKey(e => e.NewsletterId).HasName("newsletters_pkey");
+            entity.ToTable("newsletters");
+            entity.HasIndex(e => e.Status).HasDatabaseName("newsletters_status_idx");
+            entity.HasIndex(e => e.MonthYear).IsUnique().HasDatabaseName("newsletters_month_year_idx");
+            entity.Property(e => e.NewsletterId).HasColumnName("newsletter_id");
+            entity.Property(e => e.Subject).HasColumnName("subject");
+            entity.Property(e => e.HtmlContent).HasColumnName("html_content");
+            entity.Property(e => e.PlainText).HasColumnName("plain_text");
+            entity.Property(e => e.Status).HasColumnName("status");
+            entity.Property(e => e.GeneratedAt).HasColumnName("generated_at");
+            entity.Property(e => e.ApprovedBy).HasColumnName("approved_by");
+            entity.Property(e => e.ApprovedAt).HasColumnName("approved_at");
+            entity.Property(e => e.SentAt).HasColumnName("sent_at");
+            entity.Property(e => e.RecipientCount).HasColumnName("recipient_count");
+            entity.Property(e => e.MonthYear).HasColumnName("month_year");
+        });
+
+        modelBuilder.Entity<NewsletterSubscriber>(entity =>
+        {
+            entity.HasKey(e => e.NewsletterSubscriberId).HasName("newsletter_subscribers_pkey");
+            entity.ToTable("newsletter_subscribers");
+            entity.HasIndex(e => e.Email).IsUnique().HasDatabaseName("newsletter_subscribers_email_idx");
+            entity.HasIndex(e => e.IsActive).HasDatabaseName("newsletter_subscribers_active_idx");
+            entity.Property(e => e.NewsletterSubscriberId).HasColumnName("newsletter_subscriber_id");
+            entity.Property(e => e.Email).HasColumnName("email");
+            entity.Property(e => e.Name).HasColumnName("name");
+            entity.Property(e => e.SubscribedAt).HasColumnName("subscribed_at");
+            entity.Property(e => e.UnsubscribeToken).HasColumnName("unsubscribe_token");
+            entity.Property(e => e.IsActive).HasColumnName("is_active");
         });
 
         OnModelCreatingPartial(modelBuilder);

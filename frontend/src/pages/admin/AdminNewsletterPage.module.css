@@ -1,0 +1,371 @@
+.page {
+  padding: 2rem 2.5rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.headerLeft h1 {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--color-deep-navy);
+  margin: 0;
+}
+
+.headerLeft p {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0.3rem 0 0;
+}
+
+.btnGenerate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--color-sage);
+  color: #fff;
+  border: none;
+  padding: 0.65rem 1.3rem;
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btnGenerate:hover {
+  opacity: 0.9;
+}
+
+.btnGenerate:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Newsletter list */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.15s;
+}
+
+.card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.2rem;
+  cursor: pointer;
+  gap: 1rem;
+}
+
+.cardHeaderLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.cardSubject {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-deep-navy);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cardMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.cardHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+/* Status badges */
+
+.badge {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+}
+
+.badgeDraft {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badgeApproved {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.badgeSent {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badgeSending {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.badgeFailed {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.chevron {
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+/* Expanded content */
+
+.cardBody {
+  border-top: 1px solid #e5e7eb;
+  padding: 1.2rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.btnApprove {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  border: 1px solid #059669;
+  background: transparent;
+  color: #059669;
+}
+
+.btnApprove:hover {
+  background: #ecfdf5;
+}
+
+.btnApprove:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btnEdit {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  border: 1px solid #2563eb;
+  background: transparent;
+  color: #2563eb;
+}
+
+.btnEdit:hover {
+  background: #eff6ff;
+}
+
+.btnSend {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  border: 1px solid var(--color-sage);
+  background: var(--color-sage);
+  color: #fff;
+}
+
+.btnSend:hover {
+  opacity: 0.9;
+}
+
+.btnSend:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.previewFrame {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  min-height: 400px;
+  background: #fff;
+}
+
+/* Edit mode */
+
+.editField {
+  width: 100%;
+  margin-bottom: 0.75rem;
+}
+
+.editField label {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-deep-navy);
+  margin-bottom: 0.3rem;
+}
+
+.editField input,
+.editField textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 0.5rem 0.65rem;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  box-sizing: border-box;
+}
+
+.editField input:focus,
+.editField textarea:focus {
+  outline: none;
+  border-color: var(--color-sage);
+  box-shadow: 0 0 0 3px rgba(15, 143, 125, 0.08);
+}
+
+.editField textarea {
+  min-height: 300px;
+  font-family: monospace;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.editActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btnSave {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+  background: var(--color-sage);
+  color: #fff;
+}
+
+.btnSave:hover {
+  opacity: 0.9;
+}
+
+.btnCancel {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: var(--text-muted);
+}
+
+.btnCancel:hover {
+  background: #f9fafb;
+}
+
+/* Empty state */
+
+.empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+}
+
+/* Loading */
+
+.loadingBar {
+  height: 3px;
+  background: var(--color-sage);
+  border-radius: 2px;
+  animation: pulse 1.5s ease-in-out infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+/* Responsive */
+
+@media (max-width: 768px) {
+  .page {
+    padding: 1rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cardHeaderRight {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

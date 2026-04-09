@@ -104,6 +104,7 @@ builder.Services.AddHostedService<backend.Services.ContentGenerationJob>();
 builder.Services.AddHostedService<backend.Services.PostReadinessJob>();
 builder.Services.AddHostedService<backend.Services.MilestoneEvaluationJob>();
 builder.Services.AddHostedService<backend.Services.DataRetentionJob>();
+builder.Services.AddHostedService<backend.Services.MonthlyNewsletterJob>();
 
 var app = builder.Build();
 
@@ -201,6 +202,7 @@ app.MapSupporterEndpoints();
 app.MapDonationEndpoints();
 app.MapDonorPortalEndpoints();
 app.MapSeedEndpoints();
+app.MapNewsletterEndpoints();
 
 // ── Social Media Automation Endpoints ──────────────────────
 

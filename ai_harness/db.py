@@ -145,3 +145,83 @@ def fetch_approved_examples(pillar: str, platform: str, limit: int = 3) -> list[
             {"pillar": pillar, "platform": platform, "limit": limit},
         ).mappings().all()
         return [dict(r) for r in rows]
+
+
+# ── Newsletter helpers ──────────────────────────────────────────────────────
+
+
+def fetch_monthly_published_posts(year: int, month: int) -> list[dict]:
+    with get_engine().connect() as conn:
+        rows = conn.execute(
+            text("""
+                SELECT content, content_pillar, platform,
+                       COALESCE(engagement_likes,0) + COALESCE(engagement_shares,0) + COALESCE(engagement_comments,0) as total_engagement
+                FROM automated_posts
+                WHERE status = 'published'
+                  AND EXTRACT(YEAR FROM created_at) = :year
+                  AND EXTRACT(MONTH FROM created_at) = :month
+                ORDER BY total_engagement DESC
+                LIMIT 5
+            """),
+            {"year": year, "month": month},
+        ).mappings().all()
+        return [dict(r) for r in rows]
+
+
+def fetch_monthly_donation_stats(year: int, month: int) -> dict:
+    with get_engine().connect() as conn:
+        row = conn.execute(
+            text("""
+                SELECT COALESCE(SUM(amount), 0) as total_amount,
+                       COUNT(DISTINCT supporter_id) as donor_count,
+                       COUNT(*) as donation_count
+                FROM donations
+                WHERE EXTRACT(YEAR FROM donation_date) = :year
+                  AND EXTRACT(MONTH FROM donation_date) = :month
+            """),
+            {"year": year, "month": month},
+        ).mappings().first()
+        return dict(row) if row else {"total_amount": 0, "donor_count": 0, "donation_count": 0}
+
+
+def fetch_monthly_resident_metrics(year: int, month: int) -> dict | None:
+    with get_engine().connect() as conn:
+        row = conn.execute(
+            text("""
+                SELECT active_residents, avg_education_progress, avg_health_score
+                FROM safehouse_monthly_metrics
+                WHERE year = :year AND month = :month
+                LIMIT 1
+            """),
+            {"year": year, "month": month},
+        ).mappings().first()
+        return dict(row) if row else None
+
+
+def fetch_upcoming_events(days: int = 30) -> list[dict]:
+    with get_engine().connect() as conn:
+        rows = conn.execute(
+            text("""
+                SELECT title, event_type, event_date
+                FROM calendar_events
+                WHERE event_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL ':days days'
+                  AND status = 'Scheduled'
+                ORDER BY event_date
+                LIMIT 10
+            """.replace(":days", str(int(days)))),
+        ).mappings().all()
+        return [dict(r) for r in rows]
+
+
+def fetch_impact_snapshot() -> dict | None:
+    with get_engine().connect() as conn:
+        row = conn.execute(
+            text("""
+                SELECT *
+                FROM public_impact_snapshots
+                WHERE is_published = true
+                ORDER BY snapshot_date DESC
+                LIMIT 1
+            """)
+        ).mappings().first()
+        return dict(row) if row else None
