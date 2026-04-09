@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Heart } from 'lucide-react';
 import { apiFetch } from '../api';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -26,6 +27,7 @@ type Cadence = 'monthly' | 'quarterly' | 'yearly';
 
 export default function DonatePage() {
   useDocumentTitle('Donate');
+  const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>('one-time');
   const [cadence, setCadence] = useState<Cadence>('monthly');
   const [selectedAmount, setSelectedAmount] = useState<number | null>(500);
@@ -34,6 +36,11 @@ export default function DonatePage() {
   const [newsletter, setNewsletter] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPayment, setShowPayment] = useState(false);
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvc, setCardCvc] = useState('');
+  const [cardName, setCardName] = useState('');
 
   const amountCents = customAmount
     ? Math.round(parseFloat(customAmount) * 100)
@@ -43,7 +50,7 @@ export default function DonatePage() {
 
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(donorEmail);
 
-  const handleSubmit = async () => {
+  const handleContinueToPayment = () => {
     if (!donorEmail.trim()) {
       setError('Please enter your email address.');
       return;
@@ -57,6 +64,31 @@ export default function DonatePage() {
       return;
     }
     setError('');
+    setShowPayment(true);
+  };
+
+  const formatCardNumber = (v: string) => {
+    const digits = v.replace(/\D/g, '').slice(0, 16);
+    return digits.replace(/(.{4})/g, '$1 ').trim();
+  };
+
+  const formatExpiry = (v: string) => {
+    const digits = v.replace(/\D/g, '').slice(0, 4);
+    if (digits.length >= 3) return digits.slice(0, 2) + '/' + digits.slice(2);
+    return digits;
+  };
+
+  const isCardValid = cardNumber.replace(/\s/g, '').length === 16
+    && cardExpiry.length === 5
+    && cardCvc.length >= 3
+    && cardName.trim().length > 0;
+
+  const handleSubmit = async () => {
+    if (!isCardValid) {
+      setError('Please fill in all payment fields.');
+      return;
+    }
+    setError('');
     setLoading(true);
     try {
       const payload = {
@@ -66,12 +98,14 @@ export default function DonatePage() {
         donorEmail,
         newsletter,
       };
-      const { url } = await apiFetch<{ url: string }>('/api/donate/create-checkout-session', {
+      await apiFetch('/api/donate/process', {
         method: 'POST',
         body: JSON.stringify(payload),
       });
-      window.location.href = url;
-    } catch (e: unknown) {
+      const amount = amountCents / 100;
+      const isRecurring = mode === 'recurring';
+      navigate(`/donate/success?amount=${amount}&recurring=${isRecurring}&email=${encodeURIComponent(donorEmail)}`);
+    } catch {
       setError('Unable to process your donation right now. Please try again later.');
       setLoading(false);
     }
@@ -230,21 +264,87 @@ export default function DonatePage() {
 
           {error && <p className={styles.error} role="alert">{error}</p>}
 
-          <button
-            className={styles.donateBtn}
-            onClick={handleSubmit}
-            disabled={loading || amountCents < 100 || !isValidEmail}
-          >
-            {loading ? 'Redirecting to payment...' : (
-              <>
-                <Heart size={18} />
-                Donate ${displayAmount.toLocaleString()}{mode === 'recurring' ? cadenceLabel : ''}
-              </>
-            )}
-          </button>
+          {!showPayment ? (
+            <button
+              className={styles.donateBtn}
+              onClick={handleContinueToPayment}
+              disabled={amountCents < 100 || !isValidEmail}
+            >
+              <Heart size={18} />
+              Continue to Payment
+            </button>
+          ) : (
+            <>
+              <div className={styles.paymentSection}>
+                <h3 className={styles.paymentTitle}>Payment Details</h3>
+                <div className={styles.fieldGroup}>
+                  <label className={styles.label} htmlFor="cardName">Name on card</label>
+                  <input
+                    id="cardName"
+                    type="text"
+                    className={styles.input}
+                    placeholder="John Doe"
+                    value={cardName}
+                    onChange={e => setCardName(e.target.value)}
+                  />
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label className={styles.label} htmlFor="cardNumber">Card number</label>
+                  <input
+                    id="cardNumber"
+                    type="text"
+                    className={styles.input}
+                    placeholder="4242 4242 4242 4242"
+                    value={cardNumber}
+                    onChange={e => setCardNumber(formatCardNumber(e.target.value))}
+                    maxLength={19}
+                  />
+                </div>
+                <div className={styles.cardRow}>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.label} htmlFor="cardExpiry">Expiry</label>
+                    <input
+                      id="cardExpiry"
+                      type="text"
+                      className={styles.input}
+                      placeholder="MM/YY"
+                      value={cardExpiry}
+                      onChange={e => setCardExpiry(formatExpiry(e.target.value))}
+                      maxLength={5}
+                    />
+                  </div>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.label} htmlFor="cardCvc">CVC</label>
+                    <input
+                      id="cardCvc"
+                      type="text"
+                      className={styles.input}
+                      placeholder="123"
+                      value={cardCvc}
+                      onChange={e => setCardCvc(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      maxLength={4}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <button
+                className={styles.donateBtn}
+                onClick={handleSubmit}
+                disabled={loading || !isCardValid}
+              >
+                {loading ? 'Processing...' : (
+                  <>
+                    <Heart size={18} />
+                    Donate ${displayAmount.toLocaleString()}{mode === 'recurring' ? cadenceLabel : ''}
+                  </>
+                )}
+              </button>
+            </>
+          )}
 
           <p className={styles.secure}>
-            Payments processed securely by Stripe. Apple Pay and Google Pay accepted.
+            Your payment information is secure and encrypted.
           </p>
         </div>
       </section>
