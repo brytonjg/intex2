@@ -100,14 +100,10 @@ const CaseConferencesPage = lazyRetry(() => import('./pages/admin/CaseConference
 const EducationRecordFormPage = lazyRetry(() => import('./pages/admin/EducationRecordFormPage'));
 const HealthRecordFormPage = lazyRetry(() => import('./pages/admin/HealthRecordFormPage'));
 const PostPlacementPage = lazyRetry(() => import('./pages/admin/PostPlacementPage'));
-// Social media pages
-const SocialQueuePage = lazyRetry(() => import('./pages/admin/social/SocialQueuePage'));
-const PhotoUploadPage = lazyRetry(() => import('./pages/admin/social/PhotoUploadPage'));
-const SocialSettingsPage = lazyRetry(() => import('./pages/admin/social/SocialSettingsPage'));
-const MediaLibraryPage = lazyRetry(() => import('./pages/admin/social/MediaLibraryPage'));
-const SocialCalendarPage = lazyRetry(() => import('./pages/admin/social/SocialCalendarPage'));
-const VoiceBrandPage = lazyRetry(() => import('./pages/admin/social/VoiceBrandPage'));
-const FactsPage = lazyRetry(() => import('./pages/admin/social/FactsPage'));
+// Social media pages (3 consolidated pages)
+const SocialPostsPage = lazyRetry(() => import('./pages/admin/social/SocialPostsPage'));
+const SocialPhotosPage = lazyRetry(() => import('./pages/admin/social/SocialPhotosPage'));
+const SocialSetupPage = lazyRetry(() => import('./pages/admin/social/SocialSetupPage'));
 const DonorPortal = lazyRetry(() => import('./pages/DonorPortal'));
 const DonatePage = lazyRetry(() => import('./pages/DonatePage'));
 const DonateSuccessPage = lazyRetry(() => import('./pages/DonateSuccessPage'));
@@ -205,13 +201,9 @@ function App() {
               <Route path="donations/new" element={<DonationFormPage />} />
               <Route path="donations/:id/edit" element={<DonationFormPage />} />
               <Route path="users" element={<UsersPage />} />
-              <Route path="social/queue" element={<SocialQueuePage />} />
-              <Route path="social/upload" element={<PhotoUploadPage />} />
-              <Route path="social/calendar" element={<SocialCalendarPage />} />
-              <Route path="social/media" element={<MediaLibraryPage />} />
-              <Route path="social/facts" element={<FactsPage />} />
-              <Route path="social/voice" element={<VoiceBrandPage />} />
-              <Route path="social/settings" element={<SocialSettingsPage />} />
+              <Route path="social/posts" element={<SocialPostsPage />} />
+              <Route path="social/photos" element={<SocialPhotosPage />} />
+              <Route path="social/setup" element={<SocialSetupPage />} />
             </Route>
 
             {/* 404 catch-all */}

@@ -21,10 +21,6 @@ import {
   Share2,
   CameraIcon,
   Settings,
-  CalendarDays,
-  ImageIcon,
-  BookOpen,
-  Mic,
   ChevronDown,
   Check,
 } from 'lucide-react';
@@ -108,13 +104,9 @@ const navGroups: NavGroup[] = [
   {
     label: 'Social Media',
     items: [
-      { to: '/admin/social/queue', icon: Share2, label: 'Queue' },
-      { to: '/admin/social/calendar', icon: CalendarDays, label: 'Calendar' },
-      { to: '/admin/social/upload', icon: CameraIcon, label: 'Upload' },
-      { to: '/admin/social/media', icon: ImageIcon, label: 'Media' },
-      { to: '/admin/social/facts', icon: BookOpen, label: 'Facts' },
-      { to: '/admin/social/voice', icon: Mic, label: 'Voice' },
-      { to: '/admin/social/settings', icon: Settings, label: 'Settings' },
+      { to: '/admin/social/posts', icon: Share2, label: 'Posts' },
+      { to: '/admin/social/photos', icon: CameraIcon, label: 'Photos' },
+      { to: '/admin/social/setup', icon: Settings, label: 'Setup' },
     ],
   },
   {
