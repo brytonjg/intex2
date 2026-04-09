@@ -402,6 +402,27 @@
   font-weight: 600;
 }
 
+.receiptBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  background: transparent;
+  border: 1px solid var(--color-teal);
+  color: var(--color-teal);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+
+.receiptBtn:hover {
+  background: var(--color-teal);
+  color: #fff;
+}
+
 /* ── Empty State ──────────────────────────────────────────── */
 .emptyState {
   text-align: center;

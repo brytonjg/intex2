@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Heart, Loader2, Users, GraduationCap, Shield, Settings, ArrowRight } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Heart, Loader2, Users, GraduationCap, Shield, Settings, ArrowRight, Download } from 'lucide-react';
+import jsPDF from 'jspdf';
 import { apiFetch } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import { formatDate, formatAmount, formatEnumLabel } from '../constants';
@@ -56,6 +57,7 @@ const PROGRAM_DESCRIPTIONS: Record<string, string> = {
 export default function DonorPortal() {
   useDocumentTitle('Donor Portal');
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [data, setData] = useState<DonorData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -90,6 +92,59 @@ export default function DonorPortal() {
     || user?.firstName
     || 'Donor';
 
+  const downloadReceipt = (d: Donation) => {
+    const doc = new jsPDF();
+    const amount = d.amount ? `$${d.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}` : d.estimatedValue ? `$${d.estimatedValue.toLocaleString('en-US', { minimumFractionDigits: 2 })} (est.)` : 'N/A';
+    const date = d.donationDate ? new Date(d.donationDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A';
+
+    // Header
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Beacon of Hope', 105, 25, { align: 'center' });
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Donation Receipt', 105, 33, { align: 'center' });
+
+    // Divider
+    doc.setDrawColor(0, 150, 136);
+    doc.setLineWidth(0.5);
+    doc.line(20, 38, 190, 38);
+
+    // Receipt details
+    doc.setFontSize(11);
+    let y = 50;
+    const label = (text: string, val: string) => {
+      doc.setFont('helvetica', 'bold');
+      doc.text(text, 25, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(val, 80, y);
+      y += 9;
+    };
+
+    label('Donor:', displayName);
+    if (user?.email) label('Email:', user.email);
+    label('Date:', date);
+    label('Amount:', amount);
+    label('Type:', d.donationType ? d.donationType.charAt(0).toUpperCase() + d.donationType.slice(1) : 'Monetary');
+    label('Recurring:', d.isRecurring ? 'Yes' : 'No');
+    label('Receipt #:', `BOH-${d.donationId.toString().padStart(6, '0')}`);
+
+    // Tax note
+    y += 8;
+    doc.setDrawColor(0, 150, 136);
+    doc.line(20, y, 190, y);
+    y += 12;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'italic');
+    doc.text('Beacon of Hope is a registered 501(c)(3) nonprofit organization.', 105, y, { align: 'center' });
+    y += 6;
+    doc.text('No goods or services were provided in exchange for this donation.', 105, y, { align: 'center' });
+    y += 6;
+    doc.text('This receipt may be used for tax deduction purposes. Please retain for your records.', 105, y, { align: 'center' });
+
+    doc.save(`beacon-of-hope-receipt-${d.donationId}.pdf`);
+  };
+
   return (
     <div className={styles.page}>
       {/* Hero banner */}
@@ -114,7 +169,7 @@ export default function DonorPortal() {
         <div className={styles.highlightCard}>
           <div className={styles.highlightIcon}><Users size={22} /></div>
           <div>
-            <span className={styles.highlightValue}>{donationCount > 0 ? Math.max(1, Math.floor(totalDonated / 5000)) : 0}</span>
+            <span className={styles.highlightValue}>{donationCount > 0 ? Math.max(1, Math.floor(totalDonated / 1500)) : 0}</span>
             <span className={styles.highlightLabel}>Lives directly impacted</span>
           </div>
         </div>
@@ -136,10 +191,10 @@ export default function DonorPortal() {
 
       {/* Donate CTA — after stats, before detailed tabs */}
       <div className={styles.topCta}>
-        <Link to="/donate" className={styles.topCtaBtn}>
+        <button className={styles.topCtaBtn} onClick={() => navigate('/donate', { state: { email: user?.email } })}>
           <Heart size={16} />
           {hasRecurring ? 'Increase Your Impact' : 'Make Another Donation'}
-        </Link>
+        </button>
       </div>
 
       {/* Tabs */}
@@ -184,7 +239,7 @@ export default function DonorPortal() {
                   A survivor of trafficking entered our program withdrawn and fearful. Through counseling
                   and peer support, she's now mentoring younger residents and leading group sessions.
                 </p>
-                <span className={styles.storyMeta}>Active resident, Guam</span>
+                <span className={styles.storyMeta}>Safehouse resident, Guam</span>
               </div>
             </div>
             <p className={styles.privacyNote}>Names and identifying details are changed to protect privacy.</p>
@@ -231,11 +286,11 @@ export default function DonorPortal() {
                   : 'Monthly donors provide the stable funding that lets us plan ahead and serve more girls. Even a small recurring gift makes a big difference.'}
               </p>
             </div>
-            <Link to="/donate" className={styles.inspirBtn}>
+            <button className={styles.inspirBtn} onClick={() => navigate('/donate', { state: { email: user?.email } })}>
               <Heart size={16} />
               {hasRecurring ? 'Give More' : 'Start Monthly Giving'}
               <ArrowRight size={16} />
-            </Link>
+            </button>
           </section>
         </div>
       )}
@@ -259,8 +314,8 @@ export default function DonorPortal() {
                       <th>Date</th>
                       <th>Type</th>
                       <th>Amount</th>
-                      <th>Campaign</th>
                       <th>Recurring</th>
+                      <th></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -271,8 +326,13 @@ export default function DonorPortal() {
                         <td className={styles.amountCol}>
                           {d.amount ? formatAmount(d.amount) : d.estimatedValue ? `${formatAmount(d.estimatedValue)} est.` : '--'}
                         </td>
-                        <td>{d.campaignName ?? '--'}</td>
                         <td>{d.isRecurring ? 'Yes' : '--'}</td>
+                        <td>
+                          <button className={styles.receiptBtn} onClick={() => downloadReceipt(d)}>
+                            <Download size={14} />
+                            Receipt
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>

@@ -35,7 +35,7 @@ export default function DonateSuccessPage() {
           for survivors of abuse and trafficking.
         </p>
         {email && (
-          <p className={styles.receipt}>A receipt will be sent to <strong>{email}</strong>.</p>
+          <p className={styles.receipt}>A receipt and your donor portal login credentials will be sent to <strong>{email}</strong>.</p>
         )}
         <div className={styles.actions}>
           <Link to="/" className={styles.btnPrimary}>
