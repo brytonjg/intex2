@@ -18,6 +18,7 @@ import {
   Bar,
   Cell,
 } from 'recharts';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import styles from './AdminDashboard.module.css';
 
 const channelColors = ['#D4A853', '#B8913A', '#7A9E7E', '#5A6B7A', '#C4756E'];
@@ -85,6 +86,7 @@ interface ApiDonation {
 
 
 export default function AdminDashboard() {
+  useDocumentTitle('Dashboard');
   const navigate = useNavigate();
   const { activeSafehouseId: safehouseId } = useSafehouse();
 
@@ -95,7 +97,7 @@ export default function AdminDashboard() {
   const dataDateStr = 'Data as of February 16, 2026';
   const [activeResidentsChart, setActiveResidentsChart] = useState<Array<{ month: string; count: number }>>([]);
   const [flaggedChart, setFlaggedChart] = useState<Array<{ month: string; count: number }>>([]);
-  const [channels, setChannels] = useState<Array<{ channel: string; amount: number }>>([]);
+  const [channels, setChannels] = useState<Array<{ channel: string; count: number }>>([]);
   const [error, setError] = useState(false);
 
   const fetchData = useCallback((shId: number | null) => {
@@ -146,7 +148,7 @@ export default function AdminDashboard() {
     }).catch(onErr);
 
     apiFetch<Array<{ channel: string; count: number }>>('/api/admin/donations-by-channel').then(data => {
-      setChannels(data.map(d => ({ channel: formatEnumLabel(d.channel), amount: d.count })));
+      setChannels(data.map(d => ({ channel: formatEnumLabel(d.channel), count: d.count })));
     }).catch(onErr);
   }, []);
 
@@ -318,15 +320,15 @@ export default function AdminDashboard() {
 
           <div className={styles.channelCard}>
             <div className={styles.cardHeader}>
-              <h2 className={styles.cardTitle}>By Channel</h2>
+              <h2 className={styles.cardTitle}>Supporters by Channel</h2>
               <span className={styles.cardSubtitle}>Acquisition source</span>
             </div>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={channels} layout="vertical" barCategoryGap="25%">
                 <XAxis type="number" hide />
                 <YAxis dataKey="channel" type="category" tick={{ fontSize: 11, fill: '#8A8078' }} axisLine={false} tickLine={false} width={85} />
-                <Tooltip content={<ChartTooltip prefix="$" />} cursor={{ fill: 'rgba(212, 168, 83, 0.06)' }} />
-                <Bar dataKey="amount" radius={[0, 4, 4, 0]}>
+                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(212, 168, 83, 0.06)' }} />
+                <Bar dataKey="count" radius={[0, 4, 4, 0]}>
                   {channels.map((_, i) => (
                     <Cell key={i} fill={channelColors[i]} />
                   ))}
