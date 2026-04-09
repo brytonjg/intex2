@@ -6,6 +6,7 @@ import { APP_TODAY_STR } from '../../constants';
 import TextArea from '../../components/admin/TextArea';
 import { INCIDENT_TYPES, SEVERITY_LEVELS } from '../../domain';
 import { useSafehouse } from '../../contexts/SafehouseContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import Dropdown from '../../components/admin/Dropdown';
 import DatePicker from '../../components/admin/DatePicker';
@@ -51,12 +52,15 @@ export default function IncidentFormPage() {
   const [searchParams] = useSearchParams();
   const isEdit = !!id;
   const { activeSafehouseId, safehouses } = useSafehouse();
+  const { user } = useAuth();
 
   const presetResidentId = searchParams.get('residentId');
+  const defaultReportedBy = user ? `${user.firstName} ${user.lastName}`.trim() : '';
   const [form, setForm] = useState<FormData>({
     ...emptyForm,
     safehouseId: activeSafehouseId || '',
     residentId: presetResidentId ? Number(presetResidentId) : '',
+    reportedBy: isEdit ? '' : defaultReportedBy,
   });
   const [residents, setResidents] = useState<ResidentOption[]>([]);
   const [saving, setSaving] = useState(false);
@@ -244,7 +248,14 @@ export default function IncidentFormPage() {
               <button
                 type="button"
                 className={`${styles.toggle} ${form.resolved ? styles.toggleActive : ''}`}
-                onClick={() => handleChange('resolved', !form.resolved)}
+                onClick={() => {
+                  const newResolved = !form.resolved;
+                  setForm(prev => ({
+                    ...prev,
+                    resolved: newResolved,
+                    resolutionDate: newResolved && !prev.resolutionDate ? APP_TODAY_STR : prev.resolutionDate,
+                  }));
+                }}
               />
               <div>
                 <div className={styles.toggleLabel}>Resolved</div>

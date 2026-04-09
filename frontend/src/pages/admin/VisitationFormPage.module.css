@@ -169,6 +169,10 @@
   background: var(--color-rose);
 }
 
+.toggleDanger::after {
+  transform: translateX(20px);
+}
+
 .toggleLabel {
   font-size: 0.85rem;
   font-weight: 600;
