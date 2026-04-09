@@ -25,10 +25,13 @@ jobs:
           cp ai_harness/requirements.txt requirements.txt
           zip -r deploy.zip ai_harness/ requirements.txt -x "ai_harness/.venv/*" "ai_harness/__pycache__/*" "ai_harness/tests/*"
 
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'intex-ai-harness'
-          publish-profile: ${{ secrets.AZURE_AI_HARNESS_PUBLISH_PROFILE }}
-          package: deploy.zip
-          type: zip
+      - name: Deploy via Kudu zip deploy
+        env:
+          SCM_CREDENTIALS: ${{ secrets.AZURE_AI_HARNESS_SCM_CREDENTIALS }}
+        run: |
+          curl -s -X POST \
+            -u "$SCM_CREDENTIALS" \
+            --data-binary @deploy.zip \
+            -H "Content-Type: application/zip" \
+            "https://intex-ai-harness.scm.azurewebsites.net/api/zipdeploy?isAsync=false" \
+            -w "\nHTTP Status: %{http_code}\n"
