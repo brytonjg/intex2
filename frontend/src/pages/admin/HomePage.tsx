@@ -553,7 +553,7 @@ export default function HomePage() {
         }}
         onClick={e => handleEventClick(evt, e)}
         draggable
-        onDragStart={e => { e.stopPropagation(); dragOffsetY.current = e.clientY - (e.currentTarget as HTMLElement).getBoundingClientRect().top; setDragEventId(evt.calendarEventId); }}
+        onDragStart={e => { e.stopPropagation(); dragOffsetY.current = e.clientY - (e.currentTarget as HTMLElement).getBoundingClientRect().top; setTimeout(() => setDragEventId(evt.calendarEventId), 0); }}
         onDragEnd={() => setDragEventId(null)}
       >
         {heightPx >= 40 ? (
@@ -662,7 +662,7 @@ export default function HomePage() {
                         key={evt.calendarEventId}
                         className={styles.allDayChip}
                         draggable
-                        onDragStart={e => { dragOffsetY.current = e.clientY - (e.currentTarget as HTMLElement).getBoundingClientRect().top; setDragEventId(evt.calendarEventId); }}
+                        onDragStart={e => { dragOffsetY.current = e.clientY - (e.currentTarget as HTMLElement).getBoundingClientRect().top; setTimeout(() => setDragEventId(evt.calendarEventId), 0); }}
                         onDragEnd={() => setDragEventId(null)}
                         onClick={e => handleEventClick(evt, e)}
                       >
