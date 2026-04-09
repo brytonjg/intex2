@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useReveal } from '../hooks/useReveal';
-import { Heart } from 'lucide-react';
+import { Heart, GraduationCap, Home, Stethoscope, ShieldCheck } from 'lucide-react';
 import { apiFetch } from '../api';
 import type { ImpactSummary } from '../types';
 import { ApiError } from '../components/ApiError';
@@ -46,39 +46,60 @@ function Counter({ end, suffix = '', prefix = '' }: { end: number; suffix?: stri
   );
 }
 
+/* ── Impact cards data ─────────────────────────────────────── */
+const IMPACT_CARDS = [
+  {
+    icon: Home,
+    amount: '$500',
+    description: 'One week of safe housing',
+    detail: 'Provides shelter, meals, and around-the-clock care for one girl.',
+    color: '#B8913A',
+  },
+  {
+    icon: Stethoscope,
+    amount: '$2,000',
+    description: 'One month of counseling',
+    detail: 'Trauma-informed therapy sessions to help a survivor begin to heal.',
+    color: '#0f8f7d',
+  },
+  {
+    icon: GraduationCap,
+    amount: '$3,500',
+    description: 'A full semester of education',
+    detail: 'Tutoring, school supplies, and educational support for one resident.',
+    color: '#5A6B7A',
+  },
+  {
+    icon: ShieldCheck,
+    amount: '$8,000',
+    description: 'Full month of comprehensive care',
+    detail: 'Everything one girl needs for a month: shelter, food, counseling, education, and medical care.',
+    color: '#C4756E',
+  },
+];
+
 /* ── Impact Page ───────────────────────────────────────── */
 
 export default function ImpactPage() {
   const heroRef = useReveal();
-  const allocationRef = useReveal();
+  const impactRef = useReveal();
   const storiesRef = useReveal();
   const ctaRef = useReveal();
 
   const [summary, setSummary] = useState<ImpactSummary | null>(null);
-  const [allocationData, setAllocationData] = useState<Array<{ area: string; amount: number }>>([]);
   const [error, setError] = useState(false);
 
   useEffect(() => {
     apiFetch<ImpactSummary>('/api/impact/summary')
       .then(setSummary)
       .catch(e => { console.error('API fetch failed', e); setError(true); });
-
-    apiFetch<Array<{ area: string; amount: number }>>('/api/impact/allocations-by-program')
-      .then(data => setAllocationData(data.map(d => ({ area: d.area, amount: Math.round(Number(d.amount)) }))))
-      .catch(e => { console.error('API fetch failed', e); setError(true); });
   }, []);
-
-  const allocationTotal = allocationData.reduce((sum, d) => sum + d.amount, 0);
-
-  const allocationColors = [
-    '#B8913A', '#7A9E7E', '#C4756E', '#5A6B7A',
-    '#D4A853', '#E8C97A', '#2A3A4E', '#D4CFC8',
-  ];
 
   return (
     <main className={styles.page}>
       {/* ── Hero ──────────────────────────────────────────── */}
       <section className={styles.hero} ref={heroRef}>
+        <div className={styles.heroOverlay} />
         <div className={`${styles.heroInner} reveal`}>
           <p className={styles.heroLabel}>Our Impact</p>
           <h1 className={styles.heroHeadline}>
@@ -121,47 +142,26 @@ export default function ImpactPage() {
         </div>
       </section>
 
-      {/* ── Where Your Money Goes ─────────────────────────── */}
-      <section className={styles.allocationSection} ref={allocationRef}>
-        <div className={`${styles.allocationInner} reveal`}>
-          <h2 className={styles.sectionTitle}>Where your donations go</h2>
+      {/* ── What Your Donation Provides ───────────────────── */}
+      <section className={styles.impactSection} ref={impactRef}>
+        <div className={`${styles.impactInner} reveal`}>
+          <h2 className={styles.sectionTitle}>What your donation provides</h2>
           <p className={styles.sectionSub}>
-            Every dollar is carefully allocated to the programs that
-            directly support our residents' healing and growth.
+            Every dollar goes directly toward the care, education, and healing
+            of girls in our safehouses. Here's what your generosity makes possible.
           </p>
-          {allocationData.length > 0 && (
-            <div className={styles.allocationList}>
-              {allocationData.map((item, i) => {
-                const pct = allocationTotal > 0
-                  ? Math.round((item.amount / allocationTotal) * 100)
-                  : 0;
-                return (
-                  <div key={item.area} className={styles.allocationRow}>
-                    <div className={styles.allocationMeta}>
-                      <span
-                        className={styles.allocationDot}
-                        style={{ background: allocationColors[i % allocationColors.length] }}
-                      />
-                      <span className={styles.allocationName}>{item.area}</span>
-                      <span className={styles.allocationPct}>{pct}%</span>
-                    </div>
-                    <div className={styles.allocationBar}>
-                      <div
-                        className={styles.allocationFill}
-                        style={{
-                          width: `${pct}%`,
-                          background: allocationColors[i % allocationColors.length],
-                        }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-              <p className={styles.allocationTotal}>
-                ${(allocationTotal / 1000).toFixed(0)}k total allocated across all programs
-              </p>
-            </div>
-          )}
+          <div className={styles.impactGrid}>
+            {IMPACT_CARDS.map((card) => (
+              <div key={card.amount} className={styles.impactCard}>
+                <div className={styles.impactIconWrap} style={{ background: card.color }}>
+                  <card.icon size={22} color="#fff" />
+                </div>
+                <span className={styles.impactAmount}>{card.amount}</span>
+                <span className={styles.impactDesc}>{card.description}</span>
+                <p className={styles.impactDetail}>{card.detail}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -171,13 +171,19 @@ export default function ImpactPage() {
           <h2 className={styles.sectionTitle}>Stories of hope</h2>
           <p className={styles.sectionSub}>
             Behind every statistic is a real person whose life has been changed.
-            Here are two of their stories.
           </p>
 
-          <div className={styles.storyGrid}>
-            {/* Story 1 */}
-            <div className={styles.storyCard}>
+          {/* Story 1 */}
+          <div className={styles.storyRow}>
+            <div className={styles.storyImage}>
+              <div className={styles.storyPlaceholder} aria-label="A girl studying at a desk">
+                <GraduationCap size={48} strokeWidth={1.2} />
+                <span>Photo coming soon</span>
+              </div>
+            </div>
+            <div className={styles.storyContent}>
               <span className={styles.storyTag}>Education</span>
+              <h3 className={styles.storyTitle}>A future she never imagined</h3>
               <p className={styles.storyBody}>
                 A 15-year-old arrived at our safehouse with no formal schooling and
                 little hope for the future. After 18 months in our education program,
@@ -185,16 +191,25 @@ export default function ImpactPage() {
                 science, and now dreams of becoming a nurse.
               </p>
               <blockquote className={styles.storyQuote}>
-                "For the first time, I believe my life can be different."
+                &ldquo;For the first time, I believe my life can be different.&rdquo;
               </blockquote>
               <p className={styles.storyNote}>
                 Names and details changed to protect privacy.
               </p>
             </div>
+          </div>
 
-            {/* Story 2 */}
-            <div className={styles.storyCard}>
+          {/* Story 2 */}
+          <div className={`${styles.storyRow} ${styles.storyRowReverse}`}>
+            <div className={styles.storyImage}>
+              <div className={`${styles.storyPlaceholder} ${styles.storyPlaceholderWarm}`} aria-label="A family embracing">
+                <Heart size={48} strokeWidth={1.2} />
+                <span>Photo coming soon</span>
+              </div>
+            </div>
+            <div className={styles.storyContent}>
               <span className={styles.storyTag}>Reintegration</span>
+              <h3 className={styles.storyTitle}>Coming home again</h3>
               <p className={styles.storyBody}>
                 After two years of counseling, health services, and guided family
                 visits, a young survivor was successfully reunified with her family.
@@ -202,7 +217,7 @@ export default function ImpactPage() {
                 receive post-placement monitoring from our social workers.
               </p>
               <blockquote className={styles.storyQuote}>
-                "I finally feel like I have a home again."
+                &ldquo;I finally feel like I have a home again.&rdquo;
               </blockquote>
               <p className={styles.storyNote}>
                 Names and details changed to protect privacy.

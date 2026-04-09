@@ -16,9 +16,16 @@ describe('ImpactPage', () => {
     });
   });
 
-  it('renders where donations go section', () => {
+  it('renders what your donation provides section', () => {
     renderWithProviders(<ImpactPage />);
-    expect(screen.getByText(/Where your donations go/)).toBeInTheDocument();
+    expect(screen.getByText(/What your donation provides/)).toBeInTheDocument();
+  });
+
+  it('renders impact cards with amounts', () => {
+    renderWithProviders(<ImpactPage />);
+    expect(screen.getByText('$500')).toBeInTheDocument();
+    expect(screen.getByText('$2,000')).toBeInTheDocument();
+    expect(screen.getByText('$8,000')).toBeInTheDocument();
   });
 
   it('renders stories section', () => {
