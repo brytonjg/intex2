@@ -247,8 +247,8 @@ export default function DonatePage() {
 
           {/* Post-donation info */}
           <p className={styles.infoNote}>
-            After donating, you'll receive an email with login credentials so you can
-            track your impact and manage your giving in your personal donor portal.
+            After donating, your receipt and donor portal login credentials will be
+            sent to your email so you can track your impact and manage your giving.
           </p>
 
           {/* Summary */}
