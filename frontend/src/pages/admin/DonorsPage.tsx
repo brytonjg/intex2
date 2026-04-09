@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Search, Plus, Loader2, X } from 'lucide-react';
+import { Search, Plus, Loader2, X, DollarSign, PiggyBank, CircleDollarSign } from 'lucide-react';
 import { apiFetch } from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatDate, formatAmount, formatEnumLabel } from '../../constants';
@@ -77,6 +77,32 @@ interface AllocationBySafehouse {
   totalAllocated: number;
 }
 
+interface AllocationSummary {
+  totalDonated: number;
+  totalAllocated: number;
+  unallocated: number;
+  donatedThisYear: number;
+  allocatedThisYear: number;
+  unallocatedThisYear: number;
+}
+
+interface AllocationRow {
+  allocationId: number;
+  safehouseName: string | null;
+  programArea: string | null;
+  amountAllocated: number | null;
+  allocationDate: string | null;
+  allocationNotes: string | null;
+}
+
+interface SafehouseOption {
+  safehouseId: number;
+  safehouseCode: string;
+  name: string;
+}
+
+const PROGRAM_AREAS = ['Education', 'Wellbeing', 'Operations', 'Transport', 'Outreach', 'Maintenance'];
+
 interface PagedResult<T> {
   items: T[];
   totalCount: number;
@@ -94,6 +120,7 @@ export default function DonorsPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const isAdmin = user?.roles?.includes('Admin') ?? false;
+  const isStaffOrAdmin = user?.roles?.some(r => r === 'Admin' || r === 'Staff') ?? false;
 
   type TabName = 'supporters' | 'partners' | 'donations' | 'allocations';
   const [activeTab, setActiveTab] = useState<TabName>(
@@ -121,8 +148,21 @@ export default function DonorsPage() {
   // Allocations state
   const [allocByProgram, setAllocByProgram] = useState<AllocationByProgram[]>([]);
   const [allocBySafehouse, setAllocBySafehouse] = useState<AllocationBySafehouse[]>([]);
+  const [allocSummary, setAllocSummary] = useState<AllocationSummary | null>(null);
+  const [recentAllocs, setRecentAllocs] = useState<AllocationRow[]>([]);
   const [allocLoading, setAllocLoading] = useState(false);
   const [allocError, setAllocError] = useState<string | null>(null);
+
+  // Allocate funds form
+  const [showAllocForm, setShowAllocForm] = useState(false);
+  const [allocSafehouseId, setAllocSafehouseId] = useState('');
+  const [allocProgram, setAllocProgram] = useState('');
+  const [allocAmount, setAllocAmount] = useState('');
+  const [allocDate, setAllocDate] = useState('');
+  const [allocNotes, setAllocNotes] = useState('');
+  const [allocFormError, setAllocFormError] = useState('');
+  const [allocSaving, setAllocSaving] = useState(false);
+  const [safehouseOptions, setSafehouseOptions] = useState<SafehouseOption[]>([]);
 
   // Filters from URL
   const page = parseInt(searchParams.get('page') || '1', 10);
@@ -212,18 +252,59 @@ export default function DonorsPage() {
     setAllocLoading(true);
     setAllocError(null);
     try {
-      const [byProgram, bySafehouse] = await Promise.all([
+      const [byProgram, bySafehouse, summary, recent] = await Promise.all([
         apiFetch<AllocationByProgram[]>('/api/admin/allocations/by-program'),
         apiFetch<AllocationBySafehouse[]>('/api/admin/allocations/by-safehouse'),
+        apiFetch<AllocationSummary>('/api/admin/allocations/summary'),
+        apiFetch<{ items: AllocationRow[] }>('/api/admin/allocations?pageSize=10'),
       ]);
       setAllocByProgram(byProgram);
       setAllocBySafehouse(bySafehouse);
+      setAllocSummary(summary);
+      setRecentAllocs(recent.items);
     } catch (e) {
       setAllocError(e instanceof Error ? e.message : 'Failed to load allocations');
     } finally {
       setAllocLoading(false);
     }
   }, []);
+
+  // Fetch safehouse options for allocation form
+  useEffect(() => {
+    if (activeTab !== 'allocations') return;
+    apiFetch<SafehouseOption[]>('/api/impact/safehouses')
+      .then(d => setSafehouseOptions(d))
+      .catch(() => {});
+  }, [activeTab]);
+
+  async function handleAllocate(e: React.FormEvent) {
+    e.preventDefault();
+    setAllocFormError('');
+    if (!allocAmount || parseFloat(allocAmount) <= 0) { setAllocFormError('Enter a valid amount.'); return; }
+    if (!allocProgram) { setAllocFormError('Select a program area.'); return; }
+    if (!allocDate) { setAllocFormError('Select a date.'); return; }
+    setAllocSaving(true);
+    try {
+      await apiFetch('/api/admin/allocations', {
+        method: 'POST',
+        body: JSON.stringify({
+          safehouseId: allocSafehouseId ? parseInt(allocSafehouseId) : null,
+          programArea: allocProgram,
+          amountAllocated: parseFloat(allocAmount),
+          allocationDate: allocDate || null,
+          allocationNotes: allocNotes || null,
+        }),
+      });
+      setShowAllocForm(false);
+      setAllocSafehouseId(''); setAllocProgram('');
+      setAllocAmount(''); setAllocDate(''); setAllocNotes('');
+      fetchAllocations();
+    } catch (e) {
+      setAllocFormError(e instanceof Error ? e.message : 'Failed to create allocation.');
+    } finally {
+      setAllocSaving(false);
+    }
+  }
 
   useEffect(() => {
     if (activeTab === 'supporters') fetchSupporters();
@@ -574,7 +655,7 @@ export default function DonorsPage() {
                   </thead>
                   <tbody>
                     {donations.items.map(d => (
-                      <tr key={d.donationId} onClick={() => navigate(`/admin/donations/${d.donationId}/edit`)}>
+                      <tr key={d.donationId} onClick={isAdmin ? () => navigate(`/admin/donations/${d.donationId}/edit`) : undefined} style={isAdmin ? undefined : { cursor: 'default' }}>
                         <td>
                           <span className={styles.donationName}>{d.supporterName ?? 'Anonymous'}</span>
                         </td>
@@ -603,70 +684,225 @@ export default function DonorsPage() {
 
       {/* Allocations View */}
       {activeTab === 'allocations' && (
-        <div className={styles.tableCard}>
+        <>
           {allocLoading ? (
-            <div className={styles.loading}><Loader2 size={28} className={styles.spinner} /></div>
-          ) : allocError ? (
-            <div className={styles.error}>{allocError}</div>
-          ) : (
-            <div className={styles.allocGrid}>
-              <div>
-                <h3 className={styles.allocTitle}>By Program Area</h3>
-                {allocByProgram.length === 0 ? (
-                  <div className={styles.empty}>No allocation data</div>
-                ) : (
-                  <div className={styles.tableWrapper}>
-                    <table className={styles.table}>
-                      <thead>
-                        <tr>
-                          <th>Program Area</th>
-                          <th>Allocated This Year</th>
-                          <th>Total Allocated</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {allocByProgram.map(a => (
-                          <tr key={a.programArea}>
-                            <td>{a.programArea}</td>
-                            <td className={styles.amountCol}>{formatAmount(a.totalAllocatedThisYear)}</td>
-                            <td className={styles.amountCol}>{formatAmount(a.totalAllocated)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-              <div>
-                <h3 className={styles.allocTitle}>By Safehouse</h3>
-                {allocBySafehouse.length === 0 ? (
-                  <div className={styles.empty}>No allocation data</div>
-                ) : (
-                  <div className={styles.tableWrapper}>
-                    <table className={styles.table}>
-                      <thead>
-                        <tr>
-                          <th>Safehouse</th>
-                          <th>Allocated This Year</th>
-                          <th>Total Allocated</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {allocBySafehouse.map(a => (
-                          <tr key={a.safehouseId}>
-                            <td>{a.safehouseName}</td>
-                            <td className={styles.amountCol}>{formatAmount(a.totalAllocatedThisYear)}</td>
-                            <td className={styles.amountCol}>{formatAmount(a.totalAllocated)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
+            <div className={styles.tableCard}>
+              <div className={styles.loading}><Loader2 size={28} className={styles.spinner} /></div>
             </div>
+          ) : allocError ? (
+            <div className={styles.tableCard}>
+              <div className={styles.error}>{allocError}</div>
+            </div>
+          ) : (
+            <>
+              {/* Summary Cards */}
+              {allocSummary && (
+                <div className={styles.summaryRow}>
+                  <div className={styles.summaryCard}>
+                    <DollarSign size={18} className={styles.summaryIconGreen} />
+                    <div>
+                      <div className={styles.summaryLabel}>Total Donated</div>
+                      <div className={styles.summaryValue}>{formatAmount(allocSummary.totalDonated)}</div>
+                      <div className={styles.summaryMeta}>This year: {formatAmount(allocSummary.donatedThisYear)}</div>
+                    </div>
+                  </div>
+                  <div className={styles.summaryCard}>
+                    <PiggyBank size={18} className={styles.summaryIconBlue} />
+                    <div>
+                      <div className={styles.summaryLabel}>Total Allocated</div>
+                      <div className={styles.summaryValue}>{formatAmount(allocSummary.totalAllocated)}</div>
+                      <div className={styles.summaryMeta}>This year: {formatAmount(allocSummary.allocatedThisYear)}</div>
+                    </div>
+                  </div>
+                  <div className={styles.summaryCard}>
+                    <CircleDollarSign size={18} className={styles.summaryIconAmber} />
+                    <div>
+                      <div className={styles.summaryLabel}>Unallocated</div>
+                      <div className={styles.summaryValue}>{formatAmount(allocSummary.unallocated)}</div>
+                      <div className={styles.summaryMeta}>This year: {formatAmount(allocSummary.unallocatedThisYear)}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Allocate Funds button + form */}
+              {isStaffOrAdmin && (
+                <div style={{ marginBottom: '1rem' }}>
+                  {!showAllocForm ? (
+                    <button className={styles.btnPrimary} onClick={() => setShowAllocForm(true)}>
+                      <Plus size={15} />
+                      Allocate Funds
+                    </button>
+                  ) : (
+                    <div className={styles.allocFormCard}>
+                      <h3 className={styles.allocTitle}>Allocate Funds</h3>
+                      <form onSubmit={handleAllocate} className={styles.allocForm}>
+                        <div className={styles.allocFormGrid}>
+                          <div className={styles.allocField}>
+                            <label className={styles.allocLabel}>Amount *</label>
+                            <input
+                              className={styles.allocInput}
+                              type="number"
+                              step="0.01"
+                              min="0.01"
+                              placeholder="0.00"
+                              value={allocAmount}
+                              onChange={e => setAllocAmount(e.target.value)}
+                            />
+                          </div>
+                          <div className={styles.allocField}>
+                            <label className={styles.allocLabel}>Program Area *</label>
+                            <Dropdown
+                              value={allocProgram}
+                              placeholder="Select program"
+                              options={PROGRAM_AREAS.map(p => ({ value: p, label: p }))}
+                              onChange={v => setAllocProgram(v)}
+                            />
+                          </div>
+                          <div className={styles.allocField}>
+                            <label className={styles.allocLabel}>Safehouse</label>
+                            <Dropdown
+                              value={allocSafehouseId}
+                              placeholder="Optional"
+                              options={[
+                                { value: '', label: 'None' },
+                                ...safehouseOptions.map(s => ({
+                                  value: String(s.safehouseId),
+                                  label: `${s.safehouseCode} - ${s.name}`,
+                                })),
+                              ]}
+                              onChange={v => setAllocSafehouseId(v)}
+                            />
+                          </div>
+                          <div className={styles.allocField}>
+                            <label className={styles.allocLabel}>Date *</label>
+                            <input
+                              className={styles.allocInput}
+                              type="date"
+                              required
+                              value={allocDate}
+                              onChange={e => setAllocDate(e.target.value)}
+                            />
+                          </div>
+                          <div className={styles.allocField}>
+                            <label className={styles.allocLabel}>Notes</label>
+                            <input
+                              className={styles.allocInput}
+                              placeholder="Optional notes"
+                              value={allocNotes}
+                              onChange={e => setAllocNotes(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                        {allocFormError && <p className={styles.error} style={{ textAlign: 'left', padding: '0.25rem 0 0' }}>{allocFormError}</p>}
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.75rem' }}>
+                          <button type="button" className={styles.btnSecondary} onClick={() => setShowAllocForm(false)}>Cancel</button>
+                          <button type="submit" className={styles.btnPrimary} disabled={allocSaving}>
+                            {allocSaving ? <Loader2 size={14} className={styles.spinner} /> : <Plus size={14} />}
+                            {allocSaving ? 'Saving...' : 'Create Allocation'}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* By Program & By Safehouse */}
+              <div className={styles.tableCard}>
+                <div className={styles.allocGrid}>
+                  <div>
+                    <h3 className={styles.allocTitle}>By Program Area</h3>
+                    {allocByProgram.length === 0 ? (
+                      <div className={styles.empty}>No allocation data</div>
+                    ) : (
+                      <div className={styles.tableWrapper}>
+                        <table className={styles.table}>
+                          <thead>
+                            <tr>
+                              <th>Program Area</th>
+                              <th>This Year</th>
+                              <th>All Time</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {allocByProgram.map(a => (
+                              <tr key={a.programArea}>
+                                <td>{a.programArea}</td>
+                                <td className={styles.amountCol}>{formatAmount(a.totalAllocatedThisYear)}</td>
+                                <td className={styles.amountCol}>{formatAmount(a.totalAllocated)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className={styles.allocTitle}>By Safehouse</h3>
+                    {allocBySafehouse.length === 0 ? (
+                      <div className={styles.empty}>No allocation data</div>
+                    ) : (
+                      <div className={styles.tableWrapper}>
+                        <table className={styles.table}>
+                          <thead>
+                            <tr>
+                              <th>Safehouse</th>
+                              <th>This Year</th>
+                              <th>All Time</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {allocBySafehouse.map(a => (
+                              <tr key={a.safehouseId}>
+                                <td>{a.safehouseName}</td>
+                                <td className={styles.amountCol}>{formatAmount(a.totalAllocatedThisYear)}</td>
+                                <td className={styles.amountCol}>{formatAmount(a.totalAllocated)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Allocations */}
+              {recentAllocs.length > 0 && (
+                <div className={styles.tableCard} style={{ marginTop: '1.25rem' }}>
+                  <div style={{ padding: '1.25rem 1.25rem 0' }}>
+                    <h3 className={styles.allocTitle}>Recent Allocations</h3>
+                  </div>
+                  <div className={styles.tableWrapper}>
+                    <table className={styles.table}>
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Safehouse</th>
+                          <th>Program</th>
+                          <th>Amount</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {recentAllocs.map(a => (
+                          <tr key={a.allocationId}>
+                            <td>{a.allocationDate ? formatDate(a.allocationDate) : '—'}</td>
+                            <td>{a.safehouseName || '—'}</td>
+                            <td>{a.programArea || '—'}</td>
+                            <td className={styles.amountCol}>{formatAmount(a.amountAllocated ?? 0)}</td>
+                            <td className={styles.notesCol}>{a.allocationNotes || '—'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </>
           )}
-        </div>
+        </>
       )}
     </div>
   );
