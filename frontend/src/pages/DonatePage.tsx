@@ -37,11 +37,6 @@ export default function DonatePage() {
   const [newsletter, setNewsletter] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showPayment, setShowPayment] = useState(false);
-  const [cardNumber, setCardNumber] = useState('');
-  const [cardExpiry, setCardExpiry] = useState('');
-  const [cardCvc, setCardCvc] = useState('');
-  const [cardName, setCardName] = useState('');
 
   const amountCents = customAmount
     ? Math.round(parseFloat(customAmount) * 100)
@@ -51,7 +46,7 @@ export default function DonatePage() {
 
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(donorEmail);
 
-  const handleContinueToPayment = () => {
+  const handleSubmit = async () => {
     if (!donorEmail.trim()) {
       setError('Please enter your email address.');
       return;
@@ -62,31 +57,6 @@ export default function DonatePage() {
     }
     if (amountCents < 100) {
       setError('Please enter an amount of at least $1.');
-      return;
-    }
-    setError('');
-    setShowPayment(true);
-  };
-
-  const formatCardNumber = (v: string) => {
-    const digits = v.replace(/\D/g, '').slice(0, 16);
-    return digits.replace(/(.{4})/g, '$1 ').trim();
-  };
-
-  const formatExpiry = (v: string) => {
-    const digits = v.replace(/\D/g, '').slice(0, 4);
-    if (digits.length >= 3) return digits.slice(0, 2) + '/' + digits.slice(2);
-    return digits;
-  };
-
-  const isCardValid = cardNumber.replace(/\s/g, '').length === 16
-    && cardExpiry.length === 5
-    && cardCvc.length >= 3
-    && cardName.trim().length > 0;
-
-  const handleSubmit = async () => {
-    if (!isCardValid) {
-      setError('Please fill in all payment fields.');
       return;
     }
     setError('');
@@ -106,7 +76,7 @@ export default function DonatePage() {
       body: JSON.stringify(payload),
     }).catch(() => {});
 
-    // Simulate payment processing delay
+    // Simulate processing delay
     await new Promise(r => setTimeout(r, 1500));
 
     const amount = amountCents / 100;
@@ -226,7 +196,7 @@ export default function DonatePage() {
 
           {/* Email (required) */}
           <div className={styles.fieldGroup}>
-            <label className={styles.label} htmlFor="donorEmail">Email address</label>
+            <label className={styles.label} htmlFor="donorEmail">Email address <span className={styles.required}>*required</span></label>
             <input
               id="donorEmail"
               type="email"
@@ -264,88 +234,18 @@ export default function DonatePage() {
 
           {error && <p className={styles.error} role="alert">{error}</p>}
 
-          {!showPayment ? (
-            <button
-              className={styles.donateBtn}
-              onClick={handleContinueToPayment}
-              disabled={amountCents < 100 || !isValidEmail}
-            >
-              <Heart size={18} />
-              Continue to Payment
-            </button>
-          ) : (
-            <>
-              <div className={styles.paymentSection}>
-                <h3 className={styles.paymentTitle}>Payment Details</h3>
-                <div className={styles.fieldGroup}>
-                  <label className={styles.label} htmlFor="cardName">Name on card</label>
-                  <input
-                    id="cardName"
-                    type="text"
-                    className={styles.input}
-                    placeholder="John Doe"
-                    value={cardName}
-                    onChange={e => setCardName(e.target.value)}
-                  />
-                </div>
-                <div className={styles.fieldGroup}>
-                  <label className={styles.label} htmlFor="cardNumber">Card number</label>
-                  <input
-                    id="cardNumber"
-                    type="text"
-                    className={styles.input}
-                    placeholder="4242 4242 4242 4242"
-                    value={cardNumber}
-                    onChange={e => setCardNumber(formatCardNumber(e.target.value))}
-                    maxLength={19}
-                  />
-                </div>
-                <div className={styles.cardRow}>
-                  <div className={styles.fieldGroup}>
-                    <label className={styles.label} htmlFor="cardExpiry">Expiry</label>
-                    <input
-                      id="cardExpiry"
-                      type="text"
-                      className={styles.input}
-                      placeholder="MM/YY"
-                      value={cardExpiry}
-                      onChange={e => setCardExpiry(formatExpiry(e.target.value))}
-                      maxLength={5}
-                    />
-                  </div>
-                  <div className={styles.fieldGroup}>
-                    <label className={styles.label} htmlFor="cardCvc">CVC</label>
-                    <input
-                      id="cardCvc"
-                      type="text"
-                      className={styles.input}
-                      placeholder="123"
-                      value={cardCvc}
-                      onChange={e => setCardCvc(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                      maxLength={4}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <button
-                className={styles.donateBtn}
-                onClick={handleSubmit}
-                disabled={loading || !isCardValid}
-              >
-                {loading ? 'Processing...' : (
-                  <>
-                    <Heart size={18} />
-                    Donate ${displayAmount.toLocaleString()}{mode === 'recurring' ? cadenceLabel : ''}
-                  </>
-                )}
-              </button>
-            </>
-          )}
-
-          <p className={styles.secure}>
-            Your payment information is secure and encrypted.
-          </p>
+          <button
+            className={styles.donateBtn}
+            onClick={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? 'Processing...' : (
+              <>
+                <Heart size={18} />
+                Donate ${displayAmount.toLocaleString()}{mode === 'recurring' ? cadenceLabel : ''}
+              </>
+            )}
+          </button>
         </div>
       </section>
     </main>

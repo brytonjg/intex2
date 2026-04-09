@@ -287,6 +287,13 @@
   margin-bottom: 0.4rem;
 }
 
+.required {
+  color: #d33;
+  font-weight: 500;
+  font-size: 0.78rem;
+  margin-left: 0.25rem;
+}
+
 .input {
   width: 100%;
   padding: 0.7rem 0.9rem;
@@ -395,34 +402,6 @@
   cursor: not-allowed;
 }
 
-.paymentSection {
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 1.2rem;
-  margin-bottom: 1rem;
-  background: #f9fafb;
-}
-
-.paymentTitle {
-  font-family: var(--font-display);
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--color-deep-navy);
-  margin: 0 0 1rem;
-}
-
-.cardRow {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-}
-
-.secure {
-  text-align: center;
-  font-size: 0.78rem;
-  color: #8a929e;
-  margin-top: 1rem;
-}
 
 @media (max-width: 600px) {
   .title {
