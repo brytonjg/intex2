@@ -9,7 +9,6 @@ import { apiFetch } from '../../api';
 import { formatDate } from '../../constants';
 import { useAuth } from '../../contexts/AuthContext';
 import DeleteConfirmDialog from '../../components/admin/DeleteConfirmDialog';
-import MlBadge from '../../components/admin/MlBadge';
 import Dropdown from '../../components/admin/Dropdown';
 import DatePicker from '../../components/admin/DatePicker';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
@@ -93,15 +92,24 @@ const SUB_CAT_LABELS: Record<string, string> = {
   subCatCicl: 'CICL', subCatAtRisk: 'At Risk', subCatStreetChild: 'Street Child', subCatChildWithHiv: 'Child with HIV',
 };
 
-const EMOTIONAL_ORDER = ['Severe Distress', 'Distressed', 'Struggling', 'Unsettled', 'Neutral', 'Coping', 'Stable', 'Good', 'Thriving'];
+const EMOTIONAL_ORDER = ['Angry', 'Distressed', 'Anxious', 'Sad', 'Withdrawn', 'Neutral', 'Coping', 'Calm', 'Hopeful', 'Happy', 'Thriving'];
+
+const EMOTION_COLORS: Record<string, string> = {
+  Angry: '#c0392b',
+  Distressed: '#c0392b',
+  Anxious: '#e67e22',
+  Sad: '#e67e22',
+  Withdrawn: '#e67e22',
+  Neutral: '#95a5a6',
+  Coping: '#3498db',
+  Calm: '#3498db',
+  Hopeful: '#27ae60',
+  Happy: '#27ae60',
+  Thriving: '#27ae60',
+};
 
 function emotionalColor(state: string): string {
-  const idx = EMOTIONAL_ORDER.indexOf(state);
-  if (idx <= 1) return '#c0392b';
-  if (idx <= 3) return '#e67e22';
-  if (idx === 4) return '#95a5a6';
-  if (idx <= 6) return '#3498db';
-  return '#27ae60';
+  return EMOTION_COLORS[state] ?? '#95a5a6';
 }
 
 /* ── Helpers ─────────────────────────────────────── */
@@ -307,17 +315,17 @@ export default function ResidentDetailPage() {
         <div>
           {/* Risk & Predictions */}
           <div className={styles.card}>
-            <div className={styles.cardHeader}><Shield size={15} className={styles.cardIcon} /> Risk & Predictions <MlBadge /></div>
+            <div className={styles.cardHeader}><Shield size={15} className={styles.cardIcon} /> Risk & Predictions</div>
             <div className={styles.cardBody}>
               <div className={styles.riskPair}>
                 <div className={styles.riskItem}>
-                  <span className={styles.riskLabel}>Initial Risk</span>
+                  <span className={styles.riskLabel}>Initial Predicted Risk</span>
                   <span className={`${styles.badge} ${styles[`badgeRisk${resident.initialRiskLevel}`] ?? styles.badgeRiskDefault}`}>
                     {resident.initialRiskLevel || '--'}
                   </span>
                 </div>
                 <div className={styles.riskItem}>
-                  <span className={styles.riskLabel}>Current Risk</span>
+                  <span className={styles.riskLabel}>Perceived Current Risk</span>
                   <span className={`${styles.badge} ${styles[`badgeRisk${resident.currentRiskLevel}`] ?? styles.badgeRiskDefault}`}>
                     {resident.currentRiskLevel || '--'}
                   </span>
@@ -353,7 +361,7 @@ export default function ResidentDetailPage() {
                             <span className={styles.predictionFactorsLabel}>Key factors:</span>
                             <div className={styles.predictionFactorTags}>
                               {riskFactors.slice(0, 3).map((f, i) => (
-                                <span key={i} className={styles.predictionFactorTag}>{f.replace(/_/g, ' ').replace(/sub cat /i, '')}</span>
+                                <span key={i} className={styles.predictionFactorTag}>{f.replace(/_/g, ' ').replace(/sub cat /i, '').replace(/\bnum\b/gi, '').replace(/initial risk/i, 'Initial risk level').replace(/\s{2,}/g, ' ').trim()}</span>
                               ))}
                             </div>
                           </div>
