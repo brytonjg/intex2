@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Heart } from 'lucide-react';
 import { apiFetch } from '../api';
 import Checkbox from '../components/admin/Checkbox';
@@ -29,11 +29,13 @@ type Cadence = 'monthly' | 'quarterly' | 'yearly';
 export default function DonatePage() {
   useDocumentTitle('Donate');
   const navigate = useNavigate();
+  const location = useLocation();
+  const prefillEmail = (location.state as { email?: string } | null)?.email ?? '';
   const [mode, setMode] = useState<Mode>('one-time');
   const [cadence, setCadence] = useState<Cadence>('monthly');
   const [selectedAmount, setSelectedAmount] = useState<number | null>(500);
   const [customAmount, setCustomAmount] = useState('');
-  const [donorEmail, setDonorEmail] = useState('');
+  const [donorEmail, setDonorEmail] = useState(prefillEmail);
   const [newsletter, setNewsletter] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -77,6 +79,13 @@ export default function DonatePage() {
     const digits = v.replace(/\D/g, '').slice(0, 4);
     if (digits.length >= 3) return digits.slice(0, 2) + '/' + digits.slice(2);
     return digits;
+  };
+
+  const fillProxyData = () => {
+    setCardName('Jane Doe');
+    setCardNumber('4242 4242 4242 4242');
+    setCardExpiry('12/30');
+    setCardCvc('123');
   };
 
   const isCardValid = cardNumber.replace(/\s/g, '').length === 16
@@ -226,7 +235,7 @@ export default function DonatePage() {
 
           {/* Email (required) */}
           <div className={styles.fieldGroup}>
-            <label className={styles.label} htmlFor="donorEmail">Email address</label>
+            <label className={styles.label} htmlFor="donorEmail">Email address <span className={styles.required}>*required</span></label>
             <input
               id="donorEmail"
               type="email"
@@ -268,7 +277,6 @@ export default function DonatePage() {
             <button
               className={styles.donateBtn}
               onClick={handleContinueToPayment}
-              disabled={amountCents < 100 || !isValidEmail}
             >
               <Heart size={18} />
               Continue to Payment
@@ -276,7 +284,16 @@ export default function DonatePage() {
           ) : (
             <>
               <div className={styles.paymentSection}>
-                <h3 className={styles.paymentTitle}>Payment Details</h3>
+                <div className={styles.paymentHeader}>
+                  <h3 className={styles.paymentTitle}>Payment Details</h3>
+                  <button
+                    type="button"
+                    className={styles.proxyBtn}
+                    onClick={fillProxyData}
+                  >
+                    Fill with proxy data
+                  </button>
+                </div>
                 <div className={styles.fieldGroup}>
                   <label className={styles.label} htmlFor="cardName">Name on card</label>
                   <input
