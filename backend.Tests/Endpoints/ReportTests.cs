@@ -180,6 +180,7 @@ public class ReportTests : IClassFixture<TestWebApplicationFactory>
         foreach (var item in body.EnumerateArray())
         {
             item.TryGetProperty("programArea", out _).Should().BeTrue();
+            item.TryGetProperty("totalAllocatedThisYear", out _).Should().BeTrue();
             item.TryGetProperty("totalAllocated", out _).Should().BeTrue();
         }
     }
@@ -197,6 +198,7 @@ public class ReportTests : IClassFixture<TestWebApplicationFactory>
         foreach (var item in body.EnumerateArray())
         {
             item.TryGetProperty("safehouseId", out _).Should().BeTrue();
+            item.TryGetProperty("totalAllocatedThisYear", out _).Should().BeTrue();
             item.TryGetProperty("totalAllocated", out _).Should().BeTrue();
         }
     }

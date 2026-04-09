@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { apiFetch } from '../../api';
-import { SUPPORTER_TYPES, SUPPORTER_STATUSES, ACQUISITION_CHANNELS } from '../../domain';
+import { SUPPORTER_TYPES, SUPPORTER_STATUSES, ACQUISITION_CHANNELS, REGIONS, COUNTRIES } from '../../domain';
+import { formatEnumLabel } from '../../constants';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import styles from './SupporterFormPage.module.css';
 
@@ -125,7 +126,7 @@ export default function SupporterFormPage() {
             <label>Supporter Type</label>
             <select value={form.supporterType} onChange={e => set('supporterType', e.target.value)}>
               <option value="">Select type...</option>
-              {SUPPORTER_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+              {SUPPORTER_TYPES.map(t => <option key={t} value={t}>{formatEnumLabel(t)}</option>)}
             </select>
           </div>
 
@@ -168,19 +169,25 @@ export default function SupporterFormPage() {
 
           <div className={styles.field}>
             <label>Region</label>
-            <input value={form.region} onChange={e => set('region', e.target.value)} placeholder="Region" />
+            <select value={form.region} onChange={e => set('region', e.target.value)}>
+              <option value="">Select region...</option>
+              {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
           </div>
 
           <div className={styles.field}>
             <label>Country</label>
-            <input value={form.country} onChange={e => set('country', e.target.value)} placeholder="Country" />
+            <select value={form.country} onChange={e => set('country', e.target.value)}>
+              <option value="">Select country...</option>
+              {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
           </div>
 
           <div className={styles.field}>
             <label>Acquisition Channel</label>
             <select value={form.acquisitionChannel} onChange={e => set('acquisitionChannel', e.target.value)}>
               <option value="">Select channel...</option>
-              {CHANNELS.map(c => <option key={c} value={c}>{c}</option>)}
+              {CHANNELS.map(c => <option key={c} value={c}>{formatEnumLabel(c)}</option>)}
             </select>
           </div>
         </div>

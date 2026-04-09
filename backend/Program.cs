@@ -45,7 +45,7 @@ builder.Services.ConfigureApplicationCookie(opts =>
 {
     opts.Cookie.HttpOnly = true;
     opts.Cookie.SecurePolicy = builder.Environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
-    opts.Cookie.SameSite = SameSiteMode.None;
+    opts.Cookie.SameSite = builder.Environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None;
     opts.Cookie.Name = "BeaconAuth";
     opts.ExpireTimeSpan = TimeSpan.FromHours(8);
     opts.SlidingExpiration = true;
@@ -71,13 +71,13 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:5173",
-                "http://localhost:5174",
-                "http://localhost:5175",
-                "http://localhost:5176",
-                "https://intex2-1.vercel.app",
-                "https://intex-backend-hehbb8gwb2e3b8b6.westus2-01.azurewebsites.net")
+        policy.SetIsOriginAllowed(origin =>
+                {
+                    var uri = new Uri(origin);
+                    return uri.Host == "localhost"
+                        || origin == "https://intex2-1.vercel.app"
+                        || origin == "https://intex-backend-hehbb8gwb2e3b8b6.westus2-01.azurewebsites.net";
+                })
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -105,8 +105,11 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
-app.UseHsts();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+    app.UseHsts();
+}
 app.UseCors("AllowFrontend");
 
 // ── Global error handler (ensures CORS headers on errors) ──

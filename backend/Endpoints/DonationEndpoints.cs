@@ -113,14 +113,18 @@ public static class DonationEndpoints
 
         app.MapGet("/api/admin/allocations/by-program", async (AppDbContext db) =>
         {
+            var currentYear = AppConstants.DataCutoff.Year;
+            var yearStart = new DateOnly(currentYear, 1, 1);
+
             var data = await db.DonationAllocations
                 .Where(a => a.ProgramArea != null && (a.AllocationDate == null || a.AllocationDate <= AppConstants.DataCutoff))
                 .GroupBy(a => a.ProgramArea)
                 .Select(g => new
                 {
                     programArea = g.Key,
-                    totalAllocated = g.Sum(a => (decimal?)a.AmountAllocated ?? 0),
-                    count = g.Count()
+                    totalAllocatedThisYear = g.Where(a => a.AllocationDate != null && a.AllocationDate >= yearStart)
+                        .Sum(a => (decimal?)a.AmountAllocated ?? 0),
+                    totalAllocated = g.Sum(a => (decimal?)a.AmountAllocated ?? 0)
                 })
                 .OrderByDescending(x => x.totalAllocated)
                 .ToListAsync();
@@ -130,6 +134,9 @@ public static class DonationEndpoints
 
         app.MapGet("/api/admin/allocations/by-safehouse", async (AppDbContext db) =>
         {
+            var currentYear = AppConstants.DataCutoff.Year;
+            var yearStart = new DateOnly(currentYear, 1, 1);
+
             var data = await db.DonationAllocations
                 .Where(a => a.SafehouseId != null && (a.AllocationDate == null || a.AllocationDate <= AppConstants.DataCutoff))
                 .GroupBy(a => a.SafehouseId)
@@ -140,8 +147,9 @@ public static class DonationEndpoints
                         .Where(s => s.SafehouseId == g.Key)
                         .Select(s => s.Name ?? s.SafehouseCode)
                         .FirstOrDefault(),
-                    totalAllocated = g.Sum(a => (decimal?)a.AmountAllocated ?? 0),
-                    count = g.Count()
+                    totalAllocatedThisYear = g.Where(a => a.AllocationDate != null && a.AllocationDate >= yearStart)
+                        .Sum(a => (decimal?)a.AmountAllocated ?? 0),
+                    totalAllocated = g.Sum(a => (decimal?)a.AmountAllocated ?? 0)
                 })
                 .OrderByDescending(x => x.totalAllocated)
                 .ToListAsync();

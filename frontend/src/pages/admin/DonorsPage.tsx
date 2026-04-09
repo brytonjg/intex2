@@ -58,15 +58,15 @@ interface PartnerRow {
 
 interface AllocationByProgram {
   programArea: string;
+  totalAllocatedThisYear: number;
   totalAllocated: number;
-  count: number;
 }
 
 interface AllocationBySafehouse {
   safehouseId: number;
   safehouseName: string;
+  totalAllocatedThisYear: number;
   totalAllocated: number;
-  count: number;
 }
 
 interface PagedResult<T> {
@@ -557,7 +557,7 @@ export default function DonorsPage() {
                       <thead>
                         <tr>
                           <th>Program Area</th>
-                          <th>Donations</th>
+                          <th>Allocated This Year</th>
                           <th>Total Allocated</th>
                         </tr>
                       </thead>
@@ -565,7 +565,7 @@ export default function DonorsPage() {
                         {allocByProgram.map(a => (
                           <tr key={a.programArea}>
                             <td>{a.programArea}</td>
-                            <td>{a.count}</td>
+                            <td className={styles.amountCol}>{formatAmount(a.totalAllocatedThisYear)}</td>
                             <td className={styles.amountCol}>{formatAmount(a.totalAllocated)}</td>
                           </tr>
                         ))}
@@ -584,7 +584,7 @@ export default function DonorsPage() {
                       <thead>
                         <tr>
                           <th>Safehouse</th>
-                          <th>Donations</th>
+                          <th>Allocated This Year</th>
                           <th>Total Allocated</th>
                         </tr>
                       </thead>
@@ -592,7 +592,7 @@ export default function DonorsPage() {
                         {allocBySafehouse.map(a => (
                           <tr key={a.safehouseId}>
                             <td>{a.safehouseName}</td>
-                            <td>{a.count}</td>
+                            <td className={styles.amountCol}>{formatAmount(a.totalAllocatedThisYear)}</td>
                             <td className={styles.amountCol}>{formatAmount(a.totalAllocated)}</td>
                           </tr>
                         ))}
