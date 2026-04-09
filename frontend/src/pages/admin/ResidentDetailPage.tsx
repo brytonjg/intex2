@@ -342,6 +342,7 @@ export default function ResidentDetailPage() {
                           <div>
                             <div className={styles.predictionLabel}>{label}</div>
                             <div className={styles.predictionValue}>
+                              {p.score !== null && <span className={styles.predictionScore} style={{ color }}>{Math.round(p.score)}</span>}
                               <span className={styles.predictionTier} style={{ color }}>{p.scoreLabel}</span>
                             </div>
                           </div>
@@ -351,7 +352,7 @@ export default function ResidentDetailPage() {
                             <span className={styles.predictionFactorsLabel}>Key factors:</span>
                             <div className={styles.predictionFactorTags}>
                               {riskFactors.slice(0, 3).map((f, i) => (
-                                <span key={i} className={styles.predictionFactorTag}>{f.replace(/_/g, ' ').replace(/sub cat /i, '')}</span>
+                                <span key={i} className={styles.predictionFactorTag}>{f.replace(/_/g, ' ').replace(/sub cat /i, '').replace(/\bnum\b/gi, '').replace(/initial risk/i, 'Initial risk level').replace(/\s{2,}/g, ' ').trim()}</span>
                               ))}
                             </div>
                           </div>

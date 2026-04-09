@@ -290,15 +290,27 @@
 
 /* ── Risk levels side by side ─────────────────────── */
 .riskPair {
-  display: flex;
-  gap: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
   margin-bottom: 0.75rem;
 }
 
 .riskItem {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  align-items: center;
+  text-align: center;
+  gap: 0.35rem;
+  padding: 0.6rem 0.5rem;
+  border-radius: 10px;
+  background: rgba(15, 27, 45, 0.02);
+  border: 1px solid rgba(15, 27, 45, 0.06);
+}
+
+.riskItem .badge {
+  font-size: 0.78rem;
+  padding: 0.25rem 0.8rem;
 }
 
 .riskLabel {
