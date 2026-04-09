@@ -1,4 +1,4 @@
-import { useState, Suspense, Component } from 'react';
+import { useState, useRef, useEffect, Suspense, Component } from 'react';
 import type { ReactNode, ErrorInfo } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -18,6 +18,8 @@ import {
   Inbox,
   MessageSquare,
   HomeIcon,
+  ChevronDown,
+  Check,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { SafehouseProvider, useSafehouse } from '../contexts/SafehouseContext';
@@ -106,6 +108,73 @@ const navGroups: NavGroup[] = [
 ];
 
 
+function SafehouseDropdown({
+  safehouses,
+  activeSafehouseId,
+  setActiveSafehouseId,
+  isAdmin,
+}: {
+  safehouses: { safehouseId: number; safehouseCode: string; name: string }[];
+  activeSafehouseId: number | null;
+  setActiveSafehouseId: (id: number | null) => void;
+  isAdmin: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const activeLabel = activeSafehouseId
+    ? safehouses.find(s => s.safehouseId === activeSafehouseId)
+      ? `${safehouses.find(s => s.safehouseId === activeSafehouseId)!.safehouseCode} - ${safehouses.find(s => s.safehouseId === activeSafehouseId)!.name}`
+      : 'All Safehouses'
+    : 'All Safehouses';
+
+  return (
+    <div className={styles.shDropdown} ref={ref}>
+      <button
+        className={`${styles.shDropdownBtn} ${open ? styles.shDropdownBtnOpen : ''}`}
+        onClick={() => setOpen(!open)}
+        type="button"
+      >
+        <span className={styles.shDropdownLabel}>{activeLabel}</span>
+        <ChevronDown size={14} className={`${styles.shDropdownChevron} ${open ? styles.shDropdownChevronOpen : ''}`} />
+      </button>
+      {open && (
+        <div className={styles.shDropdownMenu}>
+          {isAdmin && (
+            <button
+              className={`${styles.shDropdownItem} ${activeSafehouseId === null ? styles.shDropdownItemActive : ''}`}
+              onClick={() => { setActiveSafehouseId(null); setOpen(false); }}
+              type="button"
+            >
+              <span>All Safehouses</span>
+              {activeSafehouseId === null && <Check size={14} />}
+            </button>
+          )}
+          {safehouses.map(s => (
+            <button
+              key={s.safehouseId}
+              className={`${styles.shDropdownItem} ${activeSafehouseId === s.safehouseId ? styles.shDropdownItemActive : ''}`}
+              onClick={() => { setActiveSafehouseId(s.safehouseId); setOpen(false); }}
+              type="button"
+            >
+              <span>{s.safehouseCode} - {s.name}</span>
+              {activeSafehouseId === s.safehouseId && <Check size={14} />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AdminLayoutInner() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -162,18 +231,12 @@ function AdminLayoutInner() {
 
           <div className={styles.actions}>
             {safehouses.length > 0 && (
-              <select
-                className={styles.safehouseSelect}
-                value={activeSafehouseId ?? ''}
-                onChange={e => setActiveSafehouseId(e.target.value ? Number(e.target.value) : null)}
-              >
-                {isAdmin && <option value="">All Safehouses</option>}
-                {safehouses.map(s => (
-                  <option key={s.safehouseId} value={s.safehouseId}>
-                    {s.safehouseCode} - {s.name}
-                  </option>
-                ))}
-              </select>
+              <SafehouseDropdown
+                safehouses={safehouses}
+                activeSafehouseId={activeSafehouseId}
+                setActiveSafehouseId={setActiveSafehouseId}
+                isAdmin={isAdmin}
+              />
             )}
             <span className={styles.roleBadge}>{displayRole}</span>
             <button onClick={handleLogout} className={styles.logoutBtn}>

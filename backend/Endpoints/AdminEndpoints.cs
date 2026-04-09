@@ -96,18 +96,65 @@ public static class AdminEndpoints
             return Results.Ok(new { deleted = true });
         }).RequireAuthorization("AdminOnly");
 
+        // ── Admin partners list ─────────────────────────────────
+
+        app.MapGet("/api/admin/partners", async (AppDbContext db, string? search, string? status, string? partnerType, int page = 1, int pageSize = 20) =>
+        {
+            if (pageSize > 100) pageSize = 100;
+            var q = db.Partners.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.Trim().ToLower();
+                q = q.Where(p =>
+                    (p.PartnerName != null && p.PartnerName.ToLower().Contains(s)) ||
+                    (p.ContactName != null && p.ContactName.ToLower().Contains(s)) ||
+                    (p.Email != null && p.Email.ToLower().Contains(s)));
+            }
+            if (!string.IsNullOrWhiteSpace(status))
+                q = q.Where(p => p.Status == status);
+            if (!string.IsNullOrWhiteSpace(partnerType))
+                q = q.Where(p => p.PartnerType == partnerType);
+
+            var totalCount = await q.CountAsync();
+            var items = await q
+                .OrderByDescending(p => p.StartDate)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(p => new
+                {
+                    p.PartnerId,
+                    p.PartnerName,
+                    p.PartnerType,
+                    p.RoleType,
+                    p.ContactName,
+                    p.Email,
+                    p.Phone,
+                    p.Region,
+                    p.Status,
+                    p.StartDate,
+                    p.Notes
+                })
+                .ToListAsync();
+
+            return new { items, totalCount, page, pageSize };
+        }).RequireAuthorization(p => p.RequireRole("Admin", "Staff"));
+
         // ── Admin metrics ──────────────────────────────────────────
 
-        app.MapGet("/api/admin/metrics", async (AppDbContext db) =>
+        app.MapGet("/api/admin/metrics", async (AppDbContext db, int? safehouseId) =>
         {
             var refDate = AppConstants.DataCutoff;
             var startOfMonth = new DateOnly(refDate.Year, refDate.Month, 1);
             var startOfLastMonth = startOfMonth.AddMonths(-1);
 
-            var activeResidents = await db.Residents.CountAsync(r => r.CaseStatus == "Active");
+            var residentsQuery = db.Residents.Where(r => r.CaseStatus == "Active");
+            if (safehouseId.HasValue) residentsQuery = residentsQuery.Where(r => r.SafehouseId == safehouseId.Value);
+            var activeResidents = await residentsQuery.CountAsync();
 
-            var incidents = await db.IncidentReports
-                .Where(i => i.Resolved != true)
+            var incidentsQuery = db.IncidentReports.Where(i => i.Resolved != true);
+            if (safehouseId.HasValue) incidentsQuery = incidentsQuery.Where(i => i.SafehouseId == safehouseId.Value);
+            var incidents = await incidentsQuery
                 .GroupBy(_ => 1)
                 .Select(g => new
                 {
@@ -131,13 +178,17 @@ public static class AdminEndpoints
                 .Where(d => d.DonationDate >= startOfLastMonth && d.DonationDate < startOfMonth)
                 .SumAsync(d => (decimal?)d.Amount ?? 0);
 
-            var nextConference = await db.InterventionPlans
+            var conferencesQuery = db.InterventionPlans.AsQueryable();
+            if (safehouseId.HasValue)
+                conferencesQuery = conferencesQuery.Where(p => db.Residents.Any(r => r.ResidentId == p.ResidentId && r.SafehouseId == safehouseId.Value));
+
+            var nextConference = await conferencesQuery
                 .Where(p => p.CaseConferenceDate > refDate)
                 .OrderBy(p => p.CaseConferenceDate)
                 .Select(p => p.CaseConferenceDate)
                 .FirstOrDefaultAsync();
 
-            var upcomingConferences = await db.InterventionPlans
+            var upcomingConferences = await conferencesQuery
                 .CountAsync(p => p.CaseConferenceDate > refDate);
 
             var donationChange = lastMonthDonations > 0
@@ -398,10 +449,12 @@ public static class AdminEndpoints
             return data;
         }).RequireAuthorization(p => p.RequireRole("Admin", "Staff"));
 
-        app.MapGet("/api/admin/active-residents-trend", async (AppDbContext db) =>
+        app.MapGet("/api/admin/active-residents-trend", async (AppDbContext db, int? safehouseId) =>
         {
-            var data = await db.SafehouseMonthlyMetrics
-                .Where(m => m.MonthStart != null && m.MonthStart <= AppConstants.DataCutoff)
+            var query = db.SafehouseMonthlyMetrics.Where(m => m.MonthStart != null && m.MonthStart <= AppConstants.DataCutoff);
+            if (safehouseId.HasValue) query = query.Where(m => m.SafehouseId == safehouseId.Value);
+
+            var data = await query
                 .GroupBy(m => new { m.MonthStart!.Value.Year, m.MonthStart!.Value.Month })
                 .Select(g => new
                 {
@@ -415,10 +468,12 @@ public static class AdminEndpoints
             return data;
         }).RequireAuthorization(p => p.RequireRole("Admin", "Staff"));
 
-        app.MapGet("/api/admin/flagged-cases-trend", async (AppDbContext db) =>
+        app.MapGet("/api/admin/flagged-cases-trend", async (AppDbContext db, int? safehouseId) =>
         {
-            var data = await db.SafehouseMonthlyMetrics
-                .Where(m => m.MonthStart != null && m.MonthStart <= AppConstants.DataCutoff)
+            var query = db.SafehouseMonthlyMetrics.Where(m => m.MonthStart != null && m.MonthStart <= AppConstants.DataCutoff);
+            if (safehouseId.HasValue) query = query.Where(m => m.SafehouseId == safehouseId.Value);
+
+            var data = await query
                 .GroupBy(m => new { m.MonthStart!.Value.Year, m.MonthStart!.Value.Month })
                 .Select(g => new
                 {

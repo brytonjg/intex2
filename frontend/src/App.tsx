@@ -1,6 +1,27 @@
 import { lazy, Suspense, Component } from 'react';
-import type { ReactNode, ErrorInfo } from 'react';
+import type { ReactNode, ErrorInfo, ComponentType } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+
+// Wraps lazy() to auto-reload on chunk load failure (stale deployment).
+// After a new Vercel deploy, old chunk filenames no longer exist. The server
+// returns index.html instead, causing a MIME type error. This catches that
+// and reloads the page once so the browser fetches the new chunks.
+function lazyRetry<T extends ComponentType<unknown>>(
+  factory: () => Promise<{ default: T }>
+) {
+  return lazy(() =>
+    factory().catch((err: unknown) => {
+      const reloaded = sessionStorage.getItem('chunk_reload');
+      if (!reloaded) {
+        sessionStorage.setItem('chunk_reload', '1');
+        window.location.reload();
+        return new Promise<never>(() => {}); // never resolves — page is reloading
+      }
+      sessionStorage.removeItem('chunk_reload');
+      throw err; // already retried once, let error boundary handle it
+    })
+  );
+}
 import { AuthProvider } from './contexts/AuthContext';
 import { CookieConsentProvider } from './contexts/CookieConsentContext';
 import Header from './components/Header';
@@ -9,6 +30,8 @@ import CookieConsent from './components/CookieConsent';
 import CookiePreferencesModal from './components/CookiePreferencesModal';
 import AnalyticsLoader from './components/AnalyticsLoader';
 import ProtectedRoute from './components/ProtectedRoute';
+import ScrollToTop from './components/ScrollToTop';
+import ChatWidget from './components/ChatWidget';
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
   constructor(props: { children: ReactNode }) {
@@ -44,39 +67,41 @@ import ImpactPage from './pages/ImpactPage';
 import LoginPage from './pages/LoginPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 // SignupPage removed — donors get accounts after donating
-const NewsletterPage = lazy(() => import('./pages/NewsletterPage'));
+const NewsletterPage = lazyRetry(() => import('./pages/NewsletterPage'));
+const VolunteerPage = lazyRetry(() => import('./pages/VolunteerPage'));
+const PartnerPage = lazyRetry(() => import('./pages/PartnerPage'));
 // Admin pages — lazy loaded (code-split)
-const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
-const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
-const ReportsPage = lazy(() => import('./pages/admin/ReportsPage'));
-const VisitationsPage = lazy(() => import('./pages/admin/VisitationsPage'));
-const VisitationDetailPage = lazy(() => import('./pages/admin/VisitationDetailPage'));
-const VisitationFormPage = lazy(() => import('./pages/admin/VisitationFormPage'));
-const CaseloadPage = lazy(() => import('./pages/admin/CaseloadPage'));
-const ResidentDetailPage = lazy(() => import('./pages/admin/ResidentDetailPage'));
-const ResidentFormPage = lazy(() => import('./pages/admin/ResidentFormPage'));
-const ProcessRecordingsPage = lazy(() => import('./pages/admin/ProcessRecordingsPage'));
-const RecordingDetailPage = lazy(() => import('./pages/admin/RecordingDetailPage'));
-const RecordingFormPage = lazy(() => import('./pages/admin/RecordingFormPage'));
-const DonorsPage = lazy(() => import('./pages/admin/DonorsPage'));
-const SupporterDetailPage = lazy(() => import('./pages/admin/SupporterDetailPage'));
-const SupporterFormPage = lazy(() => import('./pages/admin/SupporterFormPage'));
-const DonationFormPage = lazy(() => import('./pages/admin/DonationFormPage'));
-const UsersPage = lazy(() => import('./pages/admin/UsersPage'));
-const StaffTasksPage = lazy(() => import('./pages/admin/StaffTasksPage'));
-const CalendarPage = lazy(() => import('./pages/admin/CalendarPage'));
-const IncidentsPage = lazy(() => import('./pages/admin/IncidentsPage'));
-const IncidentFormPage = lazy(() => import('./pages/admin/IncidentFormPage'));
-const IncidentDetailPage = lazy(() => import('./pages/admin/IncidentDetailPage'));
-const CaseQueuePage = lazy(() => import('./pages/admin/CaseQueuePage'));
-const CaseConferencesPage = lazy(() => import('./pages/admin/CaseConferencesPage'));
-const EducationRecordFormPage = lazy(() => import('./pages/admin/EducationRecordFormPage'));
-const HealthRecordFormPage = lazy(() => import('./pages/admin/HealthRecordFormPage'));
-const PostPlacementPage = lazy(() => import('./pages/admin/PostPlacementPage'));
-const DonorPortal = lazy(() => import('./pages/DonorPortal'));
-const DonatePage = lazy(() => import('./pages/DonatePage'));
-const DonateSuccessPage = lazy(() => import('./pages/DonateSuccessPage'));
-const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+const AdminLayout = lazyRetry(() => import('./layouts/AdminLayout'));
+const AdminDashboard = lazyRetry(() => import('./pages/AdminDashboard'));
+const ReportsPage = lazyRetry(() => import('./pages/admin/ReportsPage'));
+const VisitationsPage = lazyRetry(() => import('./pages/admin/VisitationsPage'));
+const VisitationDetailPage = lazyRetry(() => import('./pages/admin/VisitationDetailPage'));
+const VisitationFormPage = lazyRetry(() => import('./pages/admin/VisitationFormPage'));
+const CaseloadPage = lazyRetry(() => import('./pages/admin/CaseloadPage'));
+const ResidentDetailPage = lazyRetry(() => import('./pages/admin/ResidentDetailPage'));
+const ResidentFormPage = lazyRetry(() => import('./pages/admin/ResidentFormPage'));
+const ProcessRecordingsPage = lazyRetry(() => import('./pages/admin/ProcessRecordingsPage'));
+const RecordingDetailPage = lazyRetry(() => import('./pages/admin/RecordingDetailPage'));
+const RecordingFormPage = lazyRetry(() => import('./pages/admin/RecordingFormPage'));
+const DonorsPage = lazyRetry(() => import('./pages/admin/DonorsPage'));
+const SupporterDetailPage = lazyRetry(() => import('./pages/admin/SupporterDetailPage'));
+const SupporterFormPage = lazyRetry(() => import('./pages/admin/SupporterFormPage'));
+const DonationFormPage = lazyRetry(() => import('./pages/admin/DonationFormPage'));
+const UsersPage = lazyRetry(() => import('./pages/admin/UsersPage'));
+const StaffTasksPage = lazyRetry(() => import('./pages/admin/StaffTasksPage'));
+const CalendarPage = lazyRetry(() => import('./pages/admin/CalendarPage'));
+const IncidentsPage = lazyRetry(() => import('./pages/admin/IncidentsPage'));
+const IncidentFormPage = lazyRetry(() => import('./pages/admin/IncidentFormPage'));
+const IncidentDetailPage = lazyRetry(() => import('./pages/admin/IncidentDetailPage'));
+const CaseQueuePage = lazyRetry(() => import('./pages/admin/CaseQueuePage'));
+const CaseConferencesPage = lazyRetry(() => import('./pages/admin/CaseConferencesPage'));
+const EducationRecordFormPage = lazyRetry(() => import('./pages/admin/EducationRecordFormPage'));
+const HealthRecordFormPage = lazyRetry(() => import('./pages/admin/HealthRecordFormPage'));
+const PostPlacementPage = lazyRetry(() => import('./pages/admin/PostPlacementPage'));
+const DonorPortal = lazyRetry(() => import('./pages/DonorPortal'));
+const DonatePage = lazyRetry(() => import('./pages/DonatePage'));
+const DonateSuccessPage = lazyRetry(() => import('./pages/DonateSuccessPage'));
+const NotFoundPage = lazyRetry(() => import('./pages/NotFoundPage'));
 
 function LoadingFallback() {
   return (
@@ -94,6 +119,7 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
         {children}
       </Suspense>
       <Footer />
+      <ChatWidget />
     </>
   );
 }
@@ -104,6 +130,7 @@ function App() {
     <AuthProvider>
       <CookieConsentProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
             {/* Public pages */}
             <Route path="/" element={<PublicLayout><HomePage /></PublicLayout>} />
@@ -113,6 +140,8 @@ function App() {
             <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
             <Route path="/signup" element={<Navigate to="/donate" replace />} />
             <Route path="/newsletter" element={<PublicLayout><NewsletterPage /></PublicLayout>} />
+            <Route path="/volunteer" element={<PublicLayout><VolunteerPage /></PublicLayout>} />
+            <Route path="/partner" element={<PublicLayout><PartnerPage /></PublicLayout>} />
             <Route path="/donate" element={<PublicLayout><DonatePage /></PublicLayout>} />
             <Route path="/donate/success" element={<PublicLayout><DonateSuccessPage /></PublicLayout>} />
 

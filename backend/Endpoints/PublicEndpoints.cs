@@ -1,4 +1,5 @@
 using backend.Data;
+using backend.DTOs;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Endpoints;
@@ -180,6 +181,136 @@ public static class PublicEndpoints
                 .ToListAsync();
 
             return data;
+        });
+
+        // ── Donation monthly progress (public) ──────────────────
+
+        app.MapGet("/api/donate/monthly-progress", async (AppDbContext db) =>
+        {
+            var startOfMonth = new DateOnly(AppConstants.DataCutoff.Year, AppConstants.DataCutoff.Month, 1);
+            var raised = await db.Donations
+                .Where(d => d.DonationDate >= startOfMonth && d.DonationDate <= AppConstants.DataCutoff)
+                .SumAsync(d => (decimal?)d.Amount ?? 0);
+            var goal = 15000m;
+            var donorCount = await db.Donations
+                .Where(d => d.DonationDate >= startOfMonth && d.DonationDate <= AppConstants.DataCutoff)
+                .CountAsync();
+
+            return new { raised, goal, donorCount };
+        });
+
+        // ── Volunteer sign-up (public) ──────────────────────────
+
+        app.MapPost("/api/volunteer", async (AppDbContext db, HttpContext httpContext) =>
+        {
+            try
+            {
+                var body = await httpContext.Request.ReadFromJsonAsync<VolunteerSignupRequest>();
+                if (body == null) return Results.BadRequest(new { error = "Request body is required." });
+
+                var firstName = body.FirstName?.Trim() ?? "";
+                var lastName = body.LastName?.Trim() ?? "";
+                var email = body.Email?.Trim() ?? "";
+                var region = body.Region?.Trim() ?? "";
+
+                if (string.IsNullOrEmpty(firstName) || string.IsNullOrEmpty(lastName))
+                    return Results.BadRequest(new { error = "First and last name are required." });
+                if (string.IsNullOrEmpty(email))
+                    return Results.BadRequest(new { error = "Email is required." });
+                if (string.IsNullOrEmpty(region))
+                    return Results.BadRequest(new { error = "Region is required." });
+
+                // Check if this email is already registered as a volunteer
+                var existing = await db.Supporters
+                    .AnyAsync(s => s.Email == email && s.SupporterType == "Volunteer");
+                if (existing)
+                    return Results.Ok(new { message = "You're already signed up. We'll be in touch!" });
+
+                // Ensure the identity sequence is in sync (seed data uses explicit IDs)
+                await db.Database.ExecuteSqlRawAsync(
+                    "SELECT setval(pg_get_serial_sequence('supporters', 'supporter_id'), (SELECT COALESCE(MAX(supporter_id), 0) FROM supporters))");
+
+                var supporter = new backend.Models.Supporter
+                {
+                    SupporterType = "Volunteer",
+                    FirstName = firstName,
+                    LastName = lastName,
+                    DisplayName = $"{firstName} {lastName}",
+                    Email = email,
+                    Region = region,
+                    Country = "Guam",
+                    Status = "Prospective",
+                    AcquisitionChannel = "Direct",
+                    CreatedAt = DateTime.UtcNow,
+                };
+
+                db.Supporters.Add(supporter);
+                await db.SaveChangesAsync();
+                return Results.Ok(new { message = "Thank you for your interest!" });
+            }
+            catch (Exception ex)
+            {
+                var logger = httpContext.RequestServices.GetRequiredService<ILoggerFactory>()
+                    .CreateLogger("VolunteerEndpoint");
+                logger.LogError(ex, "Volunteer signup failed");
+                var inner = ex.InnerException?.Message ?? "no inner exception";
+                return Results.Problem($"Volunteer signup failed: {ex.Message} | Inner: {inner}");
+            }
+        });
+
+        // ── Partner sign-up (public) ────────────────────────────
+
+        app.MapPost("/api/partner", async (AppDbContext db, HttpContext httpContext) =>
+        {
+            try
+            {
+                var body = await httpContext.Request.ReadFromJsonAsync<PartnerSignupRequest>();
+                if (body == null) return Results.BadRequest(new { error = "Request body is required." });
+
+                var partnerName = body.PartnerName?.Trim() ?? "";
+                var contactName = body.ContactName?.Trim() ?? "";
+                var email = body.Email?.Trim() ?? "";
+
+                if (string.IsNullOrEmpty(contactName))
+                    return Results.BadRequest(new { error = "Contact name is required." });
+                if (string.IsNullOrEmpty(email))
+                    return Results.BadRequest(new { error = "Email is required." });
+
+                // Check if this email is already registered as a partner
+                var existing = await db.Partners
+                    .AnyAsync(p => p.Email == email);
+                if (existing)
+                    return Results.Ok(new { message = "You're already registered. We'll be in touch!" });
+
+                // Reset sequence to avoid duplicate key issues (same as volunteer endpoint)
+                await db.Database.ExecuteSqlRawAsync(
+                    "SELECT setval(pg_get_serial_sequence('partners', 'partner_id'), (SELECT COALESCE(MAX(partner_id), 0) FROM partners))");
+
+                var partner = new backend.Models.Partner
+                {
+                    PartnerName = string.IsNullOrEmpty(partnerName) ? contactName : partnerName,
+                    PartnerType = body.PartnerType?.Trim() ?? "Organization",
+                    RoleType = "Prospective",
+                    ContactName = contactName,
+                    Email = email,
+                    Phone = body.Phone?.Trim(),
+                    Status = "Prospective",
+                    StartDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                    Notes = body.Notes?.Trim(),
+                };
+
+                db.Partners.Add(partner);
+                await db.SaveChangesAsync();
+                return Results.Ok(new { message = "Thank you for your interest in partnering!" });
+            }
+            catch (Exception ex)
+            {
+                var logger = httpContext.RequestServices.GetRequiredService<ILoggerFactory>()
+                    .CreateLogger("PartnerEndpoint");
+                logger.LogError(ex, "Partner signup failed");
+                var inner = ex.InnerException?.Message ?? "no inner exception";
+                return Results.Problem($"Partner signup failed: {ex.Message} | Inner: {inner}");
+            }
         });
     }
 }

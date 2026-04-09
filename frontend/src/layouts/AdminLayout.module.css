@@ -214,22 +214,97 @@
   border-radius: 999px;
 }
 
-.safehouseSelect {
+/* ── Safehouse custom dropdown ────────────────────────────── */
+.shDropdown {
+  position: relative;
+}
+
+.shDropdownBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   font-size: 0.78rem;
   font-family: var(--font-body);
   font-weight: 600;
   color: var(--text-strong);
-  background: rgba(15, 143, 125, 0.06);
-  border: 1px solid rgba(15, 143, 125, 0.2);
+  background: var(--surface-1);
+  border: 1px solid rgba(15, 27, 45, 0.12);
   border-radius: 8px;
-  padding: 0.3rem 0.6rem;
+  padding: 0.38rem 0.6rem 0.38rem 0.75rem;
   cursor: pointer;
-  max-width: 200px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  white-space: nowrap;
 }
 
-.safehouseSelect:focus {
-  outline: 2px solid var(--color-sage);
-  outline-offset: 1px;
+.shDropdownBtn:hover {
+  border-color: rgba(15, 143, 125, 0.35);
+}
+
+.shDropdownBtnOpen {
+  border-color: var(--color-sage);
+  box-shadow: 0 0 0 2px rgba(15, 143, 125, 0.12);
+}
+
+.shDropdownChevron {
+  color: var(--text-muted);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.shDropdownChevronOpen {
+  transform: rotate(180deg);
+}
+
+.shDropdownLabel {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shDropdownMenu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 100%;
+  width: max-content;
+  max-height: 320px;
+  overflow-y: auto;
+  background: var(--surface-1);
+  border: 1px solid rgba(15, 27, 45, 0.1);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(15, 27, 45, 0.12);
+  padding: 0.3rem;
+  z-index: 200;
+}
+
+.shDropdownItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  font-size: 0.8rem;
+  font-family: var(--font-body);
+  font-weight: 500;
+  color: var(--text-strong);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 0.45rem 0.65rem;
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.shDropdownItem:hover {
+  background: rgba(15, 27, 45, 0.04);
+}
+
+.shDropdownItemActive {
+  color: var(--color-sage);
+  font-weight: 600;
+  background: rgba(15, 143, 125, 0.06);
 }
 
 .logoutBtn {

@@ -1,450 +1,204 @@
-/* ── Stats Banner ──────────────────────────────────────── */
+/* ── Page ─────────────────────────────────────────────── */
 .page {
   min-height: 100vh;
 }
 
-.statsBanner {
-  padding: 3rem 1.25rem 2rem;
+/* ── Hero (dark navy background) ─────────────────────── */
+.hero {
+  position: relative;
+  padding: 5rem 1.25rem 4rem;
+  text-align: center;
+  background: linear-gradient(160deg, #0f1b2d 0%, #1d3048 60%, #2a4060 100%);
+  overflow: hidden;
 }
 
-.statsInner {
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(15, 143, 125, 0.15), transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(255, 159, 67, 0.1), transparent 50%);
+  pointer-events: none;
+}
+
+.heroInner {
+  position: relative;
   max-width: var(--max-width);
   margin: 0 auto;
+  z-index: 1;
 }
 
-.statsHeadline {
+.heroLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(15, 143, 125, 0.9);
+  margin-bottom: 0.75rem;
+}
+
+.heroHeadline {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 3.5vw, 2.8rem);
+  font-size: clamp(2rem, 4.5vw, 3.2rem);
   font-weight: 600;
-  color: var(--text-strong);
+  color: rgba(255, 255, 255, 0.96);
   letter-spacing: -0.02em;
-  line-height: 1.1;
-  text-align: center;
-  margin-bottom: 0.35rem;
+  line-height: 1.15;
+  margin-bottom: 1rem;
 }
 
-.statsUpdated {
-  font-size: 0.82rem;
-  color: var(--text-muted);
-  text-align: center;
-  margin-bottom: 1.5rem;
+.heroSub {
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.65;
+  max-width: 580px;
+  margin: 0 auto 2.5rem;
 }
 
+/* ── Stats Grid (glass cards on dark hero) ───────────── */
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1rem;
-  margin-bottom: 1.25rem;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
-.statItem {
-  border: 1px solid rgba(15, 27, 45, 0.08);
-  background: var(--surface-1);
+.statCard {
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-md);
-  padding: 1.1rem;
-  box-shadow: var(--shadow-sm);
+  padding: 1.25rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  align-items: center;
+  gap: 0.25rem;
+  transition: background 0.3s;
+}
+
+.statCard:hover {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .statNumber {
-  display: block;
   font-family: var(--font-display);
-  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  font-size: clamp(2rem, 3.5vw, 2.8rem);
   font-weight: 600;
-  color: var(--text-strong);
+  color: #fff;
   line-height: 1;
   letter-spacing: -0.03em;
 }
 
-.statDesc {
-  display: block;
-  margin-top: 0.45rem;
+.statLabel {
   font-size: 0.82rem;
-  color: var(--text-muted);
-  padding-top: 0.2rem;
-  border-top: 2px solid var(--color-sage);
+  color: rgba(255, 255, 255, 0.55);
+  margin-top: 0.3rem;
+  text-align: center;
 }
 
-/* ── Key Metric Card ─────────────────────────────────── */
-.okrCard {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 2rem;
-  align-items: center;
+/* ── Monthly Goal Section ────────────────────────────── */
+.goalSection {
+  padding: 3rem 1.25rem;
+  background: var(--surface-2);
+  text-align: center;
+}
+
+.goalInner {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.goalHeadline {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 600;
+  color: var(--text-strong);
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+
+.goalSub {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.goalCard {
   background: var(--surface-1);
   border: 1px solid rgba(15, 27, 45, 0.08);
-  border-radius: var(--radius-md);
+  border-radius: 14px;
   box-shadow: var(--shadow-sm);
-  padding: 1.5rem 2rem;
+  padding: 1.25rem 1.5rem;
+  text-align: left;
+  margin-bottom: 1.5rem;
 }
 
-.okrLeft {
-  text-align: center;
-  min-width: 140px;
+.goalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.6rem;
 }
 
-.okrLabel {
-  font-size: 0.65rem;
+.goalTitle {
+  font-size: 0.82rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--color-sage);
-  margin-bottom: 0.25rem;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
 }
 
-.okrValue {
-  font-family: var(--font-display);
-  font-size: 3.2rem;
-  font-weight: 600;
-  color: var(--text-strong);
-  line-height: 1;
-  letter-spacing: -0.03em;
-}
-
-.okrTitle {
+.goalNumbers {
   font-family: var(--font-display);
   font-size: 1rem;
-  color: var(--text-muted);
+  font-weight: 600;
+  color: var(--text-strong);
 }
 
-.okrRight {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.okrDesc {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  line-height: 1.55;
-  margin: 0;
-}
-
-.okrBar {
-  height: 8px;
-  background: rgba(15, 27, 45, 0.06);
+.goalBar {
+  height: 10px;
+  background: rgba(15, 143, 125, 0.1);
   border-radius: 999px;
   overflow: hidden;
+  margin-bottom: 0.6rem;
 }
 
-.okrFill {
+.goalFill {
   height: 100%;
   background: linear-gradient(90deg, var(--color-sage), #13a490);
   border-radius: 999px;
   transition: width 0.8s ease;
 }
 
-.okrTarget {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  font-weight: 600;
-}
-
-/* ── Chart Sections ───────────────────────────────────── */
-.chartSection {
-  padding: 0 1.25rem 1.1rem;
-}
-
-.chartInner {
-  max-width: var(--max-width);
-  margin: 0 auto;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), #ffffff);
-  border: 1px solid rgba(15, 27, 45, 0.08);
-  border-radius: 18px;
-  padding: 1.3rem 1.3rem 1rem;
-  box-shadow: var(--shadow-sm);
-}
-
-.chartHeader {
+.goalFooter {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1.1rem;
+  align-items: center;
 }
 
-.chartLabel {
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+.goalPct {
+  font-size: 0.82rem;
   font-weight: 700;
-  color: var(--text-muted);
-  margin-bottom: 0.45rem;
+  color: var(--color-sage);
 }
 
-.chartHighlight {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-}
-
-.chartBigNumber {
-  font-family: var(--font-display);
-  font-size: clamp(1.9rem, 3vw, 2.5rem);
-  font-weight: 600;
-  color: var(--text-strong);
-  line-height: 1;
-  letter-spacing: -0.02em;
-}
-
-.chartChange {
+.goalDonors {
   display: inline-flex;
   align-items: center;
-  gap: 0.2rem;
-  font-size: 0.83rem;
-  font-weight: 700;
-  color: var(--color-amber-dark);
-}
-
-.chartSubtext {
-  font-size: 0.84rem;
+  gap: 0.3rem;
+  font-size: 0.82rem;
   color: var(--text-muted);
 }
 
-.chartGoalText {
-  font-size: 0.84rem;
-  color: var(--color-teal);
-  font-weight: 600;
-}
-
-.chartContainer {
-  width: 100%;
-}
-
-/* ── Tooltip ──────────────────────────────────────────── */
-.tooltip {
-  background: rgba(15, 27, 45, 0.96);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 0.55rem 0.75rem;
-  border-radius: var(--radius-sm);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-}
-
-.tooltipLabel {
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.65);
-  margin-bottom: 0.2rem;
-}
-
-.tooltipValue {
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 600;
-  color: #fff;
-}
-
-/* ── Metric Cards ─────────────────────────────────────── */
-.metricsSection {
-  padding: 0 1.25rem 2.4rem;
-}
-
-.metricsInner {
-  max-width: var(--max-width);
-  margin: 0 auto;
-}
-
-.metricsGrid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.9rem;
-  margin-top: 0.75rem;
-}
-
-.metricCard {
-  background: var(--surface-1);
-  border: 1px solid rgba(15, 27, 45, 0.08);
-  border-radius: var(--radius-md);
-  padding: 1.1rem;
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.metricCard:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.metricNumber {
-  display: block;
-  font-family: var(--font-display);
-  font-size: 2rem;
-  font-weight: 600;
-  color: var(--text-strong);
-  line-height: 1;
-  letter-spacing: -0.02em;
-}
-
-.metricLabel {
-  display: block;
-  margin-top: 0.35rem;
-  font-size: 0.84rem;
-  color: var(--text-muted);
-}
-
-.metricChange {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.15rem;
-  margin-top: 0.45rem;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--color-amber-dark);
-}
-
-/* ── Stories of Hope ──────────────────────────────────── */
-.stories {
-  padding: 2.2rem 1.25rem 2.7rem;
-}
-
-.storiesInner {
-  max-width: var(--max-width);
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
-}
-
-.storyRow {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.2rem;
-  align-items: stretch;
-}
-
-.storyRowReverse {
-  direction: ltr;
-}
-
-.storyRowReverse .storyText {
-  order: 2;
-}
-
-.storyRowReverse .storyImage {
-  order: 1;
-}
-
-.storyText {
-  border: 1px solid rgba(15, 27, 45, 0.08);
-  border-radius: 16px;
-  padding: 1.5rem;
-  background: var(--surface-1);
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.storyTag {
-  font-size: 0.73rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-weight: 700;
-  color: var(--color-amber-dark);
-  margin-bottom: 0.5rem;
-}
-
-.storyTitle {
-  font-family: var(--font-display);
-  font-size: clamp(1.7rem, 3vw, 2.4rem);
-  font-weight: 600;
-  color: var(--text-strong);
-  letter-spacing: -0.02em;
-  margin: 0.5rem 0 0.7rem;
-}
-
-.storyBody {
-  font-size: 0.95rem;
-  line-height: 1.72;
-  color: var(--text-muted);
-  margin-bottom: 0.75rem;
-}
-
-.storyNote {
-  font-size: 0.8rem;
-  font-style: italic;
-  color: var(--text-muted);
-}
-
-.storyImage {
-  border-radius: 16px;
-  overflow: hidden;
-  min-height: 270px;
-  border: 1px solid rgba(15, 27, 45, 0.08);
-}
-
-.storyImagePlaceholder {
-  width: 100%;
-  min-height: 270px;
-  height: 100%;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(15, 143, 125, 0.18), transparent 38%),
-    linear-gradient(140deg, #ecf2fa, #fdf6ef);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* ── Bottom CTA ───────────────────────────────────────── */
-.bottomCta {
-  padding: 4.5rem 1.25rem;
-  background:
-    radial-gradient(circle at 10% 12%, rgba(255, 194, 116, 0.18), transparent 42%),
-    linear-gradient(130deg, #11233c, #1f3a58);
-  text-align: center;
-}
-
-.ctaInner {
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.goalProgress {
-  margin-bottom: 1.5rem;
-}
-
-.goalBar {
-  height: 8px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 999px;
-  overflow: hidden;
-  margin-bottom: 0.5rem;
-}
-
-.goalFill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--color-sage), var(--color-amber));
-  border-radius: 999px;
-  transition: width 0.6s ease;
-}
-
-.goalText {
-  font-size: 0.88rem;
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: 600;
-}
-
-.ctaTitle {
-  font-family: var(--font-display);
-  font-size: clamp(1.8rem, 3.6vw, 2.8rem);
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.96);
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-  margin-bottom: 1.2rem;
-}
-
-.ctaButton {
+.goalCta {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
   min-height: 46px;
   border-radius: 999px;
-  padding: 0.8rem 1.4rem;
+  padding: 0.8rem 1.6rem;
   background: linear-gradient(120deg, var(--color-sage), #13a490);
   color: #fff;
   font-weight: 700;
@@ -453,70 +207,308 @@
   box-shadow: 0 10px 24px rgba(15, 143, 125, 0.24);
 }
 
-.ctaButton:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.03);
+.goalCta:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
 }
 
-/* ── Responsive ───────────────────────────────────────── */
+/* ── Section Headings ────────────────────────────────── */
+.sectionTitle {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 600;
+  color: var(--text-strong);
+  letter-spacing: -0.02em;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.sectionSub {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  text-align: center;
+  max-width: 520px;
+  margin: 0 auto 2.5rem;
+}
+
+/* ── What Your Donation Provides ─────────────────────── */
+.impactSection {
+  padding: 3.5rem 1.25rem;
+  background: var(--surface-2);
+}
+
+.impactInner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.impactGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.impactCard {
+  background: var(--surface-1);
+  border: 1px solid rgba(15, 27, 45, 0.08);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.impactCard:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.impactIconWrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.impactAmount {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--text-strong);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.impactDesc {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-strong);
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.impactDetail {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin: 0;
+  flex: 1;
+}
+
+/* ── Stories of Hope ─────────────────────────────────── */
+.stories {
+  padding: 3.5rem 1.25rem 4rem;
+}
+
+.storiesInner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.storyRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: stretch;
+  margin-bottom: 2rem;
+}
+
+.storyRow:last-child {
+  margin-bottom: 0;
+}
+
+.storyRowReverse .storyContent {
+  order: -1;
+}
+
+.storyImage {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  min-height: 320px;
+}
+
+.storyPlaceholder {
+  width: 100%;
+  height: 100%;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(15, 143, 125, 0.18), transparent 50%),
+    linear-gradient(145deg, #e8f0f2, #dce6e9);
+  color: var(--color-sage);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.storyPlaceholderWarm {
+  background:
+    radial-gradient(circle at 70% 30%, rgba(255, 159, 67, 0.2), transparent 50%),
+    linear-gradient(145deg, #f5ede4, #ece3d8);
+  color: var(--color-amber-dark);
+}
+
+.storyContent {
+  background: var(--surface-1);
+  border: 1px solid rgba(15, 27, 45, 0.08);
+  border-radius: var(--radius-md);
+  padding: 2rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.storyTag {
+  display: inline-block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  color: #fff;
+  background: var(--color-sage);
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  margin-bottom: 0.75rem;
+  width: fit-content;
+}
+
+.storyTitle {
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 2.5vw, 1.7rem);
+  font-weight: 600;
+  color: var(--text-strong);
+  letter-spacing: -0.01em;
+  margin: 0 0 0.75rem;
+}
+
+.storyBody {
+  font-size: 0.93rem;
+  line-height: 1.7;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.storyQuote {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--text-strong);
+  font-style: italic;
+  line-height: 1.5;
+  margin: 0 0 0.75rem;
+  padding-left: 1rem;
+  border-left: 3px solid var(--color-sage);
+}
+
+.storyNote {
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--text-muted);
+  opacity: 0.65;
+}
+
+/* ── Bottom CTA ──────────────────────────────────────── */
+.bottomCta {
+  padding: 5rem 1.25rem;
+  background:
+    radial-gradient(circle at 10% 12%, rgba(255, 194, 116, 0.18), transparent 42%),
+    radial-gradient(circle at 90% 80%, rgba(15, 143, 125, 0.12), transparent 40%),
+    linear-gradient(130deg, #11233c, #1f3a58);
+  text-align: center;
+}
+
+.ctaInner {
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.ctaTitle {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3.6vw, 2.6rem);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.96);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-bottom: 0.75rem;
+}
+
+.ctaSub {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.6;
+  margin-bottom: 1.75rem;
+}
+
+.ctaButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 48px;
+  border-radius: 999px;
+  padding: 0.85rem 1.8rem;
+  background: linear-gradient(120deg, var(--color-sage), #13a490);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: transform 0.24s, filter 0.24s;
+  box-shadow: 0 10px 24px rgba(15, 143, 125, 0.24);
+}
+
+.ctaButton:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+
+/* ── Responsive ──────────────────────────────────────── */
 @media (max-width: 1024px) {
-  .metricsGrid {
+  .impactGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 768px) {
-  .statsBanner {
-    padding: 3.8rem 1rem 1.8rem;
+  .hero {
+    padding: 4rem 1rem 3rem;
   }
 
   .statsGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .okrCard {
+  .impactGrid {
     grid-template-columns: 1fr;
-    text-align: center;
   }
 
-  .chartSection,
-  .metricsSection,
-  .stories,
-  .bottomCta {
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
-
-  .metricsGrid,
   .storyRow {
     grid-template-columns: 1fr;
   }
 
-  .storyRowReverse .storyText {
+  .storyRowReverse .storyContent {
     order: 1;
   }
 
-  .storyRowReverse .storyImage {
-    order: 2;
-  }
-
-  .storyText {
-    padding: 1rem;
-  }
-
   .storyImage {
-    min-height: 220px;
+    min-height: 240px;
   }
 
-  .storyImagePlaceholder {
-    min-height: 220px;
+  .storyPlaceholder {
+    min-height: 240px;
   }
 
-  .statNumber {
-    font-size: 2.2rem;
-  }
-
-  .chartInner {
-    padding: 1.25rem;
+  .impactSection,
+  .stories,
+  .bottomCta {
+    padding-left: 1rem;
+    padding-right: 1rem;
   }
 }
