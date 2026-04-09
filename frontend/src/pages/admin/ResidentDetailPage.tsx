@@ -92,15 +92,24 @@ const SUB_CAT_LABELS: Record<string, string> = {
   subCatCicl: 'CICL', subCatAtRisk: 'At Risk', subCatStreetChild: 'Street Child', subCatChildWithHiv: 'Child with HIV',
 };
 
-const EMOTIONAL_ORDER = ['Severe Distress', 'Distressed', 'Struggling', 'Unsettled', 'Neutral', 'Coping', 'Stable', 'Good', 'Thriving'];
+const EMOTIONAL_ORDER = ['Angry', 'Distressed', 'Anxious', 'Sad', 'Withdrawn', 'Neutral', 'Coping', 'Calm', 'Hopeful', 'Happy', 'Thriving'];
+
+const EMOTION_COLORS: Record<string, string> = {
+  Angry: '#c0392b',
+  Distressed: '#c0392b',
+  Anxious: '#e67e22',
+  Sad: '#e67e22',
+  Withdrawn: '#e67e22',
+  Neutral: '#95a5a6',
+  Coping: '#3498db',
+  Calm: '#3498db',
+  Hopeful: '#27ae60',
+  Happy: '#27ae60',
+  Thriving: '#27ae60',
+};
 
 function emotionalColor(state: string): string {
-  const idx = EMOTIONAL_ORDER.indexOf(state);
-  if (idx <= 1) return '#c0392b';
-  if (idx <= 3) return '#e67e22';
-  if (idx === 4) return '#95a5a6';
-  if (idx <= 6) return '#3498db';
-  return '#27ae60';
+  return EMOTION_COLORS[state] ?? '#95a5a6';
 }
 
 /* ── Helpers ─────────────────────────────────────── */
