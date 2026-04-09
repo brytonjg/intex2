@@ -9,6 +9,7 @@ import CookieConsent from './components/CookieConsent';
 import CookiePreferencesModal from './components/CookiePreferencesModal';
 import AnalyticsLoader from './components/AnalyticsLoader';
 import ProtectedRoute from './components/ProtectedRoute';
+import ScrollToTop from './components/ScrollToTop';
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
   constructor(props: { children: ReactNode }) {
@@ -45,6 +46,7 @@ import LoginPage from './pages/LoginPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 // SignupPage removed — donors get accounts after donating
 const NewsletterPage = lazy(() => import('./pages/NewsletterPage'));
+const VolunteerPage = lazy(() => import('./pages/VolunteerPage'));
 // Admin pages — lazy loaded (code-split)
 const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
@@ -103,6 +105,7 @@ function App() {
     <AuthProvider>
       <CookieConsentProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
             {/* Public pages */}
             <Route path="/" element={<PublicLayout><HomePage /></PublicLayout>} />
@@ -112,6 +115,7 @@ function App() {
             <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
             <Route path="/signup" element={<Navigate to="/donate" replace />} />
             <Route path="/newsletter" element={<PublicLayout><NewsletterPage /></PublicLayout>} />
+            <Route path="/volunteer" element={<PublicLayout><VolunteerPage /></PublicLayout>} />
             <Route path="/donate" element={<PublicLayout><DonatePage /></PublicLayout>} />
             <Route path="/donate/success" element={<PublicLayout><DonateSuccessPage /></PublicLayout>} />
 
