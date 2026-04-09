@@ -10,6 +10,7 @@ public interface IEmailNotificationService
     Task SendPostReadyNotification(int readyCount);
     Task SendGenerationFailedNotification(string error);
     Task SendEngagementReminder(int postsNeedingData);
+    Task SendDonorWelcomeEmail(string donorEmail, string password, string baseUrl);
 }
 
 public class EmailNotificationService : IEmailNotificationService
@@ -68,6 +69,23 @@ public class EmailNotificationService : IEmailNotificationService
         );
     }
 
+    public async Task SendDonorWelcomeEmail(string donorEmail, string password, string baseUrl)
+    {
+        var subject = "Welcome to Beacon of Hope — Your Donor Account";
+        var body = $"Thank you for your generous donation to Beacon of Hope!\n\n" +
+                   $"We've created a donor portal account so you can track your impact " +
+                   $"and manage your giving.\n\n" +
+                   $"Your login details:\n" +
+                   $"  Email: {donorEmail}\n" +
+                   $"  Password: {password}\n\n" +
+                   $"Log in at: {baseUrl}/login\n\n" +
+                   $"We recommend changing your password after your first login.\n\n" +
+                   $"Thank you for making a difference.\n" +
+                   $"— The Beacon of Hope Team";
+
+        await SendEmail(donorEmail, subject, body, subjectPrefix: "");
+    }
+
     private async Task<(bool enabled, string? email)> GetEmailConfig()
     {
         using var scope = _services.CreateScope();
@@ -80,7 +98,7 @@ public class EmailNotificationService : IEmailNotificationService
         return (enabled, settings.NotificationEmail);
     }
 
-    private async Task SendEmail(string to, string subject, string body)
+    private async Task SendEmail(string to, string subject, string body, string? subjectPrefix = "[Social Media] ")
     {
         var smtpHost = _config["Smtp:Host"];
         var smtpPort = int.TryParse(_config["Smtp:Port"], out var p) ? p : 587;
@@ -104,9 +122,10 @@ public class EmailNotificationService : IEmailNotificationService
                 EnableSsl = true,
             };
 
-            var message = new MailMessage(fromEmail, to, $"[Social Media] {subject}", body);
+            var fullSubject = (subjectPrefix ?? "") + subject;
+            var message = new MailMessage(fromEmail, to, fullSubject, body);
             await client.SendMailAsync(message);
-            _logger.LogInformation("Email sent to {To}: {Subject}", to, subject);
+            _logger.LogInformation("Email sent to {To}: {Subject}", to, fullSubject);
         }
         catch (Exception ex)
         {

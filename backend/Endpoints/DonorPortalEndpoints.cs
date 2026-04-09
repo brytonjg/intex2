@@ -1,6 +1,8 @@
+using System.Security.Cryptography;
 using backend.Data;
 using backend.DTOs;
 using backend.Models;
+using backend.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -73,15 +75,71 @@ public static class DonorPortalEndpoints
 
         // ── Donation processing ──────────────────────────────────
 
-        app.MapPost("/api/donate/process", async (HttpContext httpContext, AppDbContext db) =>
+        app.MapPost("/api/donate/process", async (
+            HttpContext httpContext,
+            AppDbContext db,
+            UserManager<ApplicationUser> userManager,
+            IEmailNotificationService emailService,
+            IConfiguration config) =>
         {
             var body = await httpContext.Request.ReadFromJsonAsync<CreateCheckoutRequest>();
             if (body == null) return Results.BadRequest(new { error = "Request body is required." });
             var (valid, err) = DtoValidator.Validate(body);
             if (!valid) return Results.BadRequest(new { error = err });
 
+            var email = body.DonorEmail?.Trim().ToLowerInvariant() ?? "";
+            int? supporterId = null;
+
+            // Check if this donor already has an account
+            var existingUser = await userManager.FindByEmailAsync(email);
+            if (existingUser != null)
+            {
+                supporterId = existingUser.SupporterId;
+            }
+            else if (!string.IsNullOrEmpty(email))
+            {
+                // First-time donor: create Supporter + User account
+                var supporter = new Supporter
+                {
+                    FirstName = "Donor",
+                    LastName = "",
+                    Email = email,
+                    DisplayName = email,
+                    SupporterType = "Individual",
+                    Status = "Active",
+                    FirstDonationDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                    CreatedAt = DateTime.UtcNow
+                };
+                db.Supporters.Add(supporter);
+                await db.SaveChangesAsync();
+                supporterId = supporter.SupporterId;
+
+                // Generate a secure random password
+                var password = GeneratePassword();
+
+                var newUser = new ApplicationUser
+                {
+                    UserName = email,
+                    Email = email,
+                    FirstName = "Donor",
+                    LastName = "",
+                    EmailConfirmed = true,
+                    SupporterId = supporterId
+                };
+                var createResult = await userManager.CreateAsync(newUser, password);
+                if (createResult.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(newUser, "Donor");
+
+                    // Send login credentials email
+                    var baseUrl = config["App:BaseUrl"] ?? "https://intex2.dawsonsprojects.com";
+                    await emailService.SendDonorWelcomeEmail(email, password, baseUrl);
+                }
+            }
+
             var donation = new backend.Models.Donation
             {
+                SupporterId = supporterId,
                 DonationType = "Monetary",
                 DonationDate = DateOnly.FromDateTime(DateTime.UtcNow),
                 ChannelSource = "Online",
@@ -94,10 +152,10 @@ public static class DonorPortalEndpoints
             await db.SaveChangesAsync();
 
             // Auto-subscribe to newsletter if opted in
-            if (body.Newsletter && !string.IsNullOrEmpty(body.DonorEmail))
+            if (body.Newsletter && !string.IsNullOrEmpty(email))
             {
                 var existingSub = await db.NewsletterSubscribers
-                    .FirstOrDefaultAsync(s => s.Email == body.DonorEmail.ToLowerInvariant());
+                    .FirstOrDefaultAsync(s => s.Email == email);
                 if (existingSub != null)
                 {
                     existingSub.IsActive = true;
@@ -106,7 +164,7 @@ public static class DonorPortalEndpoints
                 {
                     db.NewsletterSubscribers.Add(new backend.Models.NewsletterSubscriber
                     {
-                        Email = body.DonorEmail.ToLowerInvariant(),
+                        Email = email,
                         SubscribedAt = DateTime.UtcNow,
                         IsActive = true
                     });
@@ -118,8 +176,35 @@ public static class DonorPortalEndpoints
             {
                 amount = (body.AmountCents ?? 0) / 100m,
                 isRecurring = body.Mode == "recurring",
-                email = body.DonorEmail
+                email
             });
         });
+    }
+
+    private static string GeneratePassword()
+    {
+        const string upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const string lower = "abcdefghijklmnopqrstuvwxyz";
+        const string digits = "0123456789";
+        const string special = "!@#$%^&*";
+        var all = upper + lower + digits + special;
+
+        var password = new char[16];
+        password[0] = upper[RandomNumberGenerator.GetInt32(upper.Length)];
+        password[1] = lower[RandomNumberGenerator.GetInt32(lower.Length)];
+        password[2] = digits[RandomNumberGenerator.GetInt32(digits.Length)];
+        password[3] = special[RandomNumberGenerator.GetInt32(special.Length)];
+
+        for (int i = 4; i < password.Length; i++)
+            password[i] = all[RandomNumberGenerator.GetInt32(all.Length)];
+
+        // Shuffle
+        for (int i = password.Length - 1; i > 0; i--)
+        {
+            int j = RandomNumberGenerator.GetInt32(i + 1);
+            (password[i], password[j]) = (password[j], password[i]);
+        }
+
+        return new string(password);
     }
 }
