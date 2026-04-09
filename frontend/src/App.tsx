@@ -200,10 +200,10 @@ function App() {
               <Route path="donations/new" element={<DonationFormPage />} />
               <Route path="donations/:id/edit" element={<DonationFormPage />} />
               <Route path="users" element={<UsersPage />} />
-              <Route path="social/posts" element={<SocialPostsPage />} />
+              <Route path="social/posts" element={<ProtectedRoute allowedRoles={['Admin']}><SocialPostsPage /></ProtectedRoute>} />
               <Route path="social/photos" element={<SocialPhotosPage />} />
-              <Route path="social/setup" element={<SocialSetupPage />} />
-              <Route path="newsletters" element={<AdminNewsletterPage />} />
+              <Route path="social/setup" element={<ProtectedRoute allowedRoles={['Admin']}><SocialSetupPage /></ProtectedRoute>} />
+              <Route path="newsletters" element={<ProtectedRoute allowedRoles={['Admin']}><AdminNewsletterPage /></ProtectedRoute>} />
             </Route>
 
             {/* 404 catch-all */}
