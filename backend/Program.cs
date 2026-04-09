@@ -2960,6 +2960,40 @@ app.MapDelete("/api/admin/social/cta/{id}", async (int id, AppDbContext db) =>
     return Results.NoContent();
 }).RequireAuthorization(p => p.RequireRole("Admin"));
 
+// Graphic Templates (Admin only)
+app.MapGet("/api/admin/social/graphic-templates", async (AppDbContext db) =>
+{
+    var templates = await db.GraphicTemplates.OrderBy(t => t.Name).ToListAsync();
+    return Results.Ok(templates);
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+app.MapPost("/api/admin/social/graphic-templates", async (HttpContext ctx, AppDbContext db) =>
+{
+    var body = await ctx.Request.ReadFromJsonAsync<JsonElement>();
+    if (body.ValueKind == JsonValueKind.Undefined) return Results.BadRequest();
+    var template = new backend.Models.SocialMedia.GraphicTemplate
+    {
+        Name = body.TryGetProperty("name", out var n) ? n.GetString() : null,
+        FilePath = body.TryGetProperty("filePath", out var fp) ? fp.GetString() : null,
+        TextColor = body.TryGetProperty("textColor", out var tc) ? tc.GetString() : null,
+        TextPosition = body.TryGetProperty("textPosition", out var tp) ? tp.GetString() : null,
+        SuitableFor = body.TryGetProperty("suitableFor", out var sf) ? sf.GetString() : null,
+        CreatedAt = DateTime.UtcNow
+    };
+    db.GraphicTemplates.Add(template);
+    await db.SaveChangesAsync();
+    return Results.Created($"/api/admin/social/graphic-templates/{template.GraphicTemplateId}", template);
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+app.MapDelete("/api/admin/social/graphic-templates/{id}", async (int id, AppDbContext db) =>
+{
+    var template = await db.GraphicTemplates.FindAsync(id);
+    if (template == null) return Results.NotFound();
+    db.GraphicTemplates.Remove(template);
+    await db.SaveChangesAsync();
+    return Results.NoContent();
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
 // Milestone Rules (Admin only)
 app.MapGet("/api/admin/social/milestone-rules", async (AppDbContext db) =>
 {
