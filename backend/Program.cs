@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Stripe;
@@ -2548,6 +2549,438 @@ app.MapGet("/api/donate/success", async (string session_id, AppDbContext db) =>
         email = session.CustomerEmail
     });
 });
+
+// ── Social Media Automation Endpoints ──────────────────────
+
+// Settings (Admin only)
+app.MapGet("/api/admin/social/settings", async (AppDbContext db) =>
+{
+    var settings = await db.SocialMediaSettings.FirstOrDefaultAsync();
+    if (settings == null)
+    {
+        settings = new backend.Models.SocialMedia.SocialMediaSettings();
+        db.SocialMediaSettings.Add(settings);
+        await db.SaveChangesAsync();
+    }
+    return Results.Ok(settings);
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+app.MapPut("/api/admin/social/settings", async (HttpContext ctx, AppDbContext db) =>
+{
+    var body = await ctx.Request.ReadFromJsonAsync<JsonElement>();
+    if (body.ValueKind == JsonValueKind.Undefined) return Results.BadRequest();
+    var settings = await db.SocialMediaSettings.FirstOrDefaultAsync();
+    if (settings == null) { settings = new backend.Models.SocialMedia.SocialMediaSettings(); db.SocialMediaSettings.Add(settings); }
+    if (body.TryGetProperty("postsPerWeek", out var pw)) settings.PostsPerWeek = pw.GetInt32();
+    if (body.TryGetProperty("platformsActive", out var pa)) settings.PlatformsActive = pa.GetString();
+    if (body.TryGetProperty("timezone", out var tz)) settings.Timezone = tz.GetString();
+    if (body.TryGetProperty("recyclingEnabled", out var re)) settings.RecyclingEnabled = re.GetBoolean();
+    if (body.TryGetProperty("dailyGenerationTime", out var dgt)) settings.DailyGenerationTime = dgt.GetString();
+    if (body.TryGetProperty("notificationMethod", out var nm)) settings.NotificationMethod = nm.GetString();
+    if (body.TryGetProperty("notificationEmail", out var ne)) settings.NotificationEmail = ne.GetString();
+    settings.UpdatedAt = DateTime.UtcNow;
+    await db.SaveChangesAsync();
+    return Results.Ok(settings);
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+// Voice Guide (Admin only)
+app.MapGet("/api/admin/social/voice-guide", async (AppDbContext db) =>
+{
+    var guide = await db.VoiceGuides.FirstOrDefaultAsync();
+    if (guide == null) return Results.Ok(new { });
+    return Results.Ok(guide);
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+app.MapPut("/api/admin/social/voice-guide", async (HttpContext ctx, AppDbContext db) =>
+{
+    var body = await ctx.Request.ReadFromJsonAsync<JsonElement>();
+    if (body.ValueKind == JsonValueKind.Undefined) return Results.BadRequest();
+    var guide = await db.VoiceGuides.FirstOrDefaultAsync();
+    if (guide == null) { guide = new backend.Models.SocialMedia.VoiceGuide(); db.VoiceGuides.Add(guide); }
+    if (body.TryGetProperty("orgDescription", out var od)) guide.OrgDescription = od.GetString();
+    if (body.TryGetProperty("toneDescription", out var td)) guide.ToneDescription = td.GetString();
+    if (body.TryGetProperty("preferredTerms", out var pt)) guide.PreferredTerms = pt.GetString();
+    if (body.TryGetProperty("avoidedTerms", out var at2)) guide.AvoidedTerms = at2.GetString();
+    if (body.TryGetProperty("structuralRules", out var sr)) guide.StructuralRules = sr.GetString();
+    if (body.TryGetProperty("visualRules", out var vr)) guide.VisualRules = vr.GetString();
+    guide.UpdatedAt = DateTime.UtcNow;
+    await db.SaveChangesAsync();
+    return Results.Ok(guide);
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+// Content Facts (Admin + Social Media Manager)
+app.MapGet("/api/admin/social/facts", async (AppDbContext db) =>
+{
+    var facts = await db.ContentFacts.Where(f => f.IsActive).OrderByDescending(f => f.AddedAt).ToListAsync();
+    return Results.Ok(facts);
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+app.MapGet("/api/admin/social/facts/{id}", async (int id, AppDbContext db) =>
+{
+    var fact = await db.ContentFacts.FindAsync(id);
+    return fact == null ? Results.NotFound() : Results.Ok(fact);
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+app.MapPost("/api/admin/social/facts", async (HttpContext ctx, AppDbContext db, UserManager<ApplicationUser> userManager) =>
+{
+    var body = await ctx.Request.ReadFromJsonAsync<JsonElement>();
+    if (body.ValueKind == JsonValueKind.Undefined) return Results.BadRequest();
+    var user = await userManager.GetUserAsync(ctx.User);
+    var fact = new backend.Models.SocialMedia.ContentFact
+    {
+        FactText = body.TryGetProperty("factText", out var ft) ? ft.GetString() : null,
+        SourceName = body.TryGetProperty("sourceName", out var sn) ? sn.GetString() : null,
+        SourceUrl = body.TryGetProperty("sourceUrl", out var su) ? su.GetString() : null,
+        Category = body.TryGetProperty("category", out var c) ? c.GetString() : null,
+        Pillar = body.TryGetProperty("pillar", out var p) ? p.GetString() : null,
+        AddedBy = user?.Email,
+        AddedAt = DateTime.UtcNow
+    };
+    db.ContentFacts.Add(fact);
+    await db.SaveChangesAsync();
+    return Results.Created($"/api/admin/social/facts/{fact.ContentFactId}", fact);
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+app.MapPut("/api/admin/social/facts/{id}", async (int id, HttpContext ctx, AppDbContext db) =>
+{
+    var fact = await db.ContentFacts.FindAsync(id);
+    if (fact == null) return Results.NotFound();
+    var body = await ctx.Request.ReadFromJsonAsync<JsonElement>();
+    if (body.ValueKind == JsonValueKind.Undefined) return Results.BadRequest();
+    if (body.TryGetProperty("factText", out var ft)) fact.FactText = ft.GetString();
+    if (body.TryGetProperty("sourceName", out var sn)) fact.SourceName = sn.GetString();
+    if (body.TryGetProperty("sourceUrl", out var su)) fact.SourceUrl = su.GetString();
+    if (body.TryGetProperty("category", out var c)) fact.Category = c.GetString();
+    if (body.TryGetProperty("pillar", out var p)) fact.Pillar = p.GetString();
+    await db.SaveChangesAsync();
+    return Results.Ok(fact);
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+app.MapDelete("/api/admin/social/facts/{id}", async (int id, AppDbContext db) =>
+{
+    var fact = await db.ContentFacts.FindAsync(id);
+    if (fact == null) return Results.NotFound();
+    db.ContentFacts.Remove(fact);
+    await db.SaveChangesAsync();
+    return Results.NoContent();
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+// Talking Points (Admin only)
+app.MapGet("/api/admin/social/talking-points", async (AppDbContext db) =>
+{
+    var points = await db.ContentTalkingPoints.Where(t => t.IsActive).OrderByDescending(t => t.CreatedAt).ToListAsync();
+    return Results.Ok(points);
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+app.MapPost("/api/admin/social/talking-points", async (HttpContext ctx, AppDbContext db) =>
+{
+    var body = await ctx.Request.ReadFromJsonAsync<JsonElement>();
+    if (body.ValueKind == JsonValueKind.Undefined) return Results.BadRequest();
+    var point = new backend.Models.SocialMedia.ContentTalkingPoint
+    {
+        Text = body.TryGetProperty("text", out var t) ? t.GetString() : null,
+        Topic = body.TryGetProperty("topic", out var tp) ? tp.GetString() : null,
+        CreatedAt = DateTime.UtcNow
+    };
+    db.ContentTalkingPoints.Add(point);
+    await db.SaveChangesAsync();
+    return Results.Created($"/api/admin/social/talking-points/{point.ContentTalkingPointId}", point);
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+app.MapPut("/api/admin/social/talking-points/{id}", async (int id, HttpContext ctx, AppDbContext db) =>
+{
+    var point = await db.ContentTalkingPoints.FindAsync(id);
+    if (point == null) return Results.NotFound();
+    var body = await ctx.Request.ReadFromJsonAsync<JsonElement>();
+    if (body.ValueKind == JsonValueKind.Undefined) return Results.BadRequest();
+    if (body.TryGetProperty("text", out var t)) point.Text = t.GetString();
+    if (body.TryGetProperty("topic", out var tp)) point.Topic = tp.GetString();
+    point.UpdatedAt = DateTime.UtcNow;
+    await db.SaveChangesAsync();
+    return Results.Ok(point);
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+app.MapDelete("/api/admin/social/talking-points/{id}", async (int id, AppDbContext db) =>
+{
+    var point = await db.ContentTalkingPoints.FindAsync(id);
+    if (point == null) return Results.NotFound();
+    db.ContentTalkingPoints.Remove(point);
+    await db.SaveChangesAsync();
+    return Results.NoContent();
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+// Hashtag Sets (Admin only)
+app.MapGet("/api/admin/social/hashtag-sets", async (string? pillar, string? platform, AppDbContext db) =>
+{
+    var query = db.HashtagSets.AsQueryable();
+    if (!string.IsNullOrEmpty(pillar)) query = query.Where(h => h.Pillar == pillar);
+    if (!string.IsNullOrEmpty(platform)) query = query.Where(h => h.Platform == platform);
+    var sets = await query.OrderBy(h => h.Name).ToListAsync();
+    return Results.Ok(sets);
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+app.MapPost("/api/admin/social/hashtag-sets", async (HttpContext ctx, AppDbContext db) =>
+{
+    var body = await ctx.Request.ReadFromJsonAsync<JsonElement>();
+    if (body.ValueKind == JsonValueKind.Undefined) return Results.BadRequest();
+    var set = new backend.Models.SocialMedia.HashtagSet
+    {
+        Name = body.TryGetProperty("name", out var n) ? n.GetString() : null,
+        Category = body.TryGetProperty("category", out var c) ? c.GetString() : null,
+        Pillar = body.TryGetProperty("pillar", out var p) ? p.GetString() : null,
+        Platform = body.TryGetProperty("platform", out var pl) ? pl.GetString() : null,
+        Hashtags = body.TryGetProperty("hashtags", out var h) ? h.GetString() : null,
+        CreatedAt = DateTime.UtcNow
+    };
+    db.HashtagSets.Add(set);
+    await db.SaveChangesAsync();
+    return Results.Created($"/api/admin/social/hashtag-sets/{set.HashtagSetId}", set);
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+app.MapDelete("/api/admin/social/hashtag-sets/{id}", async (int id, AppDbContext db) =>
+{
+    var set = await db.HashtagSets.FindAsync(id);
+    if (set == null) return Results.NotFound();
+    db.HashtagSets.Remove(set);
+    await db.SaveChangesAsync();
+    return Results.NoContent();
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+// Automated Posts (Admin only for now — Social Media Manager role added later)
+app.MapGet("/api/admin/social/posts", async (string? status, string? pillar, string? platform, AppDbContext db) =>
+{
+    var query = db.AutomatedPosts.AsQueryable();
+    if (!string.IsNullOrEmpty(status)) query = query.Where(p => p.Status == status);
+    if (!string.IsNullOrEmpty(pillar)) query = query.Where(p => p.ContentPillar == pillar);
+    if (!string.IsNullOrEmpty(platform)) query = query.Where(p => p.Platform == platform);
+    var posts = await query.OrderByDescending(p => p.CreatedAt).ToListAsync();
+    return Results.Ok(posts);
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+app.MapGet("/api/admin/social/posts/{id}", async (int id, AppDbContext db) =>
+{
+    var post = await db.AutomatedPosts.FindAsync(id);
+    return post == null ? Results.NotFound() : Results.Ok(post);
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+app.MapPost("/api/admin/social/posts", async (HttpContext ctx, AppDbContext db) =>
+{
+    var body = await ctx.Request.ReadFromJsonAsync<JsonElement>();
+    if (body.ValueKind == JsonValueKind.Undefined) return Results.BadRequest();
+    var post = new backend.Models.SocialMedia.AutomatedPost
+    {
+        Content = body.TryGetProperty("content", out var c) ? c.GetString() : null,
+        ContentPillar = body.TryGetProperty("contentPillar", out var cp) ? cp.GetString() : null,
+        Source = body.TryGetProperty("source", out var s) ? s.GetString() : null,
+        Status = body.TryGetProperty("status", out var st) ? st.GetString() : "draft",
+        Platform = body.TryGetProperty("platform", out var pl) ? pl.GetString() : null,
+        CreatedAt = DateTime.UtcNow
+    };
+    db.AutomatedPosts.Add(post);
+    await db.SaveChangesAsync();
+    return Results.Created($"/api/admin/social/posts/{post.AutomatedPostId}", post);
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+app.MapPatch("/api/admin/social/posts/{id}/approve", async (int id, HttpContext ctx, AppDbContext db, UserManager<ApplicationUser> userManager) =>
+{
+    var post = await db.AutomatedPosts.FindAsync(id);
+    if (post == null) return Results.NotFound();
+    var user = await userManager.GetUserAsync(ctx.User);
+    var body = await ctx.Request.ReadFromJsonAsync<JsonElement>();
+    if (body.ValueKind != JsonValueKind.Undefined && body.TryGetProperty("content", out var edited))
+    {
+        post.OriginalContent = post.Content;
+        post.Content = edited.GetString();
+    }
+    post.Status = "scheduled";
+    post.ApprovedBy = user?.Email;
+    post.ApprovedAt = DateTime.UtcNow;
+    post.UpdatedAt = DateTime.UtcNow;
+    await db.SaveChangesAsync();
+    return Results.Ok(post);
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+app.MapPatch("/api/admin/social/posts/{id}/reject", async (int id, HttpContext ctx, AppDbContext db) =>
+{
+    var post = await db.AutomatedPosts.FindAsync(id);
+    if (post == null) return Results.NotFound();
+    var body = await ctx.Request.ReadFromJsonAsync<JsonElement>();
+    post.Status = "rejected";
+    if (body.ValueKind != JsonValueKind.Undefined && body.TryGetProperty("rejectionReason", out var reason))
+        post.RejectionReason = reason.GetString();
+    post.UpdatedAt = DateTime.UtcNow;
+    await db.SaveChangesAsync();
+    return Results.Ok(post);
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+app.MapPatch("/api/admin/social/posts/{id}/snooze", async (int id, HttpContext ctx, AppDbContext db) =>
+{
+    var post = await db.AutomatedPosts.FindAsync(id);
+    if (post == null) return Results.NotFound();
+    var body = await ctx.Request.ReadFromJsonAsync<JsonElement>();
+    if (body.ValueKind == JsonValueKind.Undefined) return Results.BadRequest();
+    post.Status = "snoozed";
+    if (body.TryGetProperty("snoozedUntil", out var su)) post.SnoozedUntil = DateTime.Parse(su.GetString()!, null, System.Globalization.DateTimeStyles.AdjustToUniversal | System.Globalization.DateTimeStyles.AssumeUniversal);
+    post.UpdatedAt = DateTime.UtcNow;
+    await db.SaveChangesAsync();
+    return Results.Ok(post);
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+app.MapPatch("/api/admin/social/posts/{id}/publish", async (int id, AppDbContext db) =>
+{
+    var post = await db.AutomatedPosts.FindAsync(id);
+    if (post == null) return Results.NotFound();
+    post.Status = "published";
+    post.UpdatedAt = DateTime.UtcNow;
+    await db.SaveChangesAsync();
+    return Results.Ok(post);
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+app.MapPatch("/api/admin/social/posts/{id}/engagement", async (int id, HttpContext ctx, AppDbContext db) =>
+{
+    var post = await db.AutomatedPosts.FindAsync(id);
+    if (post == null) return Results.NotFound();
+    var body = await ctx.Request.ReadFromJsonAsync<JsonElement>();
+    if (body.ValueKind == JsonValueKind.Undefined) return Results.BadRequest();
+    if (body.TryGetProperty("engagementLikes", out var el)) post.EngagementLikes = el.GetInt32();
+    if (body.TryGetProperty("engagementShares", out var es)) post.EngagementShares = es.GetInt32();
+    if (body.TryGetProperty("engagementComments", out var ec)) post.EngagementComments = ec.GetInt32();
+    if (body.TryGetProperty("engagementDonations", out var ed)) post.EngagementDonations = ed.GetDecimal();
+    post.UpdatedAt = DateTime.UtcNow;
+    await db.SaveChangesAsync();
+    return Results.Ok(post);
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+// Calendar view — returns scheduled + ready_to_publish posts ordered by scheduled time
+app.MapGet("/api/admin/social/calendar", async (AppDbContext db) =>
+{
+    var posts = await db.AutomatedPosts
+        .Where(p => p.Status == "scheduled" || p.Status == "ready_to_publish" || p.Status == "published")
+        .OrderBy(p => p.ScheduledAt)
+        .ToListAsync();
+    return Results.Ok(posts);
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+// Queue count — for the nav badge
+app.MapGet("/api/admin/social/queue-count", async (AppDbContext db) =>
+{
+    var draftCount = await db.AutomatedPosts.CountAsync(p => p.Status == "draft");
+    var readyCount = await db.AutomatedPosts.CountAsync(p => p.Status == "ready_to_publish");
+    return Results.Ok(new { draftCount, readyCount });
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+// Trigger content generation — calls the Python AI harness
+app.MapPost("/api/admin/social/generate", async (HttpContext ctx, AppDbContext db, IConfiguration config) =>
+{
+    var body = await ctx.Request.ReadFromJsonAsync<JsonElement>();
+    int maxPosts = 4;
+    if (body.ValueKind != JsonValueKind.Undefined && body.TryGetProperty("maxPosts", out var mp))
+        maxPosts = mp.GetInt32();
+
+    var harnessUrl = config["AiHarness:Url"] ?? "http://localhost:8001";
+    var harnessKey = config["AiHarness:ApiKey"] ?? "dev-harness-key";
+
+    using var httpClient = new HttpClient();
+    httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {harnessKey}");
+
+    try
+    {
+        // Step 1: Get the plan from the harness
+        var planResp = await httpClient.PostAsJsonAsync($"{harnessUrl}/plan-content", new { max_posts = maxPosts });
+        if (!planResp.IsSuccessStatusCode)
+            return Results.StatusCode(503);
+
+        var planJson = await planResp.Content.ReadFromJsonAsync<JsonElement>();
+        var plan = planJson.GetProperty("plan");
+
+        var created = new List<object>();
+
+        // Step 2: Generate each post
+        foreach (var item in plan.EnumerateArray())
+        {
+            var pillar = item.GetProperty("pillar").GetString();
+            var platform = item.GetProperty("platform").GetString();
+            int? photoId = item.TryGetProperty("photo_id", out var pid) && pid.ValueKind == JsonValueKind.Number ? pid.GetInt32() : null;
+            int? factId = item.TryGetProperty("fact_id", out var fid) && fid.ValueKind == JsonValueKind.Number ? fid.GetInt32() : null;
+            int? tpId = item.TryGetProperty("talking_point_id", out var tid) && tid.ValueKind == JsonValueKind.Number ? tid.GetInt32() : null;
+
+            // If no photo assigned but pillar could use one, ask harness to select
+            if (photoId == null && pillar != "the_problem" && pillar != "call_to_action")
+            {
+                try
+                {
+                    var selectResp = await httpClient.PostAsJsonAsync($"{harnessUrl}/select-photo", new
+                    {
+                        pillar,
+                        platform,
+                        post_description = item.TryGetProperty("reasoning", out var r) ? r.GetString() : ""
+                    });
+                    if (selectResp.IsSuccessStatusCode)
+                    {
+                        var selectJson = await selectResp.Content.ReadFromJsonAsync<JsonElement>();
+                        if (selectJson.TryGetProperty("photo_id", out var selId) && selId.ValueKind == JsonValueKind.Number)
+                            photoId = selId.GetInt32();
+                    }
+                }
+                catch { /* photo selection is optional */ }
+            }
+
+            // Generate the post
+            var genResp = await httpClient.PostAsJsonAsync($"{harnessUrl}/generate-post", new
+            {
+                pillar,
+                platform,
+                photo_id = photoId,
+                fact_id = factId,
+                talking_point_id = tpId
+            });
+            if (!genResp.IsSuccessStatusCode) continue;
+
+            var genJson = await genResp.Content.ReadFromJsonAsync<JsonElement>();
+            var content = genJson.TryGetProperty("content", out var c) ? c.GetString() : null;
+            if (string.IsNullOrEmpty(content)) continue;
+
+            // Get optimal schedule time
+            DateTime? scheduledAt = null;
+            try
+            {
+                var schedResp = await httpClient.PostAsJsonAsync($"{harnessUrl}/predict-schedule", new { pillar, platform });
+                if (schedResp.IsSuccessStatusCode)
+                {
+                    var schedJson = await schedResp.Content.ReadFromJsonAsync<JsonElement>();
+                    if (schedJson.TryGetProperty("scheduled_at", out var sa))
+                        scheduledAt = DateTime.Parse(sa.GetString()!, null, System.Globalization.DateTimeStyles.AdjustToUniversal | System.Globalization.DateTimeStyles.AssumeUniversal);
+                }
+            }
+            catch { /* scheduling is optional, post will just not have a suggested time */ }
+
+            // Save as draft
+            var post = new backend.Models.SocialMedia.AutomatedPost
+            {
+                Content = content,
+                ContentPillar = pillar,
+                Source = "auto_generated",
+                Status = "draft",
+                Platform = platform,
+                MediaId = photoId,
+                FactId = factId,
+                TalkingPointId = tpId,
+                ScheduledAt = scheduledAt,
+                CreatedAt = DateTime.UtcNow
+            };
+            db.AutomatedPosts.Add(post);
+            await db.SaveChangesAsync();
+
+            created.Add(new { post.AutomatedPostId, pillar, platform });
+        }
+
+        return Results.Ok(new { generated = created.Count, posts = created });
+    }
+    catch (HttpRequestException)
+    {
+        return Results.StatusCode(503);
+    }
+}).RequireAuthorization(p => p.RequireRole("Admin"));
 
 app.Run();
 
