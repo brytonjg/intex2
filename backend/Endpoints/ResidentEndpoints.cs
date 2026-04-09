@@ -16,7 +16,7 @@ public static class ResidentEndpoints
             var query = db.EducationRecords.AsQueryable();
             if (residentId.HasValue) query = query.Where(e => e.ResidentId == residentId.Value);
             var items = await query.OrderByDescending(e => e.RecordDate)
-                .Select(e => new { e.EducationRecordId, e.ResidentId, residentCode = e.Resident.FirstName != null && e.Resident.LastName != null ? e.Resident.FirstName + " " + e.Resident.LastName.Substring(0, 1) + "." : e.Resident.InternalCode, e.RecordDate, e.EducationLevel, e.AttendanceRate, e.ProgressPercent, e.CompletionStatus, e.Notes, e.SchoolName, e.EnrollmentStatus })
+                .Select(e => new { e.EducationRecordId, e.ResidentId, residentCode = e.Resident.InternalCode, residentFirstName = e.Resident.FirstName, residentLastName = e.Resident.LastName, e.RecordDate, e.EducationLevel, e.AttendanceRate, e.ProgressPercent, e.CompletionStatus, e.Notes, e.SchoolName, e.EnrollmentStatus })
                 .ToListAsync();
             return Results.Ok(items);
         }).RequireAuthorization(p => p.RequireRole("Admin", "Staff"));
@@ -55,7 +55,7 @@ public static class ResidentEndpoints
             var query = db.HealthWellbeingRecords.AsQueryable();
             if (residentId.HasValue) query = query.Where(h => h.ResidentId == residentId.Value);
             var items = await query.OrderByDescending(h => h.RecordDate)
-                .Select(h => new { h.HealthRecordId, h.ResidentId, residentCode = h.Resident.FirstName != null && h.Resident.LastName != null ? h.Resident.FirstName + " " + h.Resident.LastName.Substring(0, 1) + "." : h.Resident.InternalCode, h.RecordDate, h.WeightKg, h.HeightCm, h.Bmi, h.NutritionScore, h.SleepQualityScore, h.EnergyLevelScore, h.GeneralHealthScore, h.MedicalCheckupDone, h.DentalCheckupDone, h.PsychologicalCheckupDone, h.Notes })
+                .Select(h => new { h.HealthRecordId, h.ResidentId, residentCode = h.Resident.InternalCode, residentFirstName = h.Resident.FirstName, residentLastName = h.Resident.LastName, h.RecordDate, h.WeightKg, h.HeightCm, h.Bmi, h.NutritionScore, h.SleepQualityScore, h.EnergyLevelScore, h.GeneralHealthScore, h.MedicalCheckupDone, h.DentalCheckupDone, h.PsychologicalCheckupDone, h.Notes })
                 .ToListAsync();
             return Results.Ok(items);
         }).RequireAuthorization(p => p.RequireRole("Admin", "Staff"));
@@ -97,7 +97,7 @@ public static class ResidentEndpoints
                 query = query.Where(p => db.Residents.Any(r => r.ResidentId == p.ResidentId && r.SafehouseId.HasValue && allowed.Contains(r.SafehouseId.Value)));
             if (residentId.HasValue) query = query.Where(p => p.ResidentId == residentId.Value);
             var items = await query.OrderByDescending(p => p.CreatedAt)
-                .Select(p => new { p.PlanId, p.ResidentId, residentCode = p.Resident.FirstName != null && p.Resident.LastName != null ? p.Resident.FirstName + " " + p.Resident.LastName.Substring(0, 1) + "." : p.Resident.InternalCode, p.PlanCategory, p.PlanDescription, p.ServicesProvided, p.TargetValue, p.TargetDate, p.Status, p.CaseConferenceDate, p.CreatedAt, p.UpdatedAt })
+                .Select(p => new { p.PlanId, p.ResidentId, residentCode = p.Resident.InternalCode, residentFirstName = p.Resident.FirstName, residentLastName = p.Resident.LastName, p.PlanCategory, p.PlanDescription, p.ServicesProvided, p.TargetValue, p.TargetDate, p.Status, p.CaseConferenceDate, p.CreatedAt, p.UpdatedAt })
                 .ToListAsync();
             return Results.Ok(items);
         }).RequireAuthorization(p => p.RequireRole("Admin", "Staff"));

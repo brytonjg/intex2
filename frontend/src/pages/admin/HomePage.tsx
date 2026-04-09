@@ -22,6 +22,8 @@ interface CalendarEventItem {
   safehouseId: number;
   residentId: number | null;
   residentCode: string | null;
+  residentFirstName: string | null;
+  residentLastName: string | null;
   eventType: string;
   title: string;
   description: string | null;
@@ -37,6 +39,8 @@ interface StaffTaskItem {
   staffTaskId: number;
   residentId: number | null;
   residentCode: string | null;
+  residentFirstName: string | null;
+  residentLastName: string | null;
   safehouseId: number;
   taskType: string;
   title: string;
@@ -48,6 +52,11 @@ interface StaffTaskItem {
   createdAt: string;
   sourceEntityType: string | null;
   sourceEntityId: number | null;
+}
+
+function residentName(item: { residentFirstName?: string | null; residentLastName?: string | null; residentCode?: string | null }) {
+  if (item.residentFirstName && item.residentLastName) return `${item.residentFirstName} ${item.residentLastName[0]}.`;
+  return item.residentCode || '';
 }
 
 interface NewEventForm {
@@ -441,7 +450,7 @@ export default function HomePage() {
 
   async function scheduleTaskToCalendar(task: StaffTaskItem, eventDate: string, startTime: string | null) {
     const eventType = TASK_TYPE_TO_EVENT_TYPE[task.taskType] || 'Other';
-    const code = task.residentCode || '';
+    const code = residentName(task);
     const eventTitle: Record<string, string> = {
       DoctorApt: `Doctor appt — ${code}`,
       DentistApt: `Dentist appt — ${code}`,
@@ -691,7 +700,7 @@ export default function HomePage() {
         {heightPx >= 40 ? (
           <>
             <span>{evt.title}</span>
-            {evt.residentCode && <span>({evt.residentCode})</span>}
+            {residentName(evt) && <span>({residentName(evt)})</span>}
             {evt.startTime && <span>{evt.startTime}{evt.endTime ? `–${evt.endTime}` : ''}</span>}
           </>
         ) : (
@@ -798,7 +807,7 @@ export default function HomePage() {
                         onDragEnd={handleEventDragEnd}
                         onClick={e => handleEventClick(evt, e)}
                       >
-                        {evt.title} {evt.residentCode && `(${evt.residentCode})`}
+                        {evt.title} {residentName(evt) && `(${residentName(evt)})`}
                       </div>
                     ))}
                     {/* Task drop preview in all-day */}
@@ -807,7 +816,7 @@ export default function HomePage() {
                       if (!task) return null;
                       return (
                         <div className={`${styles.allDayChip} ${styles.taskDropPreview}`}>
-                          {task.title} {task.residentCode && `(${task.residentCode})`}
+                          {task.title} {residentName(task) && `(${residentName(task)})`}
                         </div>
                       );
                     })()}
@@ -889,7 +898,7 @@ export default function HomePage() {
                                 }}
                               >
                                 <span>{task.title}</span>
-                                {task.residentCode && <span>({task.residentCode})</span>}
+                                {residentName(task) && <span>({residentName(task)})</span>}
                               </div>
                             );
                           })()}
@@ -933,9 +942,9 @@ export default function HomePage() {
                   {selectedEvent.startTime && ` · ${selectedEvent.startTime}`}
                   {selectedEvent.endTime && ` – ${selectedEvent.endTime}`}
                 </p>
-                {selectedEvent.residentCode && (
+                {residentName(selectedEvent) && (
                   <p className={styles.popoverDetail}>
-                    Resident: <a href="#" className={styles.residentLink} onClick={e => { e.preventDefault(); navigate(`/admin/caseload/${selectedEvent.residentId}`); closePopover(); }}>{selectedEvent.residentCode}</a>
+                    Resident: <a href="#" className={styles.residentLink} onClick={e => { e.preventDefault(); navigate(`/admin/caseload/${selectedEvent.residentId}`); closePopover(); }}{residentName(selectedEvent)}</a>
                   </p>
                 )}
                 <p className={styles.popoverDetail}>Type: {selectedEvent.eventType}</p>
@@ -1020,13 +1029,13 @@ export default function HomePage() {
                     {getTaskIcon(task.taskType)}
                     <div className={styles.taskBody}>
                       <p className={styles.taskTitle}>{task.title}</p>
-                      {task.residentId && task.residentCode && (
+                      {task.residentId && residentName(task) && (
                         <a
                           href="#"
                           className={styles.residentLink}
                           onClick={e => { e.preventDefault(); e.stopPropagation(); navigate(`/admin/caseload/${task.residentId}`); }}
                         >
-                          {task.residentCode}
+                          {residentName(task)}
                         </a>
                       )}
                       {task.description && <p className={styles.taskMeta}>{task.description}</p>}
@@ -1127,7 +1136,7 @@ export default function HomePage() {
                 <div className={`${styles.scheduleDot} ${styles[evtColor]}`} />
                 <div>
                   <h3 className={styles.scheduleTitle}>{scheduleTask.title}</h3>
-                  {scheduleTask.residentCode && <p className={styles.scheduleMeta}>{scheduleTask.residentCode}</p>}
+                  {residentName(scheduleTask) && <p className={styles.scheduleMeta}>{residentName(scheduleTask)}</p>}
                 </div>
                 <button className={styles.popoverClose} onClick={() => setScheduleTask(null)}><X size={16} /></button>
               </div>
@@ -1214,13 +1223,13 @@ export default function HomePage() {
               {getTaskIcon(task.taskType)}
               <div className={styles.taskBody}>
                 <p className={styles.taskTitle}>{task.title}</p>
-                {task.residentCode && <span className={styles.taskMeta}>{task.residentCode}</span>}
+                {task.residentCode && <span className={styles.taskMeta}>{residentName(task)}</span>}
               </div>
             </div>
             {/* Event chip content (visible when OVER calendar) */}
             <div className={`${styles.taskDragGhostChip} ${styles[base]}`}>
               <span>{task.title}</span>
-              {task.residentCode && <span>({task.residentCode})</span>}
+              {residentName(task) && <span>({residentName(task)})</span>}
             </div>
           </div>
         );
