@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowUpRight, AlertTriangle, Calendar, UserPlus, DollarSign, FileText } from 'lucide-react';
 import { useSafehouse } from '../contexts/SafehouseContext';
+import { useAuth } from '../contexts/AuthContext';
 import { apiFetch } from '../api';
 import { formatMonthLabel, formatEnumLabel } from '../constants';
 import { ChartTooltip } from '../components/ChartTooltip';
@@ -21,7 +22,7 @@ import {
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import styles from './AdminDashboard.module.css';
 
-const channelColors = ['#D4A853', '#B8913A', '#7A9E7E', '#5A6B7A', '#C4756E'];
+const channelColors = ['#D4A853', '#4A7A4E', '#7A9E7E', '#5A6B7A', '#C4756E', '#8B6DB0', '#3A8FB7'];
 
 type Severity = 'Low' | 'Medium' | 'High' | 'Critical';
 
@@ -88,7 +89,9 @@ interface ApiDonation {
 export default function AdminDashboard() {
   useDocumentTitle('Dashboard');
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { activeSafehouseId: safehouseId } = useSafehouse();
+  const displayRole = user?.roles?.[0] ?? 'Staff';
 
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [residents, setResidents] = useState<ResidentRow[]>([]);
@@ -163,7 +166,7 @@ export default function AdminDashboard() {
         <div>
           <div className={styles.headerRow}>
             <h1 className={styles.title}>Dashboard</h1>
-            <span className={styles.roleBadge}>Admin</span>
+            <span className={styles.roleBadge}>{displayRole}</span>
           </div>
           <p className={styles.dateText}>{dataDateStr}</p>
         </div>
@@ -344,7 +347,13 @@ export default function AdminDashboard() {
         <div className={styles.chartCard}>
           <div className={styles.chartMeta}>
             <h2 className={styles.cardTitle}>Active Residents</h2>
-            {activeResidentsChart.length > 0 && <span className={styles.chartCallout}>+3 admitted this month</span>}
+            {activeResidentsChart.length >= 2 && (() => {
+              const curr = activeResidentsChart[activeResidentsChart.length - 1].count;
+              const prev = activeResidentsChart[activeResidentsChart.length - 2].count;
+              const diff = curr - prev;
+              if (diff === 0) return null;
+              return <span className={diff > 0 ? styles.chartCallout : styles.chartCalloutWarning}>{diff > 0 ? '+' : ''}{diff} from last month</span>;
+            })()}
           </div>
           {activeResidentsChart.length === 0 ? (
             <div className={styles.emptyState}>No trend data for this safehouse</div>
