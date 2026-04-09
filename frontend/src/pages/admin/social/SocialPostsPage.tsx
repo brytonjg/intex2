@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Loader2, Check, Clock, Edit3, ThumbsUp, ThumbsDown, Copy, ExternalLink, BarChart2, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
-import { apiFetch } from '../../../api';
+import { Loader2, Check, X, Clock, Edit3, ThumbsUp, ThumbsDown, Copy, ExternalLink, BarChart2, ChevronLeft, ChevronRight, Sparkles, CameraIcon } from 'lucide-react';
+import { apiFetch, getApiUrl } from '../../../api';
 import styles from './SocialPostsPage.module.css';
 
 interface Post {
@@ -11,6 +11,9 @@ interface Post {
   source: string;
   status: string;
   platform: string;
+  mediaId: number | null;
+  mediaPath: string | null;
+  mediaThumbPath: string | null;
   scheduledAt: string | null;
   approvedBy: string | null;
   rejectionReason: string | null;
@@ -70,8 +73,16 @@ export default function SocialPostsPage() {
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editContent, setEditContent] = useState('');
+  const [editMediaId, setEditMediaId] = useState<number | null>(null);
+  const [editMediaThumb, setEditMediaThumb] = useState<string | null>(null);
+  const [showPhotoPicker, setShowPhotoPicker] = useState(false);
+  const [availablePhotos, setAvailablePhotos] = useState<{ mediaLibraryItemId: number; thumbnailPath: string; caption: string }[]>([]);
   const [engagementId, setEngagementId] = useState<number | null>(null);
   const [engagement, setEngagement] = useState({ likes: 0, shares: 0, comments: 0, donations: 0 });
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [popoverPos, setPopoverPos] = useState<{ top: number; left: number; maxHeight: number } | null>(null);
+  const [calEditContent, setCalEditContent] = useState('');
+  const [calEditing, setCalEditing] = useState(false);
   const [monthOffset, setMonthOffset] = useState(0);
 
   const fetchAll = useCallback(async () => {
@@ -96,11 +107,50 @@ export default function SocialPostsPage() {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
+  async function openPhotoPicker() {
+    if (availablePhotos.length === 0) {
+      const photos = await apiFetch<{ mediaLibraryItemId: number; thumbnailPath: string; caption: string }[]>('/api/admin/social/media?pageSize=50');
+      setAvailablePhotos(photos);
+    }
+    setShowPhotoPicker(true);
+  }
+
+  function startEdit(post: Post) {
+    setEditingId(post.automatedPostId);
+    setEditContent(post.content);
+    setEditMediaId(post.mediaId);
+    setEditMediaThumb(post.mediaThumbPath);
+  }
+
   async function handleApprove(id: number) {
-    const body = editingId === id && editContent ? { content: editContent } : {};
+    const body: Record<string, unknown> = {};
+    if (editingId === id && editContent) body.content = editContent;
+    if (editingId === id && editMediaId !== null) body.mediaId = editMediaId;
     await apiFetch(`/api/admin/social/posts/${id}/approve`, { method: 'PATCH', body: JSON.stringify(body) });
     setEditingId(null);
     setEditContent('');
+    setEditMediaId(null);
+    setEditMediaThumb(null);
+    fetchAll();
+  }
+
+  async function handleSaveDraft(id: number) {
+    if (!editContent) return;
+    const body: Record<string, unknown> = { content: editContent };
+    if (editMediaId !== null) body.mediaId = editMediaId;
+    await apiFetch(`/api/admin/social/posts/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+    setEditingId(null);
+    setEditContent('');
+    setEditMediaId(null);
+    setEditMediaThumb(null);
+    fetchAll();
+  }
+
+  async function handleCalSave(id: number) {
+    if (!calEditContent) return;
+    await apiFetch(`/api/admin/social/posts/${id}`, { method: 'PUT', body: JSON.stringify({ content: calEditContent }) });
+    setCalEditing(false);
+    setSelectedPost(null);
     fetchAll();
   }
 
@@ -168,11 +218,27 @@ export default function SocialPostsPage() {
 
       {error && <div className={styles.error}>{error} <button onClick={() => setError(null)}>×</button></div>}
 
-      {/* Drafts to Review */}
-      {drafts.length > 0 && (
+      {/* Drafts to Review (with skeleton cards prepended while generating) */}
+      {(drafts.length > 0 || generating) && (
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Review Drafts</h2>
+          <h2 className={styles.sectionTitle}>{generating ? 'Generating new posts...' : 'Review Drafts'}</h2>
           <div className={styles.cardGrid}>
+            {generating && [1, 2, 3, 4].map(i => (
+              <div key={`skel-${i}`} className={styles.skeletonCard}>
+                <div className={styles.skeletonPulse}>
+                  <div className={styles.skeletonPillar} />
+                  <div className={styles.skeletonImage} />
+                  <div className={styles.skeletonLine} style={{ width: '100%' }} />
+                  <div className={styles.skeletonLine} style={{ width: '90%' }} />
+                  <div className={styles.skeletonLine} style={{ width: '75%' }} />
+                  <div className={styles.skeletonLine} style={{ width: '60%' }} />
+                  <div className={styles.skeletonActions}>
+                    <div className={styles.skeletonBtn} />
+                    <div className={styles.skeletonBtn} />
+                  </div>
+                </div>
+              </div>
+            ))}
             {drafts.map(post => (
               <div key={post.automatedPostId} className={styles.card}>
                 <div className={styles.cardTop}>
@@ -180,21 +246,40 @@ export default function SocialPostsPage() {
                   <span className={styles.platform}>{post.platform}</span>
                 </div>
                 {editingId === post.automatedPostId ? (
-                  <textarea className={styles.editArea} value={editContent} onChange={e => setEditContent(e.target.value)} rows={5} />
+                  <>
+                    <div className={styles.editPhotoWrap}>
+                      {editMediaThumb ? (
+                        <img src={`${getApiUrl()}${editMediaThumb}`} alt="" className={styles.cardImage} />
+                      ) : post.mediaThumbPath ? (
+                        <img src={`${getApiUrl()}${post.mediaThumbPath}`} alt="" className={styles.cardImage} />
+                      ) : null}
+                      <button className={styles.changePhotoBtn} onClick={openPhotoPicker}><CameraIcon size={13} /> {editMediaThumb || post.mediaThumbPath ? 'Change Photo' : 'Add Photo'}</button>
+                    </div>
+                    <textarea className={styles.editArea} value={editContent} onChange={e => setEditContent(e.target.value)} rows={5} />
+                  </>
                 ) : (
-                  <p className={styles.postContent}>{post.content}</p>
+                  <>
+                    {post.mediaThumbPath && (
+                      <img src={`${getApiUrl()}${post.mediaThumbPath}`} alt="" className={styles.cardImage} />
+                    )}
+                    <p className={styles.postContent}>{post.content}</p>
+                  </>
                 )}
                 <div className={styles.cardActions}>
                   {editingId === post.automatedPostId ? (
-                    <button className={styles.btnApprove} onClick={() => handleApprove(post.automatedPostId)}><Check size={14} /> Save & Approve</button>
+                    <>
+                      <button className={styles.btnEdit} onClick={() => handleSaveDraft(post.automatedPostId)}><Check size={14} /> Save Draft</button>
+                      <button className={styles.btnApprove} onClick={() => handleApprove(post.automatedPostId)}><ThumbsUp size={14} /> Save & Approve</button>
+                      <button className={styles.btnReject} onClick={() => { setEditingId(null); setEditContent(''); setEditMediaId(null); setEditMediaThumb(null); }} title="Cancel editing"><X size={14} /></button>
+                    </>
                   ) : (
                     <>
                       <button className={styles.btnApprove} onClick={() => handleApprove(post.automatedPostId)}><ThumbsUp size={14} /> Approve</button>
-                      <button className={styles.btnEdit} onClick={() => { setEditingId(post.automatedPostId); setEditContent(post.content); }}><Edit3 size={14} /> Edit</button>
+                      <button className={styles.btnEdit} onClick={() => startEdit(post)}><Edit3 size={14} /> Edit</button>
                     </>
                   )}
-                  <button className={styles.btnReject} onClick={() => handleReject(post.automatedPostId)}><ThumbsDown size={14} /></button>
-                  <button className={styles.btnSnooze} onClick={() => handleSnooze(post.automatedPostId)}><Clock size={14} /></button>
+                  <button className={styles.btnReject} onClick={() => handleReject(post.automatedPostId)} title="Reject this post"><ThumbsDown size={14} /></button>
+                  <button className={styles.btnSnooze} onClick={() => handleSnooze(post.automatedPostId)} title="Snooze — review later"><Clock size={14} /></button>
                 </div>
               </div>
             ))}
@@ -214,6 +299,9 @@ export default function SocialPostsPage() {
                   <span className={styles.pillar} style={{ background: PILLAR_COLORS[post.contentPillar] }}>{PILLAR_LABELS[post.contentPillar]}</span>
                   <span className={styles.platform}>{post.platform}</span>
                 </div>
+                {post.mediaThumbPath && (
+                  <img src={`${getApiUrl()}${post.mediaThumbPath}`} alt="" className={styles.cardImage} />
+                )}
                 <p className={styles.postContent}>{post.content}</p>
                 {post.scheduledAt && <p className={styles.scheduledTime}>Scheduled: {new Date(post.scheduledAt).toLocaleString()}</p>}
                 <div className={styles.cardActions}>
@@ -251,12 +339,77 @@ export default function SocialPostsPage() {
               <div key={day.toISOString()} className={`${styles.monthCell} ${isToday ? styles.dayToday : ''} ${isOtherMonth ? styles.otherMonth : ''}`}>
                 <span className={styles.monthCellNum}>{day.getDate()}</span>
                 {dayPosts.map(p => (
-                  <div key={p.automatedPostId} className={styles.monthPost} style={{ background: PILLAR_COLORS[p.contentPillar] }} title={`${PILLAR_LABELS[p.contentPillar]} · ${p.platform}`} />
+                  <button
+                    key={p.automatedPostId}
+                    className={styles.monthPostBar}
+                    style={{ background: PILLAR_COLORS[p.contentPillar] }}
+                    onClick={(e) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      // Position above or below the bar, clamped to viewport
+                      const spaceBelow = window.innerHeight - rect.bottom - 16;
+                      const spaceAbove = rect.top - 16;
+                      const top = spaceBelow >= 300
+                        ? rect.bottom + 8
+                        : spaceAbove > spaceBelow
+                          ? Math.max(8, rect.top - Math.min(spaceAbove, 500) - 8)
+                          : rect.bottom + 8;
+                      const maxH = spaceBelow >= 300
+                        ? spaceBelow
+                        : spaceAbove > spaceBelow
+                          ? Math.min(spaceAbove, 500)
+                          : spaceBelow;
+                      setPopoverPos({ top, left: Math.min(rect.left, window.innerWidth - 370), maxHeight: maxH });
+                      setSelectedPost(p); setCalEditing(false); setCalEditContent(p.content);
+                    }}
+                  >
+                    {PILLAR_LABELS[p.contentPillar]} · {p.platform}
+                  </button>
                 ))}
               </div>
             );
           })}
         </div>
+
+        {/* Post Detail Popover — anchored near clicked bar */}
+        {selectedPost && popoverPos && (
+          <>
+            <div className={styles.popoverBackdrop} onClick={() => { setSelectedPost(null); setCalEditing(false); }} />
+            <div className={styles.popover} style={{ top: popoverPos.top, left: popoverPos.left, maxHeight: popoverPos.maxHeight }}>
+              <div className={styles.popoverHeader}>
+                <div>
+                  <span className={styles.pillar} style={{ background: PILLAR_COLORS[selectedPost.contentPillar] }}>{PILLAR_LABELS[selectedPost.contentPillar]}</span>
+                  <span className={styles.platform}>{selectedPost.platform}</span>
+                  <span className={styles.popoverStatus}>{selectedPost.status.replace('_', ' ')}</span>
+                </div>
+                <button className={styles.popoverClose} onClick={() => { setSelectedPost(null); setCalEditing(false); }}><X size={18} /></button>
+              </div>
+              <div className={styles.popoverBody}>
+                {selectedPost.mediaPath && (
+                  <img src={`${getApiUrl()}${selectedPost.mediaPath}`} alt="" className={styles.popoverImage} />
+                )}
+                {selectedPost.scheduledAt && (
+                  <p className={styles.popoverDate}>{new Date(selectedPost.scheduledAt).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} · {new Date(selectedPost.scheduledAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</p>
+                )}
+                {calEditing ? (
+                  <textarea className={styles.popoverEdit} value={calEditContent} onChange={e => setCalEditContent(e.target.value)} rows={6} />
+                ) : (
+                  <p className={styles.popoverContent}>{selectedPost.content}</p>
+                )}
+              </div>
+              <div className={styles.popoverActions}>
+                {calEditing ? (
+                  <>
+                    <button className={styles.btnApprove} onClick={() => handleCalSave(selectedPost.automatedPostId)}><Check size={14} /> Save</button>
+                    <button className={styles.btnReject} onClick={() => setCalEditing(false)}><X size={14} /> Cancel</button>
+                  </>
+                ) : (
+                  <button className={styles.btnEdit} onClick={() => setCalEditing(true)}><Edit3 size={14} /> Edit</button>
+                )}
+                <button className={styles.btnCopy} onClick={() => navigator.clipboard.writeText(selectedPost.content)}><Copy size={14} /> Copy</button>
+              </div>
+            </div>
+          </>
+        )}
       </section>
 
       {/* Published — Log Engagement */}
@@ -302,6 +455,33 @@ export default function SocialPostsPage() {
           <h3>No posts yet</h3>
           <p>Click "Generate Posts" to create AI-powered social media content from your photos and facts.</p>
         </div>
+      )}
+      {/* Photo Picker Modal */}
+      {showPhotoPicker && (
+        <>
+          <div className={styles.popoverBackdrop} onClick={() => setShowPhotoPicker(false)} />
+          <div className={styles.photoPicker}>
+            <div className={styles.photoPickerHeader}>
+              <h3>Choose a photo</h3>
+              <button onClick={() => setShowPhotoPicker(false)} className={styles.popoverClose}><X size={18} /></button>
+            </div>
+            <div className={styles.photoPickerGrid}>
+              {availablePhotos.map(photo => (
+                <button
+                  key={photo.mediaLibraryItemId}
+                  className={`${styles.photoPickerItem} ${editMediaId === photo.mediaLibraryItemId ? styles.photoPickerSelected : ''}`}
+                  onClick={() => {
+                    setEditMediaId(photo.mediaLibraryItemId);
+                    setEditMediaThumb(photo.thumbnailPath);
+                    setShowPhotoPicker(false);
+                  }}
+                >
+                  <img src={`${getApiUrl()}${photo.thumbnailPath}`} alt={photo.caption} />
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

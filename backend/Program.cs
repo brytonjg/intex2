@@ -396,18 +396,34 @@ app.MapDelete("/api/admin/social/hashtag-sets/{id}", async (int id, AppDbContext
 // Automated Posts (Admin only for now — Social Media Manager role added later)
 app.MapGet("/api/admin/social/posts", async (string? status, string? pillar, string? platform, int page = 1, int pageSize = 50, AppDbContext db = null!) =>
 {
-    var query = db.AutomatedPosts.AsQueryable();
+    var query = db.AutomatedPosts.Include(p => p.Media).AsQueryable();
     if (!string.IsNullOrEmpty(status)) query = query.Where(p => p.Status == status);
     if (!string.IsNullOrEmpty(pillar)) query = query.Where(p => p.ContentPillar == pillar);
     if (!string.IsNullOrEmpty(platform)) query = query.Where(p => p.Platform == platform);
     var total = await query.CountAsync();
-    var posts = await query.OrderByDescending(p => p.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+    var posts = await query.OrderByDescending(p => p.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize)
+        .Select(p => new {
+            p.AutomatedPostId, p.Content, p.OriginalContent, p.ContentPillar, p.Source, p.Status,
+            p.Platform, p.MediaId, p.ScheduledAt, p.ApprovedBy, p.ApprovedAt, p.RejectionReason,
+            p.EngagementLikes, p.EngagementShares, p.EngagementComments, p.EngagementDonations,
+            p.CreatedAt, p.UpdatedAt, p.SnoozedUntil, p.MilestoneRuleId, p.FactId, p.TalkingPointId,
+            MediaPath = p.Media != null ? p.Media.FilePath : null,
+            MediaThumbPath = p.Media != null ? p.Media.ThumbnailPath : null,
+        }).ToListAsync();
     return Results.Ok(posts);
 }).RequireAuthorization(p => p.RequireRole("Admin", "SocialMediaManager"));
 
 app.MapGet("/api/admin/social/posts/{id}", async (int id, AppDbContext db) =>
 {
-    var post = await db.AutomatedPosts.FindAsync(id);
+    var post = await db.AutomatedPosts.Include(p => p.Media).Where(p => p.AutomatedPostId == id)
+        .Select(p => new {
+            p.AutomatedPostId, p.Content, p.OriginalContent, p.ContentPillar, p.Source, p.Status,
+            p.Platform, p.MediaId, p.ScheduledAt, p.ApprovedBy, p.ApprovedAt, p.RejectionReason,
+            p.EngagementLikes, p.EngagementShares, p.EngagementComments, p.EngagementDonations,
+            p.CreatedAt, p.UpdatedAt, p.SnoozedUntil, p.MilestoneRuleId, p.FactId, p.TalkingPointId,
+            MediaPath = p.Media != null ? p.Media.FilePath : null,
+            MediaThumbPath = p.Media != null ? p.Media.ThumbnailPath : null,
+        }).FirstOrDefaultAsync();
     return post == null ? Results.NotFound() : Results.Ok(post);
 }).RequireAuthorization(p => p.RequireRole("Admin", "SocialMediaManager"));
 
@@ -427,6 +443,19 @@ app.MapPost("/api/admin/social/posts", async (HttpContext ctx, AppDbContext db) 
     db.AutomatedPosts.Add(post);
     await db.SaveChangesAsync();
     return Results.Created($"/api/admin/social/posts/{post.AutomatedPostId}", post);
+}).RequireAuthorization(p => p.RequireRole("Admin", "SocialMediaManager"));
+
+app.MapPut("/api/admin/social/posts/{id}", async (int id, HttpContext ctx, AppDbContext db) =>
+{
+    var post = await db.AutomatedPosts.FindAsync(id);
+    if (post == null) return Results.NotFound();
+    var body = await ctx.Request.ReadFromJsonAsync<JsonElement>();
+    if (body.ValueKind == JsonValueKind.Undefined) return Results.BadRequest();
+    if (body.TryGetProperty("content", out var c)) post.Content = c.GetString();
+    if (body.TryGetProperty("mediaId", out var mid) && mid.ValueKind == JsonValueKind.Number) post.MediaId = mid.GetInt32();
+    post.UpdatedAt = DateTime.UtcNow;
+    await db.SaveChangesAsync();
+    return Results.Ok(post);
 }).RequireAuthorization(p => p.RequireRole("Admin", "SocialMediaManager"));
 
 app.MapPatch("/api/admin/social/posts/{id}/approve", async (int id, HttpContext ctx, AppDbContext db, UserManager<ApplicationUser> userManager) =>
@@ -991,10 +1020,16 @@ app.MapPost("/api/admin/social/research-refresh", async (HttpContext ctx, AppDbC
 // Calendar view — returns scheduled + ready_to_publish posts ordered by scheduled time
 app.MapGet("/api/admin/social/calendar", async (AppDbContext db) =>
 {
-    var posts = await db.AutomatedPosts
+    var posts = await db.AutomatedPosts.Include(p => p.Media)
         .Where(p => p.Status == "scheduled" || p.Status == "ready_to_publish" || p.Status == "published")
         .OrderBy(p => p.ScheduledAt)
-        .ToListAsync();
+        .Select(p => new {
+            p.AutomatedPostId, p.Content, p.ContentPillar, p.Status, p.Platform,
+            p.MediaId, p.ScheduledAt, p.EngagementLikes, p.EngagementShares, p.EngagementComments,
+            p.CreatedAt, p.UpdatedAt,
+            MediaPath = p.Media != null ? p.Media.FilePath : null,
+            MediaThumbPath = p.Media != null ? p.Media.ThumbnailPath : null,
+        }).ToListAsync();
     return Results.Ok(posts);
 }).RequireAuthorization(p => p.RequireRole("Admin", "SocialMediaManager"));
 
