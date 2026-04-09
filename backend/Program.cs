@@ -76,6 +76,11 @@ builder.Services.AddCors(options =>
 
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
+// Register social media background jobs
+builder.Services.AddHostedService<backend.Services.ContentGenerationJob>();
+builder.Services.AddHostedService<backend.Services.PostReadinessJob>();
+builder.Services.AddHostedService<backend.Services.MilestoneEvaluationJob>();
+
 var app = builder.Build();
 
 // ── Apply pending migrations & seed Identity ───────────────
