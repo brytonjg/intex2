@@ -18,6 +18,7 @@ import {
   HomeIcon,
   ChevronDown,
   Check,
+  CalendarDays,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { SafehouseProvider, useSafehouse } from '../contexts/SafehouseContext';
@@ -69,9 +70,14 @@ interface NavGroup {
   items: NavItem[];
 }
 
-const homeLink: NavItem = { to: '/admin', icon: LayoutDashboard, label: 'Home', end: true };
-
 const navGroups: NavGroup[] = [
+  {
+    label: 'Home',
+    items: [
+      { to: '/admin', icon: CalendarDays, label: 'Calendar & To-Do', end: true },
+      { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    ],
+  },
   {
     label: 'Cases',
     items: [
@@ -192,16 +198,6 @@ function AdminLayoutInner() {
 
           {/* Desktop nav: Home link + category hover dropdowns */}
           <nav className={styles.nav}>
-            <NavLink
-              to={homeLink.to}
-              end={homeLink.end}
-              className={({ isActive }) =>
-                `${styles.homeLink} ${isActive ? styles.homeLinkActive : ''}`
-              }
-            >
-              <homeLink.icon size={15} />
-              <span>{homeLink.label}</span>
-            </NavLink>
             {navGroups.map(group => {
               const groupActive = group.items.some(item =>
                 item.end ? location.pathname === item.to : location.pathname.startsWith(item.to)
@@ -258,17 +254,6 @@ function AdminLayoutInner() {
 
       {/* Mobile nav: grouped sections — placed outside header to avoid backdrop-filter containment */}
       <nav className={`${styles.mobileNav} ${menuOpen ? styles.navOpen : ''}`}>
-        <NavLink
-          to={homeLink.to}
-          end={homeLink.end}
-          className={({ isActive }) =>
-            `${styles.navItem} ${isActive ? styles.navItemActive : ''}`
-          }
-          onClick={() => setMenuOpen(false)}
-        >
-          <homeLink.icon size={16} />
-          <span>{homeLink.label}</span>
-        </NavLink>
         {navGroups.map(group => (
           <div key={group.label} className={styles.mobileNavSection}>
             <span className={styles.mobileNavLabel}>{group.label}</span>

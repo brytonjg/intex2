@@ -3,6 +3,7 @@ import { UserPlus, Trash2, Loader2, Shield, User, Heart, Pencil, Save } from 'lu
 import { apiFetch } from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
 import DeleteConfirmDialog from '../../components/admin/DeleteConfirmDialog';
+import Dropdown from '../../components/admin/Dropdown';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import styles from './UsersPage.module.css';
 
@@ -243,14 +244,19 @@ export default function UsersPage() {
                 Password * (min 12 characters)
                 <input className={styles.input} type="password" required value={formPassword} onChange={e => setFormPassword(e.target.value)} placeholder="Create a password" />
               </label>
-              <label className={styles.label}>
-                Role *
-                <select className={styles.select} value={formRole} onChange={e => setFormRole(e.target.value)}>
-                  <option value="Staff">Staff</option>
-                  <option value="Admin">Admin</option>
-                  <option value="Donor">Donor</option>
-                </select>
-              </label>
+              <div className={styles.label}>
+                <span>Role *</span>
+                <Dropdown
+                  value={formRole}
+                  placeholder="Select role"
+                  options={[
+                    { value: 'Staff', label: 'Staff' },
+                    { value: 'Admin', label: 'Admin' },
+                    { value: 'Donor', label: 'Donor' },
+                  ]}
+                  onChange={(v) => setFormRole(v)}
+                />
+              </div>
             </div>
             {allSafehouses.length > 0 && (
               <div style={{ marginTop: '0.75rem' }}>
@@ -379,14 +385,19 @@ export default function UsersPage() {
                   Email *
                   <input className={styles.input} type="email" required value={editEmail} onChange={e => setEditEmail(e.target.value)} />
                 </label>
-                <label className={styles.label}>
-                  Role *
-                  <select className={styles.select} value={editRole} onChange={e => setEditRole(e.target.value)}>
-                    <option value="Staff">Staff</option>
-                    <option value="Admin">Admin</option>
-                    <option value="Donor">Donor</option>
-                  </select>
-                </label>
+                <div className={styles.label}>
+                  <span>Role *</span>
+                  <Dropdown
+                    value={editRole}
+                    placeholder="Select role"
+                    options={[
+                      { value: 'Staff', label: 'Staff' },
+                      { value: 'Admin', label: 'Admin' },
+                      { value: 'Donor', label: 'Donor' },
+                    ]}
+                    onChange={(v) => setEditRole(v)}
+                  />
+                </div>
               </div>
               {allSafehouses.length > 0 && (
                 <div style={{ marginTop: '0.75rem' }}>

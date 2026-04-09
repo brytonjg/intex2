@@ -98,6 +98,7 @@ const CaseConferencesPage = lazyRetry(() => import('./pages/admin/CaseConference
 const EducationRecordFormPage = lazyRetry(() => import('./pages/admin/EducationRecordFormPage'));
 const HealthRecordFormPage = lazyRetry(() => import('./pages/admin/HealthRecordFormPage'));
 const PostPlacementPage = lazyRetry(() => import('./pages/admin/PostPlacementPage'));
+const AdminDashboard = lazyRetry(() => import('./pages/AdminDashboard'));
 const DonorPortal = lazyRetry(() => import('./pages/DonorPortal'));
 const DonatePage = lazyRetry(() => import('./pages/DonatePage'));
 const DonateSuccessPage = lazyRetry(() => import('./pages/DonateSuccessPage'));
@@ -161,6 +162,7 @@ function App() {
               </ProtectedRoute>
             }>
               <Route index element={<AdminHomePage />} />
+              <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="incidents" element={<IncidentsPage />} />
               <Route path="incidents/new" element={<IncidentFormPage />} />
               <Route path="incidents/:id" element={<IncidentDetailPage />} />

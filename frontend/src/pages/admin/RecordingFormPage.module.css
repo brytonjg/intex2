@@ -249,14 +249,7 @@
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   padding: 1.5rem;
-}
-
-.section {
-  margin-bottom: 1.5rem;
-}
-
-.section:last-child {
-  margin-bottom: 0;
+  margin-bottom: 0.85rem;
 }
 
 .sectionTitle {

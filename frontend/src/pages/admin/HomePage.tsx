@@ -9,6 +9,9 @@ import { apiFetch } from '../../api';
 import { APP_TODAY, APP_TODAY_STR } from '../../constants';
 import { useSafehouse } from '../../contexts/SafehouseContext';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import Dropdown from '../../components/admin/Dropdown';
+import DatePicker from '../../components/admin/DatePicker';
+import TimePicker from '../../components/admin/TimePicker';
 import styles from './HomePage.module.css';
 
 /* ── Types ───────────────────────────────────────── */
@@ -93,6 +96,15 @@ const TASK_ICON_MAP: Record<string, { icon: typeof Stethoscope; className: strin
   ScheduleReintegration: { icon: Home, className: 'taskIconVisit' },
   PostPlacementVisit: { icon: Home, className: 'taskIconVisit' },
 };
+
+const VISIT_EVENT_TYPES = new Set(['HomeVisit', 'ReintegrationVisit', 'PostPlacementVisit']);
+const RECORDING_EVENT_TYPES = new Set(['Counseling', 'GroupTherapy']);
+
+// Task types that require logging instead of direct completion
+const TASK_REQUIRES_VISIT = new Set(['ScheduleHomeVisit', 'ScheduleReintegration', 'PostPlacementVisit']);
+const TASK_REQUIRES_RECORDING = new Set<string>(); // counseling tasks aren't in the to-do system currently
+const TASK_REQUIRES_EDUCATION = new Set(['UpdateEducation']);
+const TASK_REQUIRES_HEALTH = new Set(['InputHealthRecords']);
 
 const HOURS = Array.from({ length: 14 }, (_, i) => i + 6); // 6 AM – 7 PM
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -282,10 +294,20 @@ export default function HomePage() {
   const [tasksLoading, setTasksLoading] = useState(true);
   const [exitingTaskIds, setExitingTaskIds] = useState<Set<number>>(new Set());
 
-  // Drag-and-drop state
+  // Drag-and-drop state (tasks)
   const [dragTaskId, setDragTaskId] = useState<number | null>(null);
   const [dropHour, setDropHour] = useState<number | null>(null);
   const [dropDate, setDropDate] = useState<string | null>(null);
+  const taskGhostRef = useRef<HTMLDivElement>(null);
+  const taskOverCalendarRef = useRef(false);
+  const [taskOverCalendar, setTaskOverCalendar] = useState(false);
+  const [taskDragExiting, setTaskDragExiting] = useState(false);
+  const exitingTaskIdRef = useRef<number | null>(null);
+
+  // Drag-and-drop state (events)
+  const [dragEventId, setDragEventId] = useState<number | null>(null);
+  const dragGrabOffsetPx = useRef<number>(0);
+  const [dropIndicator, setDropIndicator] = useState<{ dayStr: string; minutes: number } | null>(null);
 
   // All-day expand state (tracks which days are expanded)
   const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set());
@@ -328,6 +350,32 @@ export default function HomePage() {
       .then(data => setResidents(Array.isArray(data) ? data : data.items || []))
       .catch(() => {});
   }, []);
+
+  // Track ghost position and calendar hover during task drag
+  useEffect(() => {
+    if (!dragTaskId) return;
+    function onDocDragOver(e: DragEvent) {
+      // Move ghost to cursor
+      if (taskGhostRef.current) {
+        taskGhostRef.current.style.left = `${e.clientX}px`;
+        taskGhostRef.current.style.top = `${e.clientY}px`;
+      }
+      // Detect calendar boundary crossing
+      if (calendarPanelRef.current) {
+        const r = calendarPanelRef.current.getBoundingClientRect();
+        const over = e.clientX >= r.left && e.clientX <= r.right &&
+                     e.clientY >= r.top && e.clientY <= r.bottom;
+        if (over !== taskOverCalendarRef.current) {
+          taskOverCalendarRef.current = over;
+          setTaskOverCalendar(over);
+          // Ghost is positioned with translate(-50%, -20px), so top = cursor - 20px
+          dragGrabOffsetPx.current = over ? 20 : 0;
+        }
+      }
+    }
+    document.addEventListener('dragover', onDocDragOver);
+    return () => document.removeEventListener('dragover', onDocDragOver);
+  }, [dragTaskId]);
 
   /* ── Calendar actions ──────────────────────────── */
 
@@ -416,15 +464,24 @@ export default function HomePage() {
   /* ── Drag-and-drop handlers ────────────────────── */
 
   function handleDragStart(taskId: number) {
-    dragGrabOffsetPx.current = 0;
     setDragTaskId(taskId);
   }
 
   function handleDragEnd() {
-    setDragTaskId(null);
+    // Animate the ghost out before unmounting
+    exitingTaskIdRef.current = dragTaskId;
+    setTaskDragExiting(true);
     setDropHour(null);
     setDropDate(null);
+    setDropIndicator(null);
     dragCounterRef.current = 0;
+    setTimeout(() => {
+      setDragTaskId(null);
+      setTaskDragExiting(false);
+      setTaskOverCalendar(false);
+      taskOverCalendarRef.current = false;
+      exitingTaskIdRef.current = null;
+    }, 200);
   }
 
   function handleSlotDragEnter(hour: number, date?: string) {
@@ -438,33 +495,99 @@ export default function HomePage() {
     if (dragCounterRef.current <= 0) {
       setDropHour(null);
       setDropDate(null);
+      setDropIndicator(null);
       dragCounterRef.current = 0;
     }
   }
 
 
-  function formatDropTime(hour: number, minute: number): string | null {
-    if (hour < 0) return null;
-    return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-  }
-
-  function handleSlotDrop(hour: number, date?: string) {
+  function handleSlotDrop(hour: number, date?: string, e?: React.DragEvent) {
     if (!dragTaskId) return;
     const task = tasks.find(t => t.staffTaskId === dragTaskId);
     if (!task) return;
-    const startTime = hour >= 0 ? `${hour.toString().padStart(2, '0')}:00` : null;
+    let startTime: string | null = null;
+    if (hour >= 0 && e) {
+      // Same math as handleEventDrop: use top of ghost (cursor - grabOffset)
+      const cellRect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      const eventTopRelToCell = (e.clientY - dragGrabOffsetPx.current) - cellRect.top;
+      const minuteOffset = Math.round(eventTopRelToCell / 15) * 15;
+      const totalMinutes = Math.max(0, Math.min(23 * 60 + 45, hour * 60 + minuteOffset));
+      const h = Math.floor(totalMinutes / 60);
+      const m = totalMinutes % 60;
+      startTime = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+    }
     const targetDate = date || fmtDate(currentDate);
     scheduleTaskToCalendar(task, targetDate, startTime);
-    setDragTaskId(null);
+    // Animate ghost out
+    exitingTaskIdRef.current = dragTaskId;
+    setTaskDragExiting(true);
     setDropHour(null);
     setDropDate(null);
+    setDropIndicator(null);
     dragCounterRef.current = 0;
+    setTimeout(() => {
+      setDragTaskId(null);
+      setTaskDragExiting(false);
+      setTaskOverCalendar(false);
+      taskOverCalendarRef.current = false;
+      exitingTaskIdRef.current = null;
+    }, 200);
   }
 
+
+  /* ── Event drag-and-drop ────────────────────────── */
+
+  function handleEventDragStart(eventId: number, e: React.DragEvent) {
+    e.stopPropagation();
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    dragGrabOffsetPx.current = e.clientY - rect.top;
+    setDragEventId(eventId);
+  }
+
+  function handleEventDragEnd() {
+    setDragEventId(null);
+    dragGrabOffsetPx.current = 0;
+    setDropIndicator(null);
+  }
+
+  function handleEventDrop(hour: number, date: string, e: React.DragEvent) {
+    if (!dragEventId) return;
+    const evt = events.find(ev => ev.calendarEventId === dragEventId);
+    if (!evt) return;
+
+    // All-day drop: remove time
+    if (hour < 0) {
+      handleUpdateEvent(dragEventId, { eventDate: date, startTime: null, endTime: null });
+      setDragEventId(null);
+      return;
+    }
+
+    // Calculate where the event's TOP edge would be relative to this cell
+    const cellRect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const eventTopRelToCell = (e.clientY - dragGrabOffsetPx.current) - cellRect.top;
+    // 60px per cell = 60 minutes, so 1px = 1 minute. Snap to 15 min.
+    const minuteOffset = Math.round(eventTopRelToCell / 15) * 15;
+    const totalMinutes = Math.max(0, Math.min(23 * 60 + 45, hour * 60 + minuteOffset));
+    const newHour = Math.floor(totalMinutes / 60);
+    const newMinute = totalMinutes % 60;
+    const newStartTime = `${newHour.toString().padStart(2, '0')}:${newMinute.toString().padStart(2, '0')}`;
+
+    // Preserve original duration
+    const oldDuration = evt.endTime && evt.startTime
+      ? toMinutes(evt.endTime) - toMinutes(evt.startTime)
+      : defaultDuration(evt.eventType);
+    const endMinutes = totalMinutes + oldDuration;
+    const newEndTime = `${Math.floor(endMinutes / 60).toString().padStart(2, '0')}:${(endMinutes % 60).toString().padStart(2, '0')}`;
+
+    handleUpdateEvent(dragEventId, { eventDate: date, startTime: newStartTime, endTime: newEndTime });
+    setDragEventId(null);
+    setDropIndicator(null);
+  }
 
   function handleScheduleSubmit() {
     if (!scheduleTask || !scheduleForm.eventDate) return;
     scheduleTaskToCalendar(scheduleTask, scheduleForm.eventDate, scheduleForm.startTime || null);
+    handleTaskAction(scheduleTask.staffTaskId, 'Completed');
     setScheduleTask(null);
   }
 
@@ -536,11 +659,13 @@ export default function HomePage() {
     const widthPct = 100 / totalCols;
     const leftPct = col * widthPct;
     const padding = totalCols > 1 ? 1 : 0;
+    const isDragging = dragEventId === evt.calendarEventId;
+    const anyDragActive = dragTaskId !== null || dragEventId !== null;
 
     return (
       <div
         key={evt.calendarEventId}
-        className={`${getEventStyle(evt.eventType, evt.status)} ${dragTaskId ? styles.eventDropThrough : ''}`}
+        className={`${getEventStyle(evt.eventType, evt.status)} ${anyDragActive && !isDragging ? styles.eventDropThrough : ''} ${isDragging ? styles.eventDragging : ''}`}
         style={{
           position: 'absolute',
           top: `${topPx}px`,
@@ -548,8 +673,11 @@ export default function HomePage() {
           width: `calc(${widthPct}% - ${padding * 2}px)`,
           height: `${heightPx}px`,
           minHeight: '18px',
-          zIndex: 1,
+          zIndex: isDragging ? 10 : 1,
         }}
+        draggable
+        onDragStart={e => handleEventDragStart(evt.calendarEventId, e)}
+        onDragEnd={handleEventDragEnd}
         onClick={e => handleEventClick(evt, e)}
       >
         {heightPx >= 40 ? (
@@ -583,10 +711,10 @@ export default function HomePage() {
       const dayDate = addDays(getWeekStart(currentDate), i);
       const dayStr = fmtDate(dayDate);
       const dayEvents = events.filter(e => e.eventDate === dayStr && e.startTime);
-      layouts.set(dayStr, computeOverlapLayout(dayEvents, null));
+      layouts.set(dayStr, computeOverlapLayout(dayEvents, dragEventId));
     }
     return layouts;
-  }, [events, currentDate]);
+  }, [events, currentDate, dragEventId]);
 
   /* ── Render ────────────────────────────────────── */
 
@@ -651,17 +779,30 @@ export default function HomePage() {
                     onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
                     onDragEnter={() => handleSlotDragEnter(-1, dayStr)}
                     onDragLeave={handleSlotDragLeave}
-                    onDrop={e => { e.preventDefault(); handleSlotDrop(-1, dayStr); }}
+                    onDrop={e => { e.preventDefault(); dragEventId ? handleEventDrop(-1, dayStr, e) : handleSlotDrop(-1, dayStr, e); }}
                   >
                     {visibleEvents.map(evt => (
                       <div
                         key={evt.calendarEventId}
-                        className={styles.allDayChip}
+                        className={`${styles.allDayChip} ${dragEventId === evt.calendarEventId ? styles.eventDragging : ''}`}
+                        draggable
+                        onDragStart={e => handleEventDragStart(evt.calendarEventId, e)}
+                        onDragEnd={handleEventDragEnd}
                         onClick={e => handleEventClick(evt, e)}
                       >
                         {evt.title} {evt.residentCode && `(${evt.residentCode})`}
                       </div>
                     ))}
+                    {/* Task drop preview in all-day */}
+                    {dragTaskId && dropHour === -1 && dropDate === dayStr && (() => {
+                      const task = tasks.find(t => t.staffTaskId === dragTaskId);
+                      if (!task) return null;
+                      return (
+                        <div className={`${styles.allDayChip} ${styles.taskDropPreview}`}>
+                          {task.title} {task.residentCode && `(${task.residentCode})`}
+                        </div>
+                      );
+                    })()}
                     {showCollapsed && (
                       <button
                         className={styles.allDayMore}
@@ -697,15 +838,66 @@ export default function HomePage() {
                         <div
                           key={`${hour}-${i}`}
                           className={`${styles.weekCell} ${isToday ? styles.weekCellToday : ''} ${isDropTarget ? styles.weekCellDropTarget : ''}`}
-                          onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
+                          onDragOver={e => {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = 'move';
+                            if (dragEventId || dragTaskId) {
+                              const cellRect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                              const eventTopRel = (e.clientY - dragGrabOffsetPx.current) - cellRect.top;
+                              const minuteOffset = Math.round(eventTopRel / 15) * 15;
+                              const totalMinutes = Math.max(0, Math.min(23 * 60 + 45, hour * 60 + minuteOffset));
+                              setDropIndicator({ dayStr, minutes: totalMinutes });
+                            }
+                          }}
                           onDragEnter={() => handleSlotDragEnter(hour, dayStr)}
                           onDragLeave={handleSlotDragLeave}
-                          onDrop={e => { e.preventDefault(); handleSlotDrop(hour, dayStr); }}
+                          onDrop={e => { e.preventDefault(); dragEventId ? handleEventDrop(hour, dayStr, e) : handleSlotDrop(hour, dayStr, e); }}
                         >
                           {cellEvents.map(evt => {
                             const layout = dayLayouts.get(dayStr)?.get(evt.calendarEventId);
                             return renderEventChip(evt, layout);
                           })}
+                          {/* Task drop preview chip */}
+                          {dragTaskId && dropIndicator && dropIndicator.dayStr === dayStr && Math.floor(dropIndicator.minutes / 60) === hour && (() => {
+                            const task = tasks.find(t => t.staffTaskId === dragTaskId);
+                            if (!task) return null;
+                            const evtType = TASK_TYPE_TO_EVENT_TYPE[task.taskType] || 'Other';
+                            const dur = defaultDuration(evtType);
+                            const heightPx = (dur / 60) * 60;
+                            const base = EVENT_TYPE_STYLES[evtType] || 'eventOther';
+                            const topPx = dropIndicator.minutes % 60;
+                            return (
+                              <div
+                                className={`${styles.eventChip} ${styles[base]} ${styles.taskDropPreview}`}
+                                style={{
+                                  position: 'absolute',
+                                  top: `${topPx}px`,
+                                  left: '1px',
+                                  right: '1px',
+                                  width: 'calc(100% - 2px)',
+                                  height: `${heightPx}px`,
+                                  minHeight: '18px',
+                                  zIndex: 5,
+                                }}
+                              >
+                                <span>{task.title}</span>
+                                {task.residentCode && <span>({task.residentCode})</span>}
+                              </div>
+                            );
+                          })()}
+                          {dropIndicator && dropIndicator.dayStr === dayStr && Math.floor(dropIndicator.minutes / 60) === hour && (() => {
+                            const h = Math.floor(dropIndicator.minutes / 60);
+                            const m = dropIndicator.minutes % 60;
+                            const ampm = h >= 12 ? 'PM' : 'AM';
+                            const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+                            return (
+                              <div className={styles.dropIndicator} style={{ top: `${m}px` }}>
+                                <span className={styles.dropIndicatorTime}>
+                                  {`${h12}:${m.toString().padStart(2, '0')} ${ampm}`}
+                                </span>
+                              </div>
+                            );
+                          })()}
                         </div>
                       );
                     })}
@@ -749,17 +941,17 @@ export default function HomePage() {
                       <User size={12} /> View Patient
                     </button>
                   )}
-                  <button className={styles.modalBtnPrimary} onClick={() => handleUpdateEvent(selectedEvent.calendarEventId, { status: 'Completed' })}>
-                    Complete
-                  </button>
-                  {selectedEvent.eventType === 'Counseling' && (
-                    <button className={styles.modalBtn} onClick={() => { navigate(`/admin/recordings/new?residentId=${selectedEvent.residentId || ''}`); closePopover(); }}>
+                  {RECORDING_EVENT_TYPES.has(selectedEvent.eventType) ? (
+                    <button className={styles.modalBtnPrimary} onClick={() => { navigate(`/admin/recordings/new?residentId=${selectedEvent.residentId || ''}&calendarEventId=${selectedEvent.calendarEventId}`); closePopover(); }}>
                       Log Recording
                     </button>
-                  )}
-                  {selectedEvent.eventType === 'HomeVisit' && (
-                    <button className={styles.modalBtn} onClick={() => { navigate(`/admin/visitations/new?residentId=${selectedEvent.residentId || ''}`); closePopover(); }}>
+                  ) : VISIT_EVENT_TYPES.has(selectedEvent.eventType) ? (
+                    <button className={styles.modalBtnPrimary} onClick={() => { navigate(`/admin/visitations/new?residentId=${selectedEvent.residentId || ''}&calendarEventId=${selectedEvent.calendarEventId}`); closePopover(); }}>
                       Log Visit
+                    </button>
+                  ) : (
+                    <button className={styles.modalBtnPrimary} onClick={() => handleUpdateEvent(selectedEvent.calendarEventId, { status: 'Completed' })}>
+                      Complete
                     </button>
                   )}
                   {!selectedEvent.startTime && !showSetTime && (
@@ -769,13 +961,7 @@ export default function HomePage() {
                   )}
                   {!selectedEvent.startTime && showSetTime && (
                     <div className={styles.setTimeRow}>
-                      <input
-                        type="time"
-                        className={styles.setTimeInput}
-                        value={setTimeValue}
-                        onChange={e => setSetTimeValue(e.target.value)}
-                        autoFocus
-                      />
+                      <TimePicker value={setTimeValue} onChange={v => setSetTimeValue(v)} placeholder="Pick time..." />
                       <button className={styles.modalBtnPrimary} onClick={() => {
                         if (setTimeValue) handleUpdateEvent(selectedEvent.calendarEventId, { startTime: setTimeValue });
                         setShowSetTime(false);
@@ -814,12 +1000,11 @@ export default function HomePage() {
                     className={`${isDragging ? styles.taskCardDragging : styles.taskCard} ${exitingTaskIds.has(task.staffTaskId) ? styles.taskCardExiting : ''}`}
                     draggable
                     onDragStart={e => {
-                      // Create a small drag image so it looks like collapsing to a line
-                      const ghost = document.createElement('div');
-                      ghost.style.cssText = 'width:120px;height:2px;background:var(--color-sage,#0f8f7d);border-radius:1px;position:absolute;top:-9999px;';
-                      document.body.appendChild(ghost);
-                      e.dataTransfer.setDragImage(ghost, 60, 1);
-                      setTimeout(() => document.body.removeChild(ghost), 0);
+                      // Hide native drag image — we render our own ghost
+                      const blank = document.createElement('canvas');
+                      blank.width = 1; blank.height = 1;
+                      e.dataTransfer.setDragImage(blank, 0, 0);
+                      dragGrabOffsetPx.current = 0;
                       handleDragStart(task.staffTaskId);
                     }}
                     onDragEnd={handleDragEnd}
@@ -853,9 +1038,27 @@ export default function HomePage() {
                         )}
                         <button
                           className={styles.completeBtn}
-                          onClick={e => { e.stopPropagation(); handleTaskAction(task.staffTaskId, 'Completed'); }}
+                          onClick={e => {
+                            e.stopPropagation();
+                            if (TASK_TYPE_TO_EVENT_TYPE[task.taskType]) {
+                              // Scheduling tasks → open schedule modal
+                              setScheduleTask(task);
+                              setScheduleForm({ eventDate: APP_TODAY_STR, startTime: '' });
+                            } else if (TASK_REQUIRES_EDUCATION.has(task.taskType) && task.residentId) {
+                              navigate(`/admin/caseload/${task.residentId}/education/new?residentId=${task.residentId}&taskId=${task.staffTaskId}`);
+                            } else if (TASK_REQUIRES_HEALTH.has(task.taskType) && task.residentId) {
+                              navigate(`/admin/caseload/${task.residentId}/health/new?residentId=${task.residentId}&taskId=${task.staffTaskId}`);
+                            } else {
+                              handleTaskAction(task.staffTaskId, 'Completed');
+                            }
+                          }}
                         >
-                          <CheckCircle size={12} /> Done
+                          <CheckCircle size={12} /> {
+                            TASK_TYPE_TO_EVENT_TYPE[task.taskType] ? 'Schedule' :
+                            TASK_REQUIRES_EDUCATION.has(task.taskType) ? 'Log Records' :
+                            TASK_REQUIRES_HEALTH.has(task.taskType) ? 'Log Records' :
+                            'Done'
+                          }
                         </button>
                         <button className={styles.snoozeBtn} onClick={e => { e.stopPropagation(); handleTaskAction(task.staffTaskId, 'Snoozed', 30); }}>
                           <Clock size={12} />
@@ -874,29 +1077,146 @@ export default function HomePage() {
       </div>
 
       {/* Schedule task modal */}
-      {scheduleTask && (
-        <div className={styles.formOverlay} onClick={() => setScheduleTask(null)}>
-          <div className={styles.formModal} onClick={e => e.stopPropagation()}>
-            <h3 className={styles.modalTitle}>{scheduleTask.title}</h3>
-            {scheduleTask.residentCode && <p className={styles.modalMeta}>Resident: {scheduleTask.residentCode}</p>}
-            {scheduleTask.description && <p className={styles.modalMeta}>{scheduleTask.description}</p>}
-            <div className={styles.formGrid}>
-              <label className={styles.formLabel}>
-                Date
-                <input type="date" className={styles.formInput} value={scheduleForm.eventDate} onChange={e => setScheduleForm(f => ({ ...f, eventDate: e.target.value }))} />
-              </label>
-              <label className={styles.formLabel}>
-                Start Time (optional)
-                <input type="time" className={styles.formInput} value={scheduleForm.startTime} onChange={e => setScheduleForm(f => ({ ...f, startTime: e.target.value }))} />
-              </label>
-            </div>
-            <div className={styles.formActions}>
-              <button className={styles.modalBtn} onClick={() => setScheduleTask(null)}>Cancel</button>
-              <button className={styles.modalBtnPrimary} onClick={handleScheduleSubmit}>Schedule</button>
+      {scheduleTask && (() => {
+        const evtType = TASK_TYPE_TO_EVENT_TYPE[scheduleTask.taskType] || 'Other';
+        const evtColor = EVENT_TYPE_STYLES[evtType] || 'eventOther';
+        // Mini calendar state
+        const selDate = new Date(scheduleForm.eventDate + 'T00:00:00');
+        const calMonth = new Date(selDate.getFullYear(), selDate.getMonth(), 1);
+        const calMonthEnd = new Date(selDate.getFullYear(), selDate.getMonth() + 1, 0);
+        const startDay = (calMonth.getDay() + 6) % 7; // Mon=0
+        const daysInMonth = calMonthEnd.getDate();
+        const calDays: (number | null)[] = Array(startDay).fill(null);
+        for (let d = 1; d <= daysInMonth; d++) calDays.push(d);
+
+        // Time slots
+        const timeSlots: string[] = [];
+        for (let h = 6; h <= 19; h++) {
+          for (const m of ['00', '15', '30', '45']) {
+            timeSlots.push(`${h.toString().padStart(2, '0')}:${m}`);
+          }
+        }
+
+        function fmtSlot(t: string) {
+          const [h, m] = t.split(':').map(Number);
+          const ampm = h >= 12 ? 'PM' : 'AM';
+          const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+          return `${h12}:${m.toString().padStart(2, '0')} ${ampm}`;
+        }
+
+        function shiftMonth(delta: number) {
+          const d = new Date(selDate);
+          d.setMonth(d.getMonth() + delta);
+          d.setDate(1);
+          setScheduleForm(f => ({ ...f, eventDate: fmtDate(d) }));
+        }
+
+        return (
+          <div className={styles.formOverlay} onClick={() => setScheduleTask(null)}>
+            <div className={styles.scheduleModal} onClick={e => e.stopPropagation()}>
+              {/* Header */}
+              <div className={styles.scheduleHeader}>
+                <div className={`${styles.scheduleDot} ${styles[evtColor]}`} />
+                <div>
+                  <h3 className={styles.scheduleTitle}>{scheduleTask.title}</h3>
+                  {scheduleTask.residentCode && <p className={styles.scheduleMeta}>{scheduleTask.residentCode}</p>}
+                </div>
+                <button className={styles.popoverClose} onClick={() => setScheduleTask(null)}><X size={16} /></button>
+              </div>
+
+              <div className={styles.scheduleBody}>
+                {/* Mini calendar */}
+                <div className={styles.miniCal}>
+                  <div className={styles.miniCalNav}>
+                    <button className={styles.navBtn} onClick={() => shiftMonth(-1)}><ChevronLeft size={14} /></button>
+                    <span className={styles.miniCalMonth}>
+                      {calMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                    </span>
+                    <button className={styles.navBtn} onClick={() => shiftMonth(1)}><ChevronRight size={14} /></button>
+                  </div>
+                  <div className={styles.miniCalGrid}>
+                    {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
+                      <div key={i} className={styles.miniCalDayLabel}>{d}</div>
+                    ))}
+                    {calDays.map((day, i) => {
+                      if (day === null) return <div key={`e-${i}`} />;
+                      const dateStr = fmtDate(new Date(calMonth.getFullYear(), calMonth.getMonth(), day));
+                      const isSelected = dateStr === scheduleForm.eventDate;
+                      const isToday = dateStr === APP_TODAY_STR;
+                      return (
+                        <button
+                          key={day}
+                          className={`${styles.miniCalDay} ${isSelected ? styles.miniCalDaySelected : ''} ${isToday && !isSelected ? styles.miniCalDayToday : ''}`}
+                          onClick={() => setScheduleForm(f => ({ ...f, eventDate: dateStr }))}
+                        >
+                          {day}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Time picker */}
+                <div className={styles.timePicker}>
+                  <p className={styles.timePickerLabel}>Time</p>
+                  <div className={styles.timeGrid}>
+                    {timeSlots.map(t => (
+                      <button
+                        key={t}
+                        className={`${styles.timeSlot} ${scheduleForm.startTime === t ? styles.timeSlotSelected : ''}`}
+                        onClick={() => setScheduleForm(f => ({ ...f, startTime: t }))}
+                      >
+                        {fmtSlot(t)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Summary + actions */}
+              <div className={styles.scheduleFooter}>
+                <p className={styles.scheduleSummary}>
+                  <Calendar size={14} />
+                  {selDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                  {scheduleForm.startTime ? ` at ${fmtSlot(scheduleForm.startTime)}` : ' — no time set'}
+                </p>
+                <div className={styles.scheduleActions}>
+                  <button className={styles.modalBtn} onClick={() => setScheduleTask(null)}>Cancel</button>
+                  <button className={styles.modalBtnPrimary} onClick={handleScheduleSubmit}>Schedule</button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
+
+      {/* Task drag ghost — follows cursor, collapses over calendar */}
+      {dragTaskId && (() => {
+        const task = tasks.find(t => t.staffTaskId === dragTaskId);
+        if (!task) return null;
+        const evtType = TASK_TYPE_TO_EVENT_TYPE[task.taskType] || 'Other';
+        const base = EVENT_TYPE_STYLES[evtType] || 'eventOther';
+        return (
+          <div
+            ref={taskGhostRef}
+            className={`${styles.taskDragGhost} ${taskOverCalendar ? styles.taskDragGhostCollapsed : ''} ${taskDragExiting ? styles.taskDragGhostExiting : ''}`}
+          >
+            {/* Task card content (visible when NOT over calendar) */}
+            <div className={styles.taskDragGhostCard}>
+              {getTaskIcon(task.taskType)}
+              <div className={styles.taskBody}>
+                <p className={styles.taskTitle}>{task.title}</p>
+                {task.residentCode && <span className={styles.taskMeta}>{task.residentCode}</span>}
+              </div>
+            </div>
+            {/* Event chip content (visible when OVER calendar) */}
+            <div className={`${styles.taskDragGhostChip} ${styles[base]}`}>
+              <span>{task.title}</span>
+              {task.residentCode && <span>({task.residentCode})</span>}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* New event form */}
       {showNewForm && (
@@ -904,45 +1224,52 @@ export default function HomePage() {
           <div className={styles.formModal} onClick={e => e.stopPropagation()}>
             <h3 className={styles.modalTitle}>New Event</h3>
             <div className={styles.formGrid}>
-              <label className={styles.formLabel}>
-                Type
-                <select className={styles.formSelect} value={newEvent.eventType} onChange={e => setNewEvent({ ...newEvent, eventType: e.target.value })}>
-                  <option value="Counseling">Counseling</option>
-                  <option value="DoctorApt">Doctor Appointment</option>
-                  <option value="DentistApt">Dentist Appointment</option>
-                  <option value="HomeVisit">Home Visit</option>
-                  <option value="CaseConference">Case Conference</option>
-                  <option value="GroupTherapy">Group Therapy</option>
-                  <option value="ReintegrationVisit">Reintegration Visit</option>
-                  <option value="PostPlacementVisit">Post-Placement Visit</option>
-                  <option value="Other">Other</option>
-                </select>
-              </label>
-              <label className={styles.formLabel}>
-                Resident
-                <select className={styles.formSelect} value={newEvent.residentId} onChange={e => setNewEvent({ ...newEvent, residentId: e.target.value })}>
-                  <option value="">None</option>
-                  {residents.map(r => (
-                    <option key={r.residentId} value={r.residentId}>{r.internalCode}</option>
-                  ))}
-                </select>
-              </label>
+              <div className={styles.formLabel}>
+                <span>Type</span>
+                <Dropdown
+                  value={newEvent.eventType}
+                  options={[
+                    { value: 'Counseling', label: 'Counseling' },
+                    { value: 'DoctorApt', label: 'Doctor Appointment' },
+                    { value: 'DentistApt', label: 'Dentist Appointment' },
+                    { value: 'HomeVisit', label: 'Home Visit' },
+                    { value: 'CaseConference', label: 'Case Conference' },
+                    { value: 'GroupTherapy', label: 'Group Therapy' },
+                    { value: 'ReintegrationVisit', label: 'Reintegration Visit' },
+                    { value: 'PostPlacementVisit', label: 'Post-Placement Visit' },
+                    { value: 'Other', label: 'Other' },
+                  ]}
+                  onChange={v => setNewEvent({ ...newEvent, eventType: v })}
+                />
+              </div>
+              <div className={styles.formLabel}>
+                <span>Resident</span>
+                <Dropdown
+                  value={newEvent.residentId}
+                  placeholder="None"
+                  options={[
+                    { value: '', label: 'None' },
+                    ...residents.map(r => ({ value: String(r.residentId), label: r.internalCode })),
+                  ]}
+                  onChange={v => setNewEvent({ ...newEvent, residentId: v })}
+                />
+              </div>
               <label className={`${styles.formLabel} ${styles.formFull}`}>
                 Title
                 <input className={styles.formInput} value={newEvent.title} onChange={e => setNewEvent({ ...newEvent, title: e.target.value })} placeholder="Event title" />
               </label>
-              <label className={styles.formLabel}>
+              <div className={styles.formLabel}>
                 Date
-                <input type="date" className={styles.formInput} value={newEvent.eventDate} onChange={e => setNewEvent({ ...newEvent, eventDate: e.target.value })} />
-              </label>
-              <label className={styles.formLabel}>
+                <DatePicker value={newEvent.eventDate} onChange={v => setNewEvent({ ...newEvent, eventDate: v })} placeholder="Select date..." />
+              </div>
+              <div className={styles.formLabel}>
                 Start Time
-                <input type="time" className={styles.formInput} value={newEvent.startTime} onChange={e => setNewEvent({ ...newEvent, startTime: e.target.value })} />
-              </label>
-              <label className={styles.formLabel}>
+                <TimePicker value={newEvent.startTime} onChange={v => setNewEvent({ ...newEvent, startTime: v })} placeholder="Select time..." />
+              </div>
+              <div className={styles.formLabel}>
                 End Time
-                <input type="time" className={styles.formInput} value={newEvent.endTime} onChange={e => setNewEvent({ ...newEvent, endTime: e.target.value })} />
-              </label>
+                <TimePicker value={newEvent.endTime} onChange={v => setNewEvent({ ...newEvent, endTime: v })} placeholder="Select time..." />
+              </div>
               <label className={`${styles.formLabel} ${styles.formFull}`}>
                 Description
                 <input className={styles.formInput} value={newEvent.description} onChange={e => setNewEvent({ ...newEvent, description: e.target.value })} placeholder="Optional" />

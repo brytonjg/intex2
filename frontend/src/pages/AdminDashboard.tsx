@@ -1,12 +1,13 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowUpRight, AlertTriangle, Calendar, UserPlus, DollarSign, FileText } from 'lucide-react';
+import { ArrowUpRight, AlertTriangle, Calendar, UserPlus, DollarSign, FileText, Sparkles, HeartCrack, ShieldAlert, CircleCheckBig } from 'lucide-react';
 import { useSafehouse } from '../contexts/SafehouseContext';
 import { useAuth } from '../contexts/AuthContext';
 import { apiFetch } from '../api';
 import { formatMonthLabel, formatEnumLabel } from '../constants';
 import { ChartTooltip } from '../components/ChartTooltip';
 import { ApiError } from '../components/ApiError';
+import MlBadge from '../components/admin/MlBadge';
 import {
   AreaChart,
   Area,
@@ -85,6 +86,12 @@ interface ApiDonation {
   campaignName: string | null;
 }
 
+interface MlPredictionSummary {
+  entityId: number;
+  modelName: string;
+  score: number;
+  scoreLabel: string;
+}
 
 export default function AdminDashboard() {
   useDocumentTitle('Dashboard');
@@ -102,6 +109,9 @@ export default function AdminDashboard() {
   const [flaggedChart, setFlaggedChart] = useState<Array<{ month: string; count: number }>>([]);
   const [channels, setChannels] = useState<Array<{ channel: string; count: number }>>([]);
   const [error, setError] = useState(false);
+  const [donorsAtRisk, setDonorsAtRisk] = useState(0);
+  const [incidentAlerts, setIncidentAlerts] = useState(0);
+  const [reintegrationReady, setReintegrationReady] = useState(0);
 
   const fetchData = useCallback((shId: number | null) => {
     const onErr = (e: unknown) => { console.error('API fetch failed', e); };
@@ -152,6 +162,15 @@ export default function AdminDashboard() {
 
     apiFetch<Array<{ channel: string; count: number }>>('/api/admin/donations-by-channel').then(data => {
       setChannels(data.map(d => ({ channel: formatEnumLabel(d.channel), count: d.count })));
+    }).catch(onErr);
+
+    apiFetch<MlPredictionSummary[]>('/api/ml/predictions/supporter/summary').then(data => {
+      setDonorsAtRisk(data.filter(d => d.scoreLabel === 'Critical' || d.scoreLabel === 'High').length);
+    }).catch(onErr);
+
+    apiFetch<MlPredictionSummary[]>('/api/ml/predictions/resident/summary').then(data => {
+      setIncidentAlerts(data.filter(d => d.scoreLabel === 'Critical' || d.scoreLabel === 'High').length);
+      setReintegrationReady(data.filter(d => d.scoreLabel === 'Ready').length);
     }).catch(onErr);
   }, []);
 
@@ -226,6 +245,40 @@ export default function AdminDashboard() {
           <span className={styles.metricSub}>upcoming</span>
         </div>
       </section>}
+
+      {/* ── ML Insights ──────────────────────────────────── */}
+      <section className={styles.mlInsightsCard}>
+        <div className={styles.mlInsightsHeader}>
+          <Sparkles size={18} className={styles.mlInsightsIcon} />
+          <span className={styles.mlInsightsTitle}>ML-Powered Insights</span>
+          <MlBadge />
+          <button className={styles.mlViewAll} onClick={() => navigate('/admin/reports?tab=ml')}>View Details <ArrowUpRight size={12} /></button>
+        </div>
+        <div className={styles.mlInsightsDivider} />
+        <div className={styles.mlInsightsStats}>
+          <div className={styles.mlStat} style={{ cursor: 'pointer' }} onClick={() => navigate('/admin/donors')}>
+            <div className={styles.mlStatIconRisk}><HeartCrack size={16} /></div>
+            <div className={styles.mlStatText}>
+              <span className={styles.mlStatNumber}>{donorsAtRisk}</span>
+              <span className={styles.mlStatLabel}>donors predicted to churn</span>
+            </div>
+          </div>
+          <div className={styles.mlStat} style={{ cursor: 'pointer' }} onClick={() => navigate('/admin/caseload')}>
+            <div className={styles.mlStatIconAlert}><ShieldAlert size={16} /></div>
+            <div className={styles.mlStatText}>
+              <span className={styles.mlStatNumber}>{incidentAlerts}</span>
+              <span className={styles.mlStatLabel}>high-risk residents</span>
+            </div>
+          </div>
+          <div className={styles.mlStat} style={{ cursor: 'pointer' }} onClick={() => navigate('/admin/caseload')}>
+            <div className={styles.mlStatIconReady}><CircleCheckBig size={16} /></div>
+            <div className={styles.mlStatText}>
+              <span className={styles.mlStatNumber}>{reintegrationReady}</span>
+              <span className={styles.mlStatLabel}>predicted reintegration-ready</span>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ── Two-column: Table + Donations ──────────────── */}
       <section className={styles.mainGrid}>

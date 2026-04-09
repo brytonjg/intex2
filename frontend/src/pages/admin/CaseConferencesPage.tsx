@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, Users, Plus, X } from 'lucide-react';
+import { Loader2, Users, Plus, X, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { apiFetch } from '../../api';
-import { APP_TODAY } from '../../constants';
+import { APP_TODAY, APP_TODAY_STR } from '../../constants';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import Pagination from '../../components/admin/Pagination';
-import styles from './IncidentsPage.module.css';
+import Dropdown from '../../components/admin/Dropdown';
+import styles from './CaseConferencesPage.module.css';
 
 interface ConferenceItem {
   planId: number;
@@ -25,6 +26,18 @@ interface ResidentOption {
   internalCode: string;
 }
 
+/* ── Helpers ─────────────────────────────────────── */
+
+function fmtDate(d: Date): string { return d.toISOString().split('T')[0]; }
+
+const CATEGORIES = ['Rehabilitation', 'Education', 'Health', 'Reintegration', 'Protection'];
+
+const STATUS_COLORS: Record<string, string> = {
+  Open: '#3498db', 'In Progress': '#f39c12', Achieved: '#27ae60', Closed: '#95a5a6',
+};
+
+/* ── Component ───────────────────────────────────── */
+
 export default function CaseConferencesPage() {
   useDocumentTitle('Case Conferences');
   const navigate = useNavigate();
@@ -34,13 +47,13 @@ export default function CaseConferencesPage() {
   const [page, setPage] = useState(1);
   const pageSize = 20;
 
-  // Form state
-  const [showForm, setShowForm] = useState(false);
+  // Modal state
+  const [showModal, setShowModal] = useState(false);
   const [residents, setResidents] = useState<ResidentOption[]>([]);
   const [formResidentId, setFormResidentId] = useState('');
   const [formCategory, setFormCategory] = useState('');
   const [formDescription, setFormDescription] = useState('');
-  const [formDate, setFormDate] = useState('');
+  const [formDate, setFormDate] = useState(APP_TODAY_STR);
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -59,13 +72,21 @@ export default function CaseConferencesPage() {
   useEffect(() => { fetchPlans(); }, [fetchPlans]);
 
   useEffect(() => {
-    if (showForm && residents.length === 0) {
+    if (showModal && residents.length === 0) {
       apiFetch<ResidentOption[]>('/api/admin/residents-list').then(setResidents).catch(() => {});
     }
-  }, [showForm, residents.length]);
+  }, [showModal, residents.length]);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  function openModal() {
+    setFormResidentId('');
+    setFormCategory('');
+    setFormDescription('');
+    setFormDate(APP_TODAY_STR);
+    setFormError(null);
+    setShowModal(true);
+  }
+
+  async function handleSubmit() {
     if (!formResidentId || !formDate) {
       setFormError('Resident and conference date are required.');
       return;
@@ -84,11 +105,7 @@ export default function CaseConferencesPage() {
           status: 'Open',
         }),
       });
-      setShowForm(false);
-      setFormResidentId('');
-      setFormCategory('');
-      setFormDescription('');
-      setFormDate('');
+      setShowModal(false);
       fetchPlans();
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'Failed to schedule');
@@ -101,43 +118,20 @@ export default function CaseConferencesPage() {
   const allPast = plans.filter(p => !p.caseConferenceDate || new Date(p.caseConferenceDate) < APP_TODAY);
   const past = allPast.slice((page - 1) * pageSize, page * pageSize);
 
-  const STATUS_COLORS: Record<string, string> = {
-    Open: '#3498db', 'In Progress': '#f39c12', Achieved: '#27ae60', Closed: '#95a5a6',
-  };
+  /* ── Mini calendar helpers ──────────────────────── */
+  const selDate = new Date(formDate + 'T00:00:00');
+  const calMonth = new Date(selDate.getFullYear(), selDate.getMonth(), 1);
+  const calMonthEnd = new Date(selDate.getFullYear(), selDate.getMonth() + 1, 0);
+  const startDay = (calMonth.getDay() + 6) % 7;
+  const daysInMonth = calMonthEnd.getDate();
+  const calDays: (number | null)[] = Array(startDay).fill(null);
+  for (let d = 1; d <= daysInMonth; d++) calDays.push(d);
 
-  function PlanCard({ plan }: { plan: ConferenceItem }) {
-    const color = STATUS_COLORS[plan.status || ''] || '#95a5a6';
-    return (
-      <div
-        style={{
-          background: '#fff', border: '1px solid rgba(15,27,45,0.08)', borderRadius: '12px',
-          padding: '1rem 1.25rem', cursor: 'pointer', transition: 'box-shadow 0.2s',
-        }}
-        onClick={() => navigate(`/admin/caseload/${plan.residentId}`)}
-        onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 4px 16px rgba(15,27,45,0.06)')}
-        onMouseLeave={e => (e.currentTarget.style.boxShadow = 'none')}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-          <span style={{ fontWeight: 600, color: 'var(--color-sage)', fontSize: '0.9rem' }}>
-            {plan.residentCode || `Resident #${plan.residentId}`}
-          </span>
-          <span style={{ fontSize: '0.7rem', fontWeight: 700, padding: '0.15rem 0.45rem', borderRadius: '4px', background: `${color}18`, color, textTransform: 'uppercase' }}>
-            {plan.status}
-          </span>
-        </div>
-        <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '0.3rem' }}>
-          {plan.planCategory} {plan.caseConferenceDate && `- ${plan.caseConferenceDate}`}
-        </div>
-        <div style={{ fontSize: '0.82rem', color: 'var(--text-strong)' }}>
-          {plan.planDescription ? (plan.planDescription.length > 100 ? plan.planDescription.slice(0, 100) + '...' : plan.planDescription) : 'No description'}
-        </div>
-        {plan.targetValue != null && (
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
-            Target: {plan.targetValue} {plan.targetDate && `by ${plan.targetDate}`}
-          </div>
-        )}
-      </div>
-    );
+  function shiftMonth(delta: number) {
+    const d = new Date(selDate);
+    d.setMonth(d.getMonth() + delta);
+    d.setDate(1);
+    setFormDate(fmtDate(d));
   }
 
   return (
@@ -147,47 +141,10 @@ export default function CaseConferencesPage() {
           <h1 className={styles.title}>Case Conferences</h1>
           <p className={styles.subtitle}>Intervention plans and case conference scheduling</p>
         </div>
-        <button className={styles.addBtn} onClick={() => setShowForm(f => !f)}>
-          {showForm ? <><X size={16} /> Cancel</> : <><Plus size={16} /> Schedule Conference</>}
+        <button className={styles.addBtn} onClick={openModal}>
+          <Plus size={16} /> Schedule Conference
         </button>
       </header>
-
-      {showForm && (
-        <form onSubmit={handleSubmit} style={{ background: '#fff', border: '1px solid rgba(15,27,45,0.08)', borderRadius: '12px', padding: '1.25rem', marginBottom: '1.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-          <div>
-            <label htmlFor="conf-resident" style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.3rem' }}>Resident</label>
-            <select id="conf-resident" value={formResidentId} onChange={e => setFormResidentId(e.target.value)} style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #ccc' }}>
-              <option value="">Select resident...</option>
-              {residents.map(r => <option key={r.residentId} value={r.residentId}>{r.internalCode}</option>)}
-            </select>
-          </div>
-          <div>
-            <label htmlFor="conf-category" style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.3rem' }}>Category</label>
-            <select id="conf-category" value={formCategory} onChange={e => setFormCategory(e.target.value)} style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #ccc' }}>
-              <option value="">Select...</option>
-              <option value="Rehabilitation">Rehabilitation</option>
-              <option value="Education">Education</option>
-              <option value="Health">Health</option>
-              <option value="Reintegration">Reintegration</option>
-              <option value="Protection">Protection</option>
-            </select>
-          </div>
-          <div>
-            <label htmlFor="conf-date" style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.3rem' }}>Conference Date</label>
-            <input id="conf-date" type="date" value={formDate} onChange={e => setFormDate(e.target.value)} style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #ccc' }} />
-          </div>
-          <div style={{ gridColumn: '1 / -1' }}>
-            <label htmlFor="conf-desc" style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.3rem' }}>Description</label>
-            <textarea id="conf-desc" value={formDescription} onChange={e => setFormDescription(e.target.value)} rows={2} style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #ccc', resize: 'vertical' }} />
-          </div>
-          {formError && <div style={{ gridColumn: '1 / -1', color: '#c0392b', fontSize: '0.85rem' }}>{formError}</div>}
-          <div style={{ gridColumn: '1 / -1' }}>
-            <button type="submit" disabled={formSubmitting} className={styles.addBtn}>
-              {formSubmitting ? 'Scheduling...' : 'Schedule Conference'}
-            </button>
-          </div>
-        </form>
-      )}
 
       {loading ? (
         <div className={styles.loading}><Loader2 size={24} className={styles.spinner} /> Loading...</div>
@@ -196,20 +153,37 @@ export default function CaseConferencesPage() {
       ) : (
         <>
           {upcoming.length > 0 && (
-            <div style={{ marginBottom: '2rem' }}>
-              <h2 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-strong)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <div>
+              <h2 className={styles.sectionTitle}>
                 <Users size={18} /> Upcoming Conferences ({upcoming.length})
               </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '0.75rem' }}>
-                {upcoming.map(p => <PlanCard key={p.planId} plan={p} />)}
+              <div className={styles.cardGrid}>
+                {upcoming.map(p => {
+                  const color = STATUS_COLORS[p.status || ''] || '#95a5a6';
+                  return (
+                    <div key={p.planId} className={styles.card} onClick={() => navigate(`/admin/caseload/${p.residentId}`)}>
+                      <div className={styles.cardHeader}>
+                        <span className={styles.cardResident}>{p.residentCode || `Resident #${p.residentId}`}</span>
+                        <span className={styles.statusBadge} style={{ background: `${color}18`, color }}>{p.status}</span>
+                      </div>
+                      <div className={styles.cardMeta}>
+                        {p.planCategory} {p.caseConferenceDate && `— ${p.caseConferenceDate}`}
+                      </div>
+                      <div className={styles.cardDesc}>
+                        {p.planDescription ? (p.planDescription.length > 100 ? p.planDescription.slice(0, 100) + '...' : p.planDescription) : 'No description'}
+                      </div>
+                      {p.targetValue != null && (
+                        <div className={styles.cardTarget}>Target: {p.targetValue} {p.targetDate && `by ${p.targetDate}`}</div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
 
           <div>
-            <h2 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-strong)', marginBottom: '0.75rem' }}>
-              All Intervention Plans ({allPast.length})
-            </h2>
+            <h2 className={styles.sectionTitle}>All Intervention Plans ({allPast.length})</h2>
             {allPast.length === 0 ? (
               <div className={styles.empty}>No intervention plans found.</div>
             ) : (
@@ -227,20 +201,23 @@ export default function CaseConferencesPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {past.map(p => (
-                        <tr key={p.planId} onClick={() => navigate(`/admin/caseload/${p.residentId}`)}>
-                          <td style={{ fontWeight: 600, color: 'var(--color-sage)' }}>{p.residentCode || '-'}</td>
-                          <td>{p.planCategory || '-'}</td>
-                          <td>{p.planDescription ? (p.planDescription.length > 60 ? p.planDescription.slice(0, 60) + '...' : p.planDescription) : '-'}</td>
-                          <td>
-                            <span style={{ fontSize: '0.7rem', fontWeight: 700, padding: '0.15rem 0.45rem', borderRadius: '4px', background: `${STATUS_COLORS[p.status || ''] || '#95a5a6'}18`, color: STATUS_COLORS[p.status || ''] || '#95a5a6', textTransform: 'uppercase' }}>
-                              {p.status || '-'}
-                            </span>
-                          </td>
-                          <td>{p.targetValue != null ? p.targetValue : '-'}</td>
-                          <td>{p.caseConferenceDate || '-'}</td>
-                        </tr>
-                      ))}
+                      {past.map(p => {
+                        const color = STATUS_COLORS[p.status || ''] || '#95a5a6';
+                        return (
+                          <tr key={p.planId} onClick={() => navigate(`/admin/caseload/${p.residentId}`)}>
+                            <td style={{ fontWeight: 600, color: 'var(--color-sage)' }}>{p.residentCode || '-'}</td>
+                            <td>{p.planCategory || '-'}</td>
+                            <td>{p.planDescription ? (p.planDescription.length > 60 ? p.planDescription.slice(0, 60) + '...' : p.planDescription) : '-'}</td>
+                            <td>
+                              <span className={styles.statusBadge} style={{ background: `${color}18`, color }}>
+                                {p.status || '-'}
+                              </span>
+                            </td>
+                            <td>{p.targetValue != null ? p.targetValue : '-'}</td>
+                            <td>{p.caseConferenceDate || '-'}</td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -249,6 +226,104 @@ export default function CaseConferencesPage() {
             )}
           </div>
         </>
+      )}
+
+      {/* Schedule conference modal */}
+      {showModal && (
+        <div className={styles.overlay} onClick={() => setShowModal(false)}>
+          <div className={styles.modal} onClick={e => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>Schedule Conference</h3>
+              <button className={styles.closeBtn} onClick={() => setShowModal(false)}><X size={16} /></button>
+            </div>
+
+            <div className={styles.modalBody}>
+              {/* Resident dropdown */}
+              <div className={styles.fieldGroup}>
+                <span className={styles.fieldLabel}>Resident</span>
+                <Dropdown
+                  value={formResidentId}
+                  placeholder="Select resident..."
+                  options={residents.map(r => ({ value: String(r.residentId), label: r.internalCode }))}
+                  onChange={setFormResidentId}
+                />
+              </div>
+
+              {/* Category dropdown */}
+              <div className={styles.fieldGroup}>
+                <span className={styles.fieldLabel}>Category</span>
+                <Dropdown
+                  value={formCategory}
+                  placeholder="Select category..."
+                  options={CATEGORIES.map(c => ({ value: c, label: c }))}
+                  onChange={setFormCategory}
+                />
+              </div>
+
+              {/* Mini calendar */}
+              <div className={styles.fieldGroup}>
+                <span className={styles.fieldLabel}>Conference Date</span>
+                <div className={styles.miniCal}>
+                  <div className={styles.miniCalNav}>
+                    <button className={styles.navBtn} onClick={() => shiftMonth(-1)}><ChevronLeft size={14} /></button>
+                    <span className={styles.miniCalMonth}>
+                      {calMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                    </span>
+                    <button className={styles.navBtn} onClick={() => shiftMonth(1)}><ChevronRight size={14} /></button>
+                  </div>
+                  <div className={styles.miniCalGrid}>
+                    {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
+                      <div key={i} className={styles.miniCalDayLabel}>{d}</div>
+                    ))}
+                    {calDays.map((day, i) => {
+                      if (day === null) return <div key={`e-${i}`} />;
+                      const dateStr = fmtDate(new Date(calMonth.getFullYear(), calMonth.getMonth(), day));
+                      const isSelected = dateStr === formDate;
+                      const isToday = dateStr === APP_TODAY_STR;
+                      return (
+                        <button
+                          key={day}
+                          type="button"
+                          className={`${styles.miniCalDay} ${isSelected ? styles.miniCalDaySelected : ''} ${isToday && !isSelected ? styles.miniCalDayToday : ''}`}
+                          onClick={() => setFormDate(dateStr)}
+                        >
+                          {day}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className={styles.fieldGroup}>
+                <span className={styles.fieldLabel}>Description (optional)</span>
+                <textarea
+                  className={styles.textarea}
+                  value={formDescription}
+                  onChange={e => setFormDescription(e.target.value)}
+                  rows={2}
+                  placeholder="Add notes about this conference..."
+                />
+              </div>
+
+              {formError && <p className={styles.formError}>{formError}</p>}
+            </div>
+
+            <div className={styles.modalFooter}>
+              <p className={styles.footerSummary}>
+                <Calendar size={14} />
+                {selDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+              </p>
+              <div className={styles.footerActions}>
+                <button className={styles.btn} onClick={() => setShowModal(false)}>Cancel</button>
+                <button className={styles.btnPrimary} onClick={handleSubmit} disabled={formSubmitting}>
+                  {formSubmitting ? 'Scheduling...' : 'Schedule'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

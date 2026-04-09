@@ -101,6 +101,26 @@ public static class IncidentEndpoints
             return Results.Ok(history);
         }).RequireAuthorization(p => p.RequireRole("Admin", "Staff"));
 
+        // ── ML Org-Level Insights (entity_id is null) ───────────────
+
+        app.MapGet("/api/ml/insights", async (AppDbContext db) =>
+        {
+            var insights = await db.MlPredictions.Where(p => p.EntityId == null)
+                .Select(p => new { p.Id, p.EntityType, p.EntityId, p.ModelName, p.ModelVersion, p.Score, p.ScoreLabel, p.PredictedAt, p.Metadata })
+                .ToListAsync();
+            return Results.Ok(insights);
+        }).RequireAuthorization(p => p.RequireRole("Admin", "Staff"));
+
+        // ── ML Prediction Summary by Entity Type ───────────────────
+
+        app.MapGet("/api/ml/predictions/{entityType}/summary", async (string entityType, AppDbContext db) =>
+        {
+            var summary = await db.MlPredictions.Where(p => p.EntityType == entityType)
+                .Select(p => new { p.EntityId, p.ModelName, p.Score, p.ScoreLabel })
+                .ToListAsync();
+            return Results.Ok(summary);
+        }).RequireAuthorization(p => p.RequireRole("Admin", "Staff"));
+
         // ── Case Claiming ───────────────────────────────────────────
 
         app.MapPost("/api/admin/residents/{id}/claim", async (int id, HttpContext httpContext, UserManager<ApplicationUser> userManager, AppDbContext db) =>

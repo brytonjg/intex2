@@ -5,6 +5,7 @@ import { apiFetch } from '../../api';
 import { useSafehouse } from '../../contexts/SafehouseContext';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import Pagination from '../../components/admin/Pagination';
+import Dropdown from '../../components/admin/Dropdown';
 import styles from './IncidentsPage.module.css';
 
 interface IncidentRow {
@@ -76,18 +77,30 @@ export default function IncidentsPage() {
       </header>
 
       <div className={styles.filters}>
-        <select className={styles.filterSelect} value={severityFilter} onChange={e => { setSeverityFilter(e.target.value); setPage(1); }}>
-          <option value="">All Severities</option>
-          <option value="Critical">Critical</option>
-          <option value="High">High</option>
-          <option value="Medium">Medium</option>
-          <option value="Low">Low</option>
-        </select>
-        <select className={styles.filterSelect} value={resolvedFilter} onChange={e => { setResolvedFilter(e.target.value); setPage(1); }}>
-          <option value="">All Status</option>
-          <option value="false">Unresolved</option>
-          <option value="true">Resolved</option>
-        </select>
+        <Dropdown
+          value={severityFilter}
+          placeholder="All Severities"
+          options={[
+            { value: '', label: 'All Severities' },
+            { value: 'Critical', label: 'Critical' },
+            { value: 'High', label: 'High' },
+            { value: 'Medium', label: 'Medium' },
+            { value: 'Low', label: 'Low' },
+          ]}
+          onChange={(v) => { setSeverityFilter(v); setPage(1); }}
+          compact
+        />
+        <Dropdown
+          value={resolvedFilter}
+          placeholder="All Status"
+          options={[
+            { value: '', label: 'All Status' },
+            { value: 'false', label: 'Unresolved' },
+            { value: 'true', label: 'Resolved' },
+          ]}
+          onChange={(v) => { setResolvedFilter(v); setPage(1); }}
+          compact
+        />
       </div>
 
       {loading ? (

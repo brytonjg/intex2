@@ -168,7 +168,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: background 0.15s;
+  transition: background 0.15s, opacity 0.2s;
   box-sizing: border-box;
   line-height: 1.4;
 }
@@ -204,7 +204,7 @@
   font-weight: 600;
   padding: 0.2rem 0.4rem;
   border-radius: 5px;
-  cursor: pointer;
+  cursor: grab;
   transition: top 0.2s ease, left 0.2s ease, width 0.2s ease, height 0.2s ease, filter 0.15s, box-shadow 0.15s;
   overflow: hidden;
   box-sizing: border-box;
@@ -230,6 +230,88 @@
 .eventReintegrationVisit { background: #16a085; }
 .eventPostPlacementVisit { background: #2980b9; }
 .eventCompleted { opacity: 0.5; text-decoration: line-through; }
+.eventDragging { opacity: 0.4; }
+
+/* ── Task drag ghost (floating element that follows cursor) ── */
+.taskDragGhost {
+  position: fixed;
+  z-index: 10000;
+  pointer-events: none;
+  transform: translate(-50%, -20px);
+  transition: width 0.25s ease, height 0.25s ease, border-radius 0.25s ease;
+  width: 300px;
+}
+
+.taskDragGhostCard {
+  display: flex;
+  gap: 0.65rem;
+  background: #fff;
+  border: 1px solid rgba(15, 27, 45, 0.08);
+  border-radius: 10px;
+  padding: 0.75rem;
+  box-shadow: 0 8px 24px rgba(15, 27, 45, 0.18);
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.taskDragGhostChip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.25rem 0.4rem;
+  border-radius: 5px;
+  color: #fff;
+  line-height: 1.25;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  opacity: 0;
+  height: 0;
+  transform: scaleY(0);
+  transform-origin: top center;
+  transition: opacity 0.2s ease 0.05s, height 0.25s ease, transform 0.2s ease;
+}
+
+.taskDragGhostChip span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Collapsed state: hide card, show chip */
+.taskDragGhostCollapsed {
+  width: 160px;
+}
+
+.taskDragGhostCollapsed .taskDragGhostCard {
+  opacity: 0;
+  transform: scale(0.5);
+  height: 0;
+  padding: 0;
+  border: none;
+  overflow: hidden;
+}
+
+.taskDragGhostCollapsed .taskDragGhostChip {
+  opacity: 0.9;
+  height: auto;
+  transform: scaleY(1);
+}
+
+/* Exit animation */
+.taskDragGhostExiting {
+  opacity: 0 !important;
+  transform: translate(-50%, -20px) scale(0.5) !important;
+  transition: opacity 0.2s ease, transform 0.2s ease !important;
+}
+
+/* In-cell preview (shows exact landing position) */
+.taskDropPreview {
+  opacity: 0.5;
+  pointer-events: none;
+}
 .eventDropThrough { pointer-events: none; }
 
 /* ── Week view (Google Calendar-style grid) ──────── */
@@ -326,6 +408,43 @@
 
 .weekCellDropTarget {
   position: relative;
+}
+
+/* ── Drop indicator line ──────────────────────────── */
+.dropIndicator {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--color-sage);
+  z-index: 20;
+  pointer-events: none;
+}
+
+.dropIndicator::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-sage);
+}
+
+.dropIndicatorTime {
+  position: absolute;
+  top: -18px;
+  left: 14px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--color-sage);
+  background: #fff;
+  padding: 0 3px;
+  border-radius: 2px;
+  white-space: nowrap;
+  line-height: 1.3;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 
@@ -663,6 +782,204 @@
   composes: modalBtn;
   color: #c0392b;
   border-color: rgba(192, 57, 43, 0.2);
+}
+
+/* ── Schedule appointment modal ─────────────────── */
+.scheduleModal {
+  background: #fff;
+  border-radius: 16px;
+  max-width: 440px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+  animation: modalSlideUp 0.2s ease-out;
+}
+
+@keyframes modalSlideUp {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.scheduleHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 1.1rem 1.1rem 0;
+}
+
+.scheduleDot {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+.scheduleTitle {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-strong);
+  margin: 0;
+  line-height: 1.3;
+  flex: 1;
+}
+
+.scheduleMeta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0.1rem 0 0;
+}
+
+.scheduleBody {
+  padding: 0.8rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+/* ── Mini calendar ──────────────────────────────── */
+.miniCal {
+  border: 1px solid rgba(15, 27, 45, 0.08);
+  border-radius: 10px;
+  padding: 0.6rem;
+}
+
+.miniCalNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.miniCalMonth {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.miniCalGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.miniCalDayLabel {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 0.15rem 0 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.miniCalDay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1;
+  border: none;
+  background: none;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-family: var(--font-body);
+  color: var(--text-strong);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.miniCalDay:hover {
+  background: rgba(15, 27, 45, 0.05);
+}
+
+.miniCalDayToday {
+  color: var(--color-sage);
+  font-weight: 700;
+}
+
+.miniCalDaySelected {
+  background: var(--color-sage) !important;
+  color: #fff !important;
+  font-weight: 700;
+}
+
+/* ── Time picker grid ───────────────────────────── */
+.timePicker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.timePickerLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+
+.timeGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  max-height: 160px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.timeSlot {
+  font-size: 0.7rem;
+  font-weight: 500;
+  font-family: var(--font-body);
+  padding: 0.3rem 0.2rem;
+  border: 1px solid rgba(15, 27, 45, 0.08);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--text-strong);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+
+.timeSlot:hover {
+  background: rgba(15, 143, 125, 0.06);
+  border-color: rgba(15, 143, 125, 0.2);
+}
+
+.timeSlotSelected {
+  background: var(--color-sage) !important;
+  color: #fff !important;
+  border-color: var(--color-sage) !important;
+  font-weight: 700;
+}
+
+/* ── Footer ─────────────────────────────────────── */
+.scheduleFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 1.1rem;
+  border-top: 1px solid rgba(15, 27, 45, 0.06);
+  background: rgba(15, 27, 45, 0.015);
+}
+
+.scheduleSummary {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.scheduleActions {
+  display: flex;
+  gap: 0.4rem;
 }
 
 /* ── New event / Schedule form modal ─────────────── */

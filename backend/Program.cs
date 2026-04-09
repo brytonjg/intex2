@@ -23,8 +23,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(opts =>
 {
     opts.Password.RequiredLength = 12;
-    opts.Password.RequireUppercase = false;
-    opts.Password.RequireLowercase = false;
+    opts.Password.RequireUppercase = true;
+    opts.Password.RequireLowercase = true;
     opts.Password.RequireDigit = true;
     opts.Password.RequireNonAlphanumeric = true;
 
@@ -44,8 +44,16 @@ builder.Services.AddDataProtection()
 builder.Services.ConfigureApplicationCookie(opts =>
 {
     opts.Cookie.HttpOnly = true;
-    opts.Cookie.SecurePolicy = builder.Environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
-    opts.Cookie.SameSite = SameSiteMode.None;
+    if (builder.Environment.IsDevelopment())
+    {
+        opts.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        opts.Cookie.SameSite = SameSiteMode.Lax;
+    }
+    else
+    {
+        opts.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        opts.Cookie.SameSite = SameSiteMode.None;
+    }
     opts.Cookie.Name = "BeaconAuth";
     opts.ExpireTimeSpan = TimeSpan.FromHours(8);
     opts.SlidingExpiration = true;
@@ -142,7 +150,7 @@ app.Use(async (context, next) =>
         "form-action 'self'; " +
         "base-uri 'self'"
     );
-    context.Response.Headers.Append("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+    // HSTS is handled by app.UseHsts() — no duplicate header needed
     context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
     context.Response.Headers.Append("X-Frame-Options", "DENY");
     context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
