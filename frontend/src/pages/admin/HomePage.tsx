@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ChevronLeft, ChevronRight, Plus, Loader2,
@@ -139,6 +139,57 @@ function fmtDayHeader(d: Date): { name: string; date: number } {
     name: d.toLocaleDateString('en-US', { weekday: 'short' }),
     date: d.getDate(),
   };
+}
+
+interface EventLayout {
+  column: number;
+  totalCols: number;
+}
+
+function toMinutes(time: string | null): number {
+  if (!time) return 0;
+  const [h, m] = time.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function eventEnd(evt: CalendarEventItem): number {
+  if (evt.endTime) return toMinutes(evt.endTime);
+  return toMinutes(evt.startTime) + 60; // default 1 hour
+}
+
+function computeOverlapLayout(dayEvents: CalendarEventItem[], draggedId: number | null): Map<number, EventLayout> {
+  const layout = new Map<number, EventLayout>();
+  // Only scheduled events (with startTime), exclude dragged event
+  const sorted = dayEvents
+    .filter(e => e.startTime && e.calendarEventId !== draggedId)
+    .sort((a, b) => toMinutes(a.startTime) - toMinutes(b.startTime) || eventEnd(b) - eventEnd(a));
+
+  // Group into overlap clusters
+  const clusters: CalendarEventItem[][] = [];
+  for (const evt of sorted) {
+    const start = toMinutes(evt.startTime);
+    // Find if this event overlaps with any existing cluster
+    let placed = false;
+    for (const cluster of clusters) {
+      const clusterEnd = Math.max(...cluster.map(e => eventEnd(e)));
+      if (start < clusterEnd) {
+        cluster.push(evt);
+        placed = true;
+        break;
+      }
+    }
+    if (!placed) clusters.push([evt]);
+  }
+
+  // Assign columns within each cluster
+  for (const cluster of clusters) {
+    const cols = cluster.length;
+    cluster.forEach((evt, idx) => {
+      layout.set(evt.calendarEventId, { column: idx, totalCols: cols });
+    });
+  }
+
+  return layout;
 }
 
 function parseContext(json: string | null): Record<string, string> {
@@ -446,11 +497,16 @@ export default function HomePage() {
     return m;
   }
 
-  function renderEventChip(evt: CalendarEventItem) {
+  function renderEventChip(evt: CalendarEventItem, layout?: EventLayout) {
     const duration = getEventDuration(evt);
     const minuteOffset = getEventMinuteOffset(evt);
-    const heightPx = (duration / 60) * 60; // 60px per hour
+    const heightPx = (duration / 60) * 60;
     const topPx = (minuteOffset / 60) * 60;
+    const col = layout?.column ?? 0;
+    const totalCols = layout?.totalCols ?? 1;
+    const widthPct = 100 / totalCols;
+    const leftPct = col * widthPct;
+    const padding = totalCols > 1 ? 1 : 0;
 
     return (
       <div
@@ -459,8 +515,8 @@ export default function HomePage() {
         style={{
           position: 'absolute',
           top: `${topPx}px`,
-          left: '1px',
-          right: '1px',
+          left: `calc(${leftPct}% + ${padding}px)`,
+          width: `calc(${widthPct}% - ${padding * 2}px)`,
           height: `${heightPx}px`,
           minHeight: '18px',
           zIndex: 1,
@@ -487,6 +543,18 @@ export default function HomePage() {
   }
 
   const unscheduled = events.filter(e => !e.startTime && e.status !== 'Completed');
+
+  // Precompute overlap layouts for all 7 days
+  const dayLayouts = useMemo(() => {
+    const layouts = new Map<string, Map<number, EventLayout>>();
+    for (let i = 0; i < 7; i++) {
+      const dayDate = addDays(getWeekStart(currentDate), i);
+      const dayStr = fmtDate(dayDate);
+      const dayEvents = events.filter(e => e.eventDate === dayStr && e.startTime);
+      layouts.set(dayStr, computeOverlapLayout(dayEvents, dragEventId));
+    }
+    return layouts;
+  }, [events, currentDate, dragEventId]);
 
   /* ── Render ────────────────────────────────────── */
 
@@ -610,7 +678,10 @@ export default function HomePage() {
                           onDragLeave={handleSlotDragLeave}
                           onDrop={e => { e.preventDefault(); handleEventDrop(hour, dayStr, e); handleSlotDrop(hour, dayStr, e); }}
                         >
-                          {cellEvents.map(renderEventChip)}
+                          {cellEvents.map(evt => {
+                            const layout = dayLayouts.get(dayStr)?.get(evt.calendarEventId);
+                            return renderEventChip(evt, layout);
+                          })}
                           {(isDropTarget || isEventDropTarget) && (
                             <div className={styles.dropTimeIndicator} style={{ top: `${(dropMinute / 60) * 100}%` }}>
                               {hour.toString().padStart(2, '0')}:{dropMinute.toString().padStart(2, '0')}
