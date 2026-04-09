@@ -140,16 +140,14 @@ function SafehouseDropdown({
       </button>
       {open && (
         <div className={styles.shDropdownMenu}>
-          {isAdmin && (
-            <button
-              className={`${styles.shDropdownItem} ${activeSafehouseId === null ? styles.shDropdownItemActive : ''}`}
-              onClick={() => { setActiveSafehouseId(null); setOpen(false); }}
-              type="button"
-            >
-              <span>All Safehouses</span>
-              {activeSafehouseId === null && <Check size={14} />}
-            </button>
-          )}
+          <button
+            className={`${styles.shDropdownItem} ${activeSafehouseId === null ? styles.shDropdownItemActive : ''}`}
+            onClick={() => { setActiveSafehouseId(null); setOpen(false); }}
+            type="button"
+          >
+            <span>All Safehouses</span>
+            {activeSafehouseId === null && <Check size={14} />}
+          </button>
           {safehouses.map(s => (
             <button
               key={s.safehouseId}
