@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using backend.Data;
@@ -11,9 +12,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260409190412_AddNewsletterTables")]
+    partial class AddNewsletterTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -315,98 +318,6 @@ namespace backend.Migrations
                         .HasDatabaseName("calendar_events_user_date_idx");
 
                     b.ToTable("calendar_events", (string)null);
-                });
-
-            modelBuilder.Entity("backend.Models.CaseConference", b =>
-                {
-                    b.Property<int>("ConferenceId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("conference_id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ConferenceId"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("text")
-                        .HasColumnName("notes");
-
-                    b.Property<int>("SafehouseId")
-                        .HasColumnType("integer")
-                        .HasColumnName("safehouse_id");
-
-                    b.Property<DateOnly>("ScheduledDate")
-                        .HasColumnType("date")
-                        .HasColumnName("scheduled_date");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("status");
-
-                    b.HasKey("ConferenceId")
-                        .HasName("case_conferences_pkey");
-
-                    b.HasIndex("SafehouseId")
-                        .HasDatabaseName("case_conferences_safehouse_id_idx");
-
-                    b.HasIndex("ScheduledDate")
-                        .HasDatabaseName("case_conferences_scheduled_date_idx");
-
-                    b.ToTable("case_conferences", (string)null);
-                });
-
-            modelBuilder.Entity("backend.Models.CaseConferenceResident", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("AddedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("added_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<int>("ConferenceId")
-                        .HasColumnType("integer")
-                        .HasColumnName("conference_id");
-
-                    b.Property<bool>("Discussed")
-                        .HasColumnType("boolean")
-                        .HasColumnName("discussed");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("text")
-                        .HasColumnName("notes");
-
-                    b.Property<int>("ResidentId")
-                        .HasColumnType("integer")
-                        .HasColumnName("resident_id");
-
-                    b.Property<string>("Source")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("source");
-
-                    b.HasKey("Id")
-                        .HasName("case_conference_residents_pkey");
-
-                    b.HasIndex("ResidentId");
-
-                    b.HasIndex("ConferenceId", "ResidentId")
-                        .IsUnique()
-                        .HasDatabaseName("case_conference_residents_unique");
-
-                    b.ToTable("case_conference_residents", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.Donation", b =>
@@ -2873,39 +2784,6 @@ namespace backend.Migrations
                     b.Navigation("StaffUser");
                 });
 
-            modelBuilder.Entity("backend.Models.CaseConference", b =>
-                {
-                    b.HasOne("backend.Models.Safehouse", "Safehouse")
-                        .WithMany()
-                        .HasForeignKey("SafehouseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("case_conferences_safehouse_id_fkey");
-
-                    b.Navigation("Safehouse");
-                });
-
-            modelBuilder.Entity("backend.Models.CaseConferenceResident", b =>
-                {
-                    b.HasOne("backend.Models.CaseConference", "Conference")
-                        .WithMany("Residents")
-                        .HasForeignKey("ConferenceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("case_conference_residents_conference_id_fkey");
-
-                    b.HasOne("backend.Models.Resident", "Resident")
-                        .WithMany()
-                        .HasForeignKey("ResidentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("case_conference_residents_resident_id_fkey");
-
-                    b.Navigation("Conference");
-
-                    b.Navigation("Resident");
-                });
-
             modelBuilder.Entity("backend.Models.Donation", b =>
                 {
                     b.HasOne("backend.Models.SocialMediaPost", "ReferralPost")
@@ -3215,11 +3093,6 @@ namespace backend.Migrations
                     b.Navigation("StaffTasks");
 
                     b.Navigation("UserSafehouses");
-                });
-
-            modelBuilder.Entity("backend.Models.CaseConference", b =>
-                {
-                    b.Navigation("Residents");
                 });
 
             modelBuilder.Entity("backend.Models.Donation", b =>

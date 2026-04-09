@@ -253,3 +253,115 @@ def predict_schedule_endpoint(req: PredictScheduleRequest):
     target = target.replace(hour=d["hour"], minute=0, second=0, microsecond=0)
 
     return {"scheduled_at": target.isoformat() + "Z"}
+
+
+# ── Newsletter Generation ──────────────────────────────────────────────────
+
+class GenerateNewsletterRequest(BaseModel):
+    year: int | None = None
+    month: int | None = None
+
+
+@app.post("/generate-newsletter")
+def generate_newsletter_endpoint(req: GenerateNewsletterRequest):
+    """Generate a monthly newsletter using GPT, aggregating data from the DB."""
+    from datetime import datetime
+    from ai_harness.llm import build_system_prompt
+    from ai_harness.config import OPENAI_API_KEY, OPENAI_MODEL
+    from openai import OpenAI
+
+    now = datetime.utcnow()
+    year = req.year or now.year
+    month = req.month or now.month
+
+    # Aggregate monthly data
+    posts = db.fetch_monthly_published_posts(year, month)
+    donations = db.fetch_monthly_donation_stats(year, month)
+    metrics = db.fetch_monthly_resident_metrics(year, month)
+    events = db.fetch_upcoming_events(days=30)
+    impact = db.fetch_impact_snapshot()
+    cta = db.fetch_cta_config()
+    voice = db.fetch_voice_guide()
+
+    # Build data context for GPT
+    month_name = datetime(year, month, 1).strftime("%B %Y")
+    data_context = f"Newsletter for: {month_name}\n\n"
+
+    if posts:
+        data_context += "TOP POSTS THIS MONTH:\n"
+        for p in posts[:3]:
+            data_context += f"- [{p.get('platform','?')}] {(p.get('content','')[:150])}\n"
+        data_context += "\n"
+
+    data_context += f"DONATION STATS:\n"
+    data_context += f"- Total raised: ${donations.get('total_amount', 0):,.2f}\n"
+    data_context += f"- Unique donors: {donations.get('donor_count', 0)}\n"
+    data_context += f"- Total donations: {donations.get('donation_count', 0)}\n\n"
+
+    if metrics:
+        data_context += f"SAFEHOUSE METRICS:\n"
+        data_context += f"- Active residents: {metrics.get('active_residents', 'N/A')}\n"
+        if metrics.get('avg_education_progress'):
+            data_context += f"- Avg education progress: {metrics['avg_education_progress']:.0f}%\n"
+        if metrics.get('avg_health_score'):
+            data_context += f"- Avg health score: {metrics['avg_health_score']:.1f}\n"
+        data_context += "\n"
+
+    if events:
+        data_context += "UPCOMING EVENTS:\n"
+        for e in events[:5]:
+            data_context += f"- {e.get('title','?')} ({e.get('event_type','')}) — {e.get('event_date','')}\n"
+        data_context += "\n"
+
+    if impact:
+        data_context += "IMPACT SNAPSHOT:\n"
+        for k, v in impact.items():
+            if k not in ('snapshot_date', 'is_published', 'public_impact_snapshot_id') and v is not None:
+                data_context += f"- {k.replace('_', ' ').title()}: {v}\n"
+        data_context += "\n"
+
+    if cta:
+        data_context += f"CURRENT CTA: {cta.get('title','')}\n"
+        data_context += f"- Goal: ${cta.get('goal_amount', 'N/A')} | Progress: ${cta.get('current_amount', 0)}\n"
+        data_context += f"- URL: {cta.get('url', '')}\n\n"
+
+    org_desc = voice.get("org_description", "Beacon of Hope — a safehouse for at-risk youth") if voice else "Beacon of Hope"
+    tone = voice.get("tone_description", "warm, hopeful, professional") if voice else "warm, hopeful, professional"
+
+    system_prompt = f"""You are a newsletter writer for {org_desc}.
+Tone: {tone}
+
+HARD RULES:
+- Never reference residents by name or any identifiable information.
+- Never use guilt-based language ("you could have done more", "children are suffering because of you").
+- Focus on hope, impact, and community.
+- Keep it concise — readers scan newsletters quickly."""
+
+    user_prompt = f"""{data_context}
+
+Generate a monthly newsletter email. Return valid JSON with exactly these fields:
+- "subject": A compelling email subject line (under 60 chars)
+- "html_content": Complete HTML email with inline CSS. Structure: hero section with month/year, impact numbers in a grid, highlights from the month, upcoming events if any, a donate CTA button, and a footer with {{{{unsubscribe_url}}}} placeholder.
+- "plain_text": Plain text version of the same content.
+
+Design guidelines:
+- Use inline CSS only (no <style> tags — email clients strip them).
+- Brand colors: primary #1a1a2e, accent #e94560, warm #f5f0e8.
+- Max width 600px, centered. Mobile-friendly with single-column layout.
+- The donate button should link to {{{{donate_url}}}}.
+- Include {{{{unsubscribe_url}}}} in the footer for the unsubscribe link."""
+
+    client = OpenAI(api_key=OPENAI_API_KEY)
+    resp = client.chat.completions.create(
+        model=OPENAI_MODEL,
+        temperature=0.7,
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+    )
+
+    import json
+    result = json.loads(resp.choices[0].message.content)
+    return result

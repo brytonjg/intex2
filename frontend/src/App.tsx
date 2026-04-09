@@ -103,6 +103,7 @@ const SocialPostsPage = lazyRetry(() => import('./pages/admin/social/SocialPosts
 const SocialPhotosPage = lazyRetry(() => import('./pages/admin/social/SocialPhotosPage'));
 const SocialSetupPage = lazyRetry(() => import('./pages/admin/social/SocialSetupPage'));
 const AdminDashboard = lazyRetry(() => import('./pages/AdminDashboard'));
+const AdminNewsletterPage = lazyRetry(() => import('./pages/admin/AdminNewsletterPage'));
 const DonorPortal = lazyRetry(() => import('./pages/DonorPortal'));
 const DonatePage = lazyRetry(() => import('./pages/DonatePage'));
 const DonateSuccessPage = lazyRetry(() => import('./pages/DonateSuccessPage'));
@@ -202,6 +203,7 @@ function App() {
               <Route path="social/posts" element={<SocialPostsPage />} />
               <Route path="social/photos" element={<SocialPhotosPage />} />
               <Route path="social/setup" element={<SocialSetupPage />} />
+              <Route path="newsletters" element={<AdminNewsletterPage />} />
             </Route>
 
             {/* 404 catch-all */}

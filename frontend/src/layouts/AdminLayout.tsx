@@ -19,6 +19,7 @@ import {
   Share2,
   CameraIcon,
   Settings,
+  Mail,
   ChevronDown,
   Check,
   CalendarDays,
@@ -99,10 +100,11 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    label: 'Social Media',
+    label: 'Donor Nurturing',
     items: [
-      { to: '/admin/social/posts', icon: Share2, label: 'Posts' },
+      { to: '/admin/social/posts', icon: Share2, label: 'Social Posts' },
       { to: '/admin/social/photos', icon: CameraIcon, label: 'Photos' },
+      { to: '/admin/newsletters', icon: Mail, label: 'Newsletter' },
       { to: '/admin/social/setup', icon: Settings, label: 'Setup' },
     ],
   },
