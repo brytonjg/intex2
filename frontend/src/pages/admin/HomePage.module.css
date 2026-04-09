@@ -120,19 +120,17 @@
 
 /* ── Calendar panel ──────────────────────────────── */
 .calendarPanel {
-  display: flex;
-  flex-direction: column;
   min-height: 0;
   overflow: hidden;
 }
 
-/* ── Sticky week header (day names + all-day row) ── */
-.weekHeader {
-  flex-shrink: 0;
-}
 
 /* ── All-day row ─────────────────────────────────── */
 .allDayLabel {
+  position: sticky;
+  top: 58px;
+  z-index: 2;
+  background: #fff;
   font-size: 0.58rem;
   font-weight: 600;
   color: var(--text-muted);
@@ -143,6 +141,10 @@
 }
 
 .allDayCell {
+  position: sticky;
+  top: 58px;
+  z-index: 2;
+  background: #fff;
   border-top: 1px solid rgba(15, 27, 45, 0.06);
   border-bottom: 1px solid rgba(15, 27, 45, 0.1);
   border-left: 1px solid rgba(15, 27, 45, 0.04);
@@ -206,26 +208,28 @@
 .eventCompleted { opacity: 0.5; text-decoration: line-through; }
 
 /* ── Week view (Google Calendar-style grid) ──────── */
-.weekScrollContainer {
-  flex: 1;
-  overflow-y: auto;
-  min-height: 0;
-}
-
 .weekGrid {
   display: grid;
   grid-template-columns: 52px repeat(7, 1fr);
   background: #fff;
   border: 1px solid rgba(15, 27, 45, 0.08);
   border-radius: 12px;
+  overflow-y: auto;
+  height: 100%;
 }
 
 .weekCorner {
+  position: sticky;
+  top: 0;
+  z-index: 3;
   background: #fff;
   border-bottom: 1px solid rgba(15, 27, 45, 0.06);
 }
 
 .weekColHeader {
+  position: sticky;
+  top: 0;
+  z-index: 3;
   background: #fff;
   border-bottom: 1px solid rgba(15, 27, 45, 0.06);
   border-left: 1px solid rgba(15, 27, 45, 0.04);
