@@ -13,6 +13,7 @@ public static class AuthEndpoints
         app.MapPost("/api/auth/login", async (
             SignInManager<ApplicationUser> signInManager,
             UserManager<ApplicationUser> userManager,
+            AppDbContext db,
             HttpContext httpContext) =>
         {
             var body = await httpContext.Request.ReadFromJsonAsync<LoginRequest>();
@@ -42,12 +43,18 @@ public static class AuthEndpoints
             }
 
             var roles = await userManager.GetRolesAsync(user);
+            var safehouses = await db.UserSafehouses
+                .Where(us => us.UserId == user.Id)
+                .Join(db.Safehouses, us => us.SafehouseId, s => s.SafehouseId,
+                    (us, s) => new { s.SafehouseId, s.SafehouseCode, s.Name })
+                .ToListAsync();
             return Results.Ok(new
             {
                 email = user.Email,
                 firstName = user.FirstName,
                 lastName = user.LastName,
-                roles
+                roles,
+                safehouses
             });
         });
 
