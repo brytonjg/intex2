@@ -380,9 +380,59 @@
   .allocGrid {
     grid-template-columns: 1fr;
   }
+
+  .summaryRow {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ── Allocations ─────────────────────────────────────── */
+
+.summaryRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.summaryCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: var(--surface-1);
+  border: 1px solid rgba(15, 27, 45, 0.08);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 1.1rem 1.25rem;
+}
+
+.summaryIconGreen { color: var(--color-sage); flex-shrink: 0; margin-top: 0.15rem; }
+.summaryIconBlue { color: #6366f1; flex-shrink: 0; margin-top: 0.15rem; }
+.summaryIconAmber { color: var(--color-amber-dark); flex-shrink: 0; margin-top: 0.15rem; }
+
+.summaryLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 0.15rem;
+}
+
+.summaryValue {
+  font-family: var(--font-body);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-strong);
+  letter-spacing: -0.02em;
+}
+
+.summaryMeta {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}
+
 .allocGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -395,5 +445,54 @@
   font-size: 1.1rem;
   font-weight: 500;
   color: var(--text-strong);
-  margin-bottom: 1rem;
+  margin: 0 0 1rem;
+}
+
+.allocFormCard {
+  background: var(--surface-1);
+  border: 1px solid rgba(15, 27, 45, 0.08);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 1.25rem;
+}
+
+.allocForm {
+  display: flex;
+  flex-direction: column;
+}
+
+.allocFormGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.allocField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.allocLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.allocInput {
+  padding: 0.5rem 0.7rem;
+  border: 1px solid rgba(15, 27, 45, 0.12);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-family: var(--font-body);
+  color: var(--text-strong);
+  background: #fff;
+  transition: border-color 0.15s;
+}
+
+.allocInput:focus {
+  outline: none;
+  border-color: var(--color-sage);
 }
