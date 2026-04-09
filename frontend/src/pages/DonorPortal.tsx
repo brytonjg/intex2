@@ -114,7 +114,7 @@ export default function DonorPortal() {
         <div className={styles.highlightCard}>
           <div className={styles.highlightIcon}><Users size={22} /></div>
           <div>
-            <span className={styles.highlightValue}>{donationCount > 0 ? Math.max(1, Math.floor(totalDonated / 5000)) : 0}</span>
+            <span className={styles.highlightValue}>{donationCount > 0 ? Math.max(1, Math.floor(totalDonated / 3000)) : 0}</span>
             <span className={styles.highlightLabel}>Lives directly impacted</span>
           </div>
         </div>
@@ -184,7 +184,7 @@ export default function DonorPortal() {
                   A survivor of trafficking entered our program withdrawn and fearful. Through counseling
                   and peer support, she's now mentoring younger residents and leading group sessions.
                 </p>
-                <span className={styles.storyMeta}>Active resident, Guam</span>
+                <span className={styles.storyMeta}>Safehouse resident, Guam</span>
               </div>
             </div>
             <p className={styles.privacyNote}>Names and identifying details are changed to protect privacy.</p>
@@ -259,7 +259,6 @@ export default function DonorPortal() {
                       <th>Date</th>
                       <th>Type</th>
                       <th>Amount</th>
-                      <th>Campaign</th>
                       <th>Recurring</th>
                     </tr>
                   </thead>
@@ -271,7 +270,6 @@ export default function DonorPortal() {
                         <td className={styles.amountCol}>
                           {d.amount ? formatAmount(d.amount) : d.estimatedValue ? `${formatAmount(d.estimatedValue)} est.` : '--'}
                         </td>
-                        <td>{d.campaignName ?? '--'}</td>
                         <td>{d.isRecurring ? 'Yes' : '--'}</td>
                       </tr>
                     ))}
