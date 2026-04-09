@@ -102,7 +102,7 @@ export default function ChatWidget() {
   const [currentNode, setCurrentNode] = useState('root');
   const navigate = useNavigate();
 
-  const handleOption = (opt: (typeof TREE.root.options)[0]) => {
+  const handleOption = (opt: { label: string; icon: React.ReactNode; next?: string; href?: string }) => {
     // Add user's choice as a message
     setMessages(prev => [...prev, { from: 'user', text: opt.label }]);
 
