@@ -288,6 +288,72 @@
   border-radius: 4px;
 }
 
+/* ── Case Conference Alert ───────────────────────── */
+.conferenceAlert {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+  padding: 0.65rem 1rem;
+  background: rgba(211, 84, 0, 0.06);
+  border: 1px solid rgba(211, 84, 0, 0.2);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.conferenceAlert > svg {
+  color: #d35400;
+  flex-shrink: 0;
+}
+
+.conferenceBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: auto;
+  padding: 0.4rem 0.85rem;
+  background: linear-gradient(120deg, var(--color-sage), #13a490);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.15s, filter 0.15s;
+}
+
+.conferenceBtn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+.conferenceBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+  transform: none;
+}
+
+.conferenceSuccess {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.65rem 1rem;
+  background: rgba(39, 174, 96, 0.06);
+  border: 1px solid rgba(39, 174, 96, 0.2);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.conferenceSuccess > svg {
+  color: #27ae60;
+  flex-shrink: 0;
+}
+
 /* ── Risk levels side by side ─────────────────────── */
 .riskPair {
   display: grid;

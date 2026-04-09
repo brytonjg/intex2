@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Edit, Trash2, Loader2, User, Shield, ClipboardList,
-  AlertTriangle, Activity, GraduationCap, Plus,
+  AlertTriangle, Activity, GraduationCap, Plus, Users,
   Calendar, Heart, FileText, Mic, Eye,
 } from 'lucide-react';
 import { apiFetch } from '../../api';
@@ -155,6 +155,10 @@ export default function ResidentDetailPage() {
   const [recordings, setRecordings] = useState<any[]>([]);
   const [visitations, setVisitations] = useState<any[]>([]);
 
+  // Case conference scheduling
+  const [schedulingConference, setSchedulingConference] = useState(false);
+  const [conferenceResult, setConferenceResult] = useState<{ date: string } | null>(null);
+
   // Right panel tab
   const [activeTab, setActiveTab] = useState<'profile' | 'records' | 'incidents' | 'plan'>('profile');
 
@@ -177,6 +181,31 @@ export default function ResidentDetailPage() {
     apiFetch<{ items: any[] }>(`/api/admin/recordings?residentId=${id}`).then(d => setRecordings(Array.isArray(d) ? d : d.items || [])).catch(() => {});
     apiFetch<{ items: any[] }>(`/api/admin/visitations?residentId=${id}`).then(d => setVisitations(Array.isArray(d) ? d : d.items || [])).catch(() => {});
   }, [id]);
+
+  const hasHighRisk = predictions.some(p =>
+    p.modelName.includes('incident-early-warning') &&
+    (p.scoreLabel === 'High' || p.scoreLabel === 'Critical')
+  );
+
+  async function scheduleConference() {
+    if (!resident?.safehouseId) return;
+    setSchedulingConference(true);
+    try {
+      const conf = await apiFetch<{ conferenceId: number; scheduledDate: string }>('/api/admin/case-conferences/ensure-next', {
+        method: 'POST',
+        body: JSON.stringify({ safehouseId: resident.safehouseId }),
+      });
+      await apiFetch(`/api/admin/case-conferences/${conf.conferenceId}/residents`, {
+        method: 'POST',
+        body: JSON.stringify({ residentIds: [resident.residentId], source: 'MlAlert' }),
+      });
+      setConferenceResult({ date: conf.scheduledDate });
+    } catch {
+      setConferenceResult(null);
+    } finally {
+      setSchedulingConference(false);
+    }
+  }
 
   // Build unified timeline from all record types
   const timeline = useMemo<TimelineEntry[]>(() => {
@@ -383,6 +412,22 @@ export default function ResidentDetailPage() {
                       </div>
                     );
                   })}
+                </div>
+              )}
+              {hasHighRisk && !conferenceResult && (
+                <div className={styles.conferenceAlert}>
+                  <AlertTriangle size={15} />
+                  <span>Elevated risk detected — consider scheduling a case conference.</span>
+                  <button className={styles.conferenceBtn} onClick={scheduleConference} disabled={schedulingConference}>
+                    {schedulingConference ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Users size={14} />}
+                    {schedulingConference ? 'Scheduling...' : 'Schedule Case Conference'}
+                  </button>
+                </div>
+              )}
+              {conferenceResult && (
+                <div className={styles.conferenceSuccess}>
+                  <Users size={15} />
+                  <span>Added to case conference on <strong>{formatDate(conferenceResult.date)}</strong></span>
                 </div>
               )}
             </div>
