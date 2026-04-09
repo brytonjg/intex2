@@ -1,6 +1,6 @@
 .page {
   padding: 2rem 2.5rem;
-  max-width: 1120px;
+  max-width: 1280px;
   background: transparent;
 }
 
@@ -274,6 +274,12 @@
 .statusLapsed {
   color: var(--color-rose);
   font-weight: 600;
+}
+
+.notesCol {
+  max-width: 200px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
 }
 
 .amountCol {

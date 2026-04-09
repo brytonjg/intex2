@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { apiFetch } from '../api';
 import type { ImpactSummary } from '../types';
 import { ApiError } from '../components/ApiError';
@@ -15,6 +15,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { useReveal } from '../hooks/useReveal';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import styles from './HomePage.module.css';
 
 /* ── Animated counter ──────────────────────────────────────── */
@@ -58,11 +59,14 @@ function Counter({ end, suffix = '', prefix = '' }: { end: number; suffix?: stri
 
 /* ── Home Page ─────────────────────────────────────────────── */
 export default function HomePage() {
+  useDocumentTitle('Home');
   const impactRef = useReveal();
   const missionRef = useReveal();
   const storyRef = useReveal();
   const involvedRef = useReveal();
   const donateRef = useReveal();
+
+  const location = useLocation();
 
   const [impact, setImpact] = useState<ImpactSummary | null>(null);
   const [error, setError] = useState(false);
@@ -72,6 +76,16 @@ export default function HomePage() {
       .then(setImpact)
       .catch((e) => { console.error('Failed to fetch impact summary', e); setError(true); });
   }, []);
+
+  // Handle hash anchor scrolling (e.g. /#mission, /#involved)
+  useEffect(() => {
+    if (location.hash) {
+      const el = document.querySelector(location.hash);
+      if (el) {
+        setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 100);
+      }
+    }
+  }, [location.hash]);
 
   return (
     <main>
@@ -240,21 +254,25 @@ export default function HomePage() {
               <Heart size={28} className={styles.involvedIcon} />
               <h3>Donate</h3>
               <p>Your financial support funds shelter, education, counseling, and care.</p>
+              <span className={styles.cardArrow}><ArrowRight size={16} /></span>
             </Link>
-            <Link to="/donate" className={`${styles.involvedCard} reveal`} style={{ textDecoration: 'none', color: 'inherit' }}>
+            <Link to="/volunteer" className={`${styles.involvedCard} reveal`} style={{ textDecoration: 'none', color: 'inherit' }}>
               <Users size={28} className={styles.involvedIcon} />
               <h3>Volunteer</h3>
               <p>Give your time and skills to help our team on the ground.</p>
+              <span className={styles.cardArrow}><ArrowRight size={16} /></span>
             </Link>
-            <Link to="/donate" className={`${styles.involvedCard} reveal`} style={{ textDecoration: 'none', color: 'inherit' }}>
+            <Link to="/partner" className={`${styles.involvedCard} reveal`} style={{ textDecoration: 'none', color: 'inherit' }}>
               <HandHeart size={28} className={styles.involvedIcon} />
               <h3>Partner</h3>
               <p>Bring your church, company, or community alongside our mission.</p>
+              <span className={styles.cardArrow}><ArrowRight size={16} /></span>
             </Link>
             <Link to="/newsletter" className={`${styles.involvedCard} reveal`} style={{ textDecoration: 'none', color: 'inherit' }}>
               <Megaphone size={28} className={styles.involvedIcon} />
               <h3>Advocate</h3>
-              <p>Amplify our voice on social media and raise awareness.</p>
+              <p>Stay informed and share our story.</p>
+              <span className={styles.cardArrow}><ArrowRight size={16} /></span>
             </Link>
           </div>
         </div>
@@ -267,15 +285,15 @@ export default function HomePage() {
           <div className={styles.donateAmounts}>
             <div className={styles.donateCard}>
               <span className={styles.donateAmount}>$500</span>
-              <span className={styles.donateDesc}>One week of education supplies</span>
+              <span className={styles.donateDesc}>Covers counseling and therapy for a survivor</span>
             </div>
             <div className={styles.donateCard}>
-              <span className={styles.donateAmount}>$2,000</span>
-              <span className={styles.donateDesc}>One month of counseling sessions</span>
+              <span className={styles.donateAmount}>$1,000</span>
+              <span className={styles.donateDesc}>Supports a child's full monthly care</span>
             </div>
             <div className={styles.donateCard}>
-              <span className={styles.donateAmount}>$8,000</span>
-              <span className={styles.donateDesc}>Full month of care for one girl</span>
+              <span className={styles.donateAmount}>$1,500</span>
+              <span className={styles.donateDesc}>Shelters and rehabilitates a child for a month</span>
             </div>
           </div>
           <Link to="/donate" className={styles.btnPrimary} style={{ marginTop: '1.5rem' }}>

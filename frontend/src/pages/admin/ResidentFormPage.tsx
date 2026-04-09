@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { apiFetch } from '../../api';
+import { APP_TODAY_STR } from '../../constants';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import styles from './ResidentFormPage.module.css';
 
 interface SafehouseOption {
@@ -67,7 +69,7 @@ interface FormData {
   notesRestricted: string;
 }
 
-const today = new Date().toISOString().slice(0, 10);
+const today = APP_TODAY_STR;
 
 const EMPTY_FORM: FormData = {
   caseControlNo: '', internalCode: '', safehouseId: '', caseStatus: 'Active',
@@ -146,6 +148,7 @@ function toPayload(form: FormData) {
 }
 
 export default function ResidentFormPage() {
+  useDocumentTitle('Resident Form');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isEdit = !!id;

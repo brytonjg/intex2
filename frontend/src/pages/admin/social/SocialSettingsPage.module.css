@@ -27,6 +27,13 @@
 .ratioField input { width: 60px; padding: 0.4rem; text-align: center; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.85rem; }
 .ratioField span { font-size: 0.8rem; color: var(--text-muted); }
 
+.tooltipWrap { position: relative; display: inline-flex; align-items: center; }
+.helpIcon { color: #9ca3af; cursor: help; flex-shrink: 0; }
+.helpIcon:hover { color: var(--color-sage); }
+.tooltip { display: none; position: absolute; left: 24px; top: 50%; transform: translateY(-50%); background: var(--color-deep-navy); color: #fff; padding: 0.6rem 0.8rem; border-radius: 8px; font-size: 0.75rem; line-height: 1.4; width: 260px; z-index: 10; box-shadow: var(--shadow-md); pointer-events: none; }
+.tooltip::before { content: ''; position: absolute; left: -6px; top: 50%; transform: translateY(-50%); border: 6px solid transparent; border-right-color: var(--color-deep-navy); border-left: none; }
+.tooltipWrap:hover .tooltip { display: block; }
+
 .loading { display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 3rem; color: var(--text-muted); }
 .error { color: #991b1b; text-align: center; padding: 3rem; }
 .errorMsg { padding: 0.6rem 1rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; color: #991b1b; font-size: 0.85rem; margin-bottom: 1rem; }

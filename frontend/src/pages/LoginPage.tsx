@@ -3,9 +3,11 @@ import type { FormEvent } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import styles from './LoginPage.module.css';
 
 export default function LoginPage() {
+  useDocumentTitle('Login');
   const { login, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -168,7 +170,7 @@ export default function LoginPage() {
 
           <div className={styles.footer}>
             <p className={styles.switchText}>
-              Want to support our mission? <Link to="/donate" className={styles.backLink}>Make a donation</Link>
+              Want to support our mission? <Link to="/donate" className={styles.donateLink}>Make a donation</Link>
             </p>
             <Link to="/" className={styles.backLink}>
               Back to homepage

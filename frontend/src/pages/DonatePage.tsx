@@ -1,17 +1,34 @@
 import { useState } from 'react';
 import { Heart } from 'lucide-react';
 import { apiFetch } from '../api';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import styles from './DonatePage.module.css';
 
-const PRESET_AMOUNTS = [500, 1000, 2500, 5000, 10000];
+const PRESET_AMOUNTS: { amount: number; impact: string }[] = [
+  { amount: 250, impact: 'Enough to provide school supplies and tutoring for a child' },
+  { amount: 500, impact: 'Enough to cover counseling and therapy for a survivor' },
+  { amount: 750, impact: 'Enough to fund medical care and wellness support' },
+  { amount: 1000, impact: "Enough to support a child's full monthly care" },
+  { amount: 1500, impact: 'Enough to shelter and rehabilitate a child for a month' },
+];
+
+const IMPACT_TIERS = [
+  { threshold: 100, label: 'Essential supplies', icon: '📦' },
+  { threshold: 250, label: 'School supplies & tutoring', icon: '📚' },
+  { threshold: 500, label: 'Counseling & therapy', icon: '💛' },
+  { threshold: 750, label: 'Medical care & wellness', icon: '🏥' },
+  { threshold: 1000, label: 'Full monthly care', icon: '🏠' },
+  { threshold: 1500, label: 'Shelter & rehabilitation', icon: '🌟' },
+];
 
 type Mode = 'one-time' | 'recurring';
 type Cadence = 'monthly' | 'quarterly' | 'yearly';
 
 export default function DonatePage() {
+  useDocumentTitle('Donate');
   const [mode, setMode] = useState<Mode>('one-time');
   const [cadence, setCadence] = useState<Cadence>('monthly');
-  const [selectedAmount, setSelectedAmount] = useState<number | null>(1000);
+  const [selectedAmount, setSelectedAmount] = useState<number | null>(500);
   const [customAmount, setCustomAmount] = useState('');
   const [donorEmail, setDonorEmail] = useState('');
   const [newsletter, setNewsletter] = useState(true);
@@ -24,7 +41,17 @@ export default function DonatePage() {
       ? selectedAmount * 100
       : 0;
 
+  const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(donorEmail);
+
   const handleSubmit = async () => {
+    if (!donorEmail.trim()) {
+      setError('Please enter your email address.');
+      return;
+    }
+    if (!isValidEmail) {
+      setError('Please enter a valid email address.');
+      return;
+    }
     if (amountCents < 100) {
       setError('Please enter an amount of at least $1.');
       return;
@@ -36,7 +63,7 @@ export default function DonatePage() {
         mode,
         cadence: mode === 'recurring' ? cadence : undefined,
         amountCents,
-        donorEmail: donorEmail || undefined,
+        donorEmail,
         newsletter,
       };
       const { url } = await apiFetch<{ url: string }>('/api/donate/create-checkout-session', {
@@ -59,10 +86,11 @@ export default function DonatePage() {
     <main className={styles.page}>
       <section className={styles.hero}>
         <div className={styles.heroInner}>
-          <h1 className={styles.title}>Make a Difference Today</h1>
+          <h1 className={styles.title}>Your Donation Will Change a Child's Life</h1>
           <p className={styles.subtitle}>
-            Your donation helps provide safe shelter, education, counseling, and a path to
-            reintegration for survivors of abuse and trafficking in Guam.
+            The holistic healing provided to children-survivors of abuse and trafficking
+            is only possible with your financial help. Every dollar goes directly toward
+            refuge, rehabilitation, and reintegration services.
           </p>
         </div>
       </section>
@@ -102,13 +130,14 @@ export default function DonatePage() {
 
           {/* Amount presets */}
           <div className={styles.amountGrid}>
-            {PRESET_AMOUNTS.map(amt => (
+            {PRESET_AMOUNTS.map(({ amount: amt, impact }) => (
               <button
                 key={amt}
                 className={`${styles.amountBtn} ${selectedAmount === amt && !customAmount ? styles.amountBtnActive : ''}`}
                 onClick={() => { setSelectedAmount(amt); setCustomAmount(''); }}
               >
-                ${amt.toLocaleString()}
+                <span className={styles.amountValue}>${amt.toLocaleString()}</span>
+                <span className={styles.amountImpact}>{impact}</span>
               </button>
             ))}
             <div className={styles.customAmountWrap}>
@@ -116,7 +145,7 @@ export default function DonatePage() {
               <input
                 type="number"
                 className={styles.customInput}
-                placeholder="Other"
+                placeholder="Other amount"
                 value={customAmount}
                 min="1"
                 onChange={e => {
@@ -127,9 +156,40 @@ export default function DonatePage() {
             </div>
           </div>
 
-          {/* Email (optional) */}
+          {/* Impact meter */}
+          {displayAmount > 0 && (
+            <div className={styles.impactMeter}>
+              <p className={styles.impactMeterTitle}>Your impact at ${displayAmount.toLocaleString()}</p>
+              <div className={styles.impactTiers}>
+                {IMPACT_TIERS.map((tier, i) => {
+                  const active = displayAmount >= tier.threshold;
+                  const isHighest = active && (i === IMPACT_TIERS.length - 1 || displayAmount < IMPACT_TIERS[i + 1].threshold);
+                  return (
+                    <div
+                      key={tier.threshold}
+                      className={`${styles.impactTier} ${active ? styles.impactTierActive : ''} ${isHighest ? styles.impactTierHighest : ''}`}
+                    >
+                      <span className={styles.tierIcon}>{tier.icon}</span>
+                      <div className={styles.tierContent}>
+                        <span className={styles.tierLabel}>{tier.label}</span>
+                        <span className={styles.tierThreshold}>${tier.threshold.toLocaleString()}+</span>
+                      </div>
+                      <div className={styles.tierBar}>
+                        <div
+                          className={styles.tierBarFill}
+                          style={{ width: active ? '100%' : `${Math.min(100, (displayAmount / tier.threshold) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Email (required) */}
           <div className={styles.fieldGroup}>
-            <label className={styles.label} htmlFor="donorEmail">Email (optional, for receipt)</label>
+            <label className={styles.label} htmlFor="donorEmail">Email address</label>
             <input
               id="donorEmail"
               type="email"
@@ -137,6 +197,7 @@ export default function DonatePage() {
               placeholder="you@example.com"
               value={donorEmail}
               onChange={e => setDonorEmail(e.target.value)}
+              required
             />
           </div>
 
@@ -172,7 +233,7 @@ export default function DonatePage() {
           <button
             className={styles.donateBtn}
             onClick={handleSubmit}
-            disabled={loading || amountCents < 100}
+            disabled={loading || amountCents < 100 || !isValidEmail}
           >
             {loading ? 'Redirecting to payment...' : (
               <>

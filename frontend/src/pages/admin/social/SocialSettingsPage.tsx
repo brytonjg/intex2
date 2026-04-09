@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Loader2, Save } from 'lucide-react';
+import { Loader2, Save, HelpCircle } from 'lucide-react';
 import { apiFetch } from '../../../api';
 import styles from './SocialSettingsPage.module.css';
 
@@ -97,26 +97,28 @@ export default function SocialSettingsPage() {
         </div>
         <div className={styles.field}>
           <label>Timezone</label>
-          <input type="text" value={settings.timezone || ''} onChange={e => update('timezone', e.target.value)} placeholder="Asia/Manila" />
-        </div>
-      </section>
-
-      <section className={styles.section}>
-        <h2>Notifications</h2>
-        <div className={styles.field}>
-          <label>Method</label>
-          <select value={settings.notificationMethod || 'in_app'} onChange={e => update('notificationMethod', e.target.value)}>
-            <option value="in_app">In-app only</option>
-            <option value="email">Email only</option>
-            <option value="both">Both</option>
+          <select value={settings.timezone || ''} onChange={e => update('timezone', e.target.value)}>
+            <option value="">Select timezone...</option>
+            <option value="Pacific/Honolulu">Hawaii (UTC-10)</option>
+            <option value="America/Anchorage">Alaska (UTC-9)</option>
+            <option value="America/Los_Angeles">Pacific (UTC-8)</option>
+            <option value="America/Denver">Mountain (UTC-7)</option>
+            <option value="America/Chicago">Central (UTC-6)</option>
+            <option value="America/New_York">Eastern (UTC-5)</option>
+            <option value="America/Sao_Paulo">Brasilia (UTC-3)</option>
+            <option value="Europe/London">London (UTC+0)</option>
+            <option value="Europe/Paris">Central Europe (UTC+1)</option>
+            <option value="Europe/Helsinki">Eastern Europe (UTC+2)</option>
+            <option value="Asia/Dubai">Dubai (UTC+4)</option>
+            <option value="Asia/Kolkata">India (UTC+5:30)</option>
+            <option value="Asia/Bangkok">Bangkok (UTC+7)</option>
+            <option value="Asia/Manila">Manila (UTC+8)</option>
+            <option value="Asia/Shanghai">China (UTC+8)</option>
+            <option value="Asia/Tokyo">Tokyo (UTC+9)</option>
+            <option value="Australia/Sydney">Sydney (UTC+11)</option>
+            <option value="Pacific/Auckland">Auckland (UTC+12)</option>
           </select>
         </div>
-        {(settings.notificationMethod === 'email' || settings.notificationMethod === 'both') && (
-          <div className={styles.field}>
-            <label>Email address</label>
-            <input type="email" value={settings.notificationEmail || ''} onChange={e => update('notificationEmail', e.target.value)} />
-          </div>
-        )}
       </section>
 
       <section className={styles.section}>
@@ -131,14 +133,18 @@ export default function SocialSettingsPage() {
         <h2>Pillar Distribution <span className={styles.aiTag}>AI-managed</span></h2>
         <p className={styles.hint}>The AI adjusts these over time based on engagement data. Override here if needed.</p>
         {([
-          ['pillarRatioSafehouseLife', 'Safehouse Life'],
-          ['pillarRatioTheProblem', 'The Problem'],
-          ['pillarRatioTheSolution', 'The Solution'],
-          ['pillarRatioDonorImpact', 'Donor Impact'],
-          ['pillarRatioCallToAction', 'Call to Action'],
-        ] as [keyof Settings, string][]).map(([key, label]) => (
+          ['pillarRatioSafehouseLife', 'Safehouse Life', 'Photos and stories from daily life at the safehouses — art therapy, meals, celebrations. The warm, human content that builds emotional connection with followers.'],
+          ['pillarRatioTheProblem', 'The Problem', 'Educational content about trafficking, abuse statistics, and the conditions these girls face. Raises awareness and motivates new donors to care.'],
+          ['pillarRatioTheSolution', 'The Solution', 'What the organization does differently — the safehouse model, counseling, education, health services. Builds credibility and shows competence.'],
+          ['pillarRatioDonorImpact', 'Donor Impact', 'Shows supporters what their money does — safehouses funded, meals served, programs running. Retains existing donors by connecting dollars to operations.'],
+          ['pillarRatioCallToAction', 'Call to Action', 'Direct fundraising asks, volunteer recruitment, event promotions. Kept low so followers don\'t feel sold to, but essential for conversion.'],
+        ] as [keyof Settings, string, string][]).map(([key, label, tooltip]) => (
           <div key={key} className={styles.ratioField}>
             <label>{label}</label>
+            <span className={styles.tooltipWrap}>
+              <HelpCircle size={14} className={styles.helpIcon} />
+              <span className={styles.tooltip}>{tooltip}</span>
+            </span>
             <input type="number" min={0} max={100} value={settings[key] as number} onChange={e => update(key, parseInt(e.target.value) || 0)} />
             <span>%</span>
           </div>

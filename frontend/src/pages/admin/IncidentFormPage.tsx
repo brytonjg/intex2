@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { apiFetch } from '../../api';
+import { APP_TODAY_STR } from '../../constants';
 import { INCIDENT_TYPES, SEVERITY_LEVELS } from '../../domain';
 import { useSafehouse } from '../../contexts/SafehouseContext';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import styles from './VisitationFormPage.module.css';
 
 interface ResidentOption {
@@ -28,7 +30,7 @@ interface FormData {
 const emptyForm: FormData = {
   residentId: '',
   safehouseId: '',
-  incidentDate: new Date().toISOString().split('T')[0],
+  incidentDate: APP_TODAY_STR,
   incidentType: '',
   severity: 'Medium',
   description: '',
@@ -40,6 +42,7 @@ const emptyForm: FormData = {
 };
 
 export default function IncidentFormPage() {
+  useDocumentTitle('Incident Form');
   const { id } = useParams();
   const navigate = useNavigate();
   const isEdit = !!id;

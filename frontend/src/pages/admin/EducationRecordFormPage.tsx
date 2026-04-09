@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { apiFetch } from '../../api';
+import { APP_TODAY_STR } from '../../constants';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import styles from './VisitationFormPage.module.css';
 
 interface FormData {
@@ -18,7 +20,7 @@ interface FormData {
 
 const emptyForm: FormData = {
   residentId: '',
-  recordDate: new Date().toISOString().split('T')[0],
+  recordDate: APP_TODAY_STR,
   educationLevel: '',
   attendanceRate: '',
   progressPercent: '',
@@ -29,6 +31,7 @@ const emptyForm: FormData = {
 };
 
 export default function EducationRecordFormPage() {
+  useDocumentTitle('Education Record');
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const residentId = params.get('residentId');
