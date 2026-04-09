@@ -145,6 +145,11 @@ public static class SeedEndpoints
 
             // Build a per-staff-user → resident list lookup
             var staffResidents = new Dictionary<string, List<(int residentId, string code, int shId)>>();
+
+            // Include admin so they see realistic data when logged in
+            if (adminUser != null) staffUserIds["ADMIN"] = adminUser.Id;
+            if (staffUser != null) staffUserIds["STAFF"] = staffUser.Id;
+
             foreach (var r in activeResidents)
             {
                 var sw = r.AssignedSocialWorker ?? "SW-01";
@@ -153,6 +158,16 @@ public static class SeedEndpoints
                 if (!staffResidents.ContainsKey(uid)) staffResidents[uid] = new();
                 staffResidents[uid].Add((r.ResidentId, r.InternalCode ?? $"R-{r.ResidentId}", r.SafehouseId ?? 1));
             }
+
+            // Give admin and staff@beaconofhope.org a slice of residents from safehouse 1
+            var sh1Residents = activeResidents
+                .Where(r => r.SafehouseId == 1)
+                .Select(r => (r.ResidentId, r.InternalCode ?? $"R-{r.ResidentId}", r.SafehouseId ?? 1))
+                .Take(8).ToList();
+            if (adminUser != null && sh1Residents.Count > 0)
+                staffResidents[adminUser.Id] = sh1Residents;
+            if (staffUser != null && sh1Residents.Count > 0)
+                staffResidents[staffUser.Id] = sh1Residents;
 
             // Past 4 weeks: Jan 19 – Feb 15 (weekdays only)
             for (var d = today.AddDays(-28); d < today; d = d.AddDays(1))
@@ -547,6 +562,65 @@ public static class SeedEndpoints
             }
             await db.SaveChangesAsync();
             results.Add($"Created {taskCount - pendingStart} pending tasks");
+
+            // ── 6b. Create pending tasks for admin/staff accounts ──
+            foreach (var accountId in new[] { adminUser?.Id, staffUser?.Id })
+            {
+                if (accountId == null || !staffResidents.ContainsKey(accountId)) continue;
+                foreach (var res in staffResidents[accountId])
+                {
+                    var rSeed = res.residentId + 99;
+                    if ((rSeed * 7) % 10 < 6)
+                    {
+                        var lastDoc = today.AddDays(-random.Next(28, 50));
+                        db.StaffTasks.Add(new StaffTask
+                        {
+                            StaffUserId = accountId, ResidentId = res.residentId, SafehouseId = res.shId,
+                            TaskType = "ScheduleDoctor", Title = "Schedule Doctor Appointment",
+                            Description = $"Monthly medical checkup — last visit {lastDoc:MMM d}",
+                            ContextJson = $"{{\"lastVisit\": \"{lastDoc:yyyy-MM-dd}\", \"type\": \"Doctor\"}}",
+                            Status = "Pending", CreatedAt = todayDt.AddDays(-random.Next(0, 4))
+                        });
+                        taskCount++;
+                    }
+                    if ((rSeed * 13) % 10 < 4)
+                    {
+                        db.StaffTasks.Add(new StaffTask
+                        {
+                            StaffUserId = accountId, ResidentId = res.residentId, SafehouseId = res.shId,
+                            TaskType = "UpdateEducation", Title = "Update Education Records",
+                            Description = "Monthly education progress update",
+                            Status = "Pending", CreatedAt = todayDt.AddDays(-random.Next(0, 6))
+                        });
+                        taskCount++;
+                    }
+                    if ((rSeed * 11) % 100 < 20)
+                    {
+                        db.StaffTasks.Add(new StaffTask
+                        {
+                            StaffUserId = accountId, ResidentId = res.residentId, SafehouseId = res.shId,
+                            TaskType = "ScheduleHomeVisit", Title = "Schedule Home Visit",
+                            Description = "Routine follow-up home visit due",
+                            Status = "Pending", CreatedAt = todayDt.AddDays(-random.Next(0, 4))
+                        });
+                        taskCount++;
+                    }
+                    if ((rSeed * 17) % 100 < 15)
+                    {
+                        db.StaffTasks.Add(new StaffTask
+                        {
+                            StaffUserId = accountId, ResidentId = res.residentId, SafehouseId = res.shId,
+                            TaskType = "IncidentFollowUp", Title = "Incident Follow-Up",
+                            Description = $"Behavioral incident ({(random.Next(2) == 0 ? "Medium" : "Low")}) — review and determine next steps",
+                            SourceEntityType = "IncidentReport",
+                            Status = "Pending", CreatedAt = todayDt.AddDays(-random.Next(0, 3))
+                        });
+                        taskCount++;
+                    }
+                }
+            }
+            await db.SaveChangesAsync();
+            results.Add($"Admin/staff pending tasks added");
 
             // ── 7. Clear social worker from a few residents to make unclaimed queue ──
             var unclaimedCount = await db.Residents.CountAsync(r =>
