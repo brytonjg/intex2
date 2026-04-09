@@ -433,11 +433,38 @@ export default function HomePage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [selectedEvent]);
 
+  function getEventDuration(evt: CalendarEventItem): number {
+    if (!evt.startTime || !evt.endTime) return 60; // default 1 hour
+    const [sh, sm] = evt.startTime.split(':').map(Number);
+    const [eh, em] = evt.endTime.split(':').map(Number);
+    return Math.max((eh * 60 + em) - (sh * 60 + sm), 15);
+  }
+
+  function getEventMinuteOffset(evt: CalendarEventItem): number {
+    if (!evt.startTime) return 0;
+    const [, m] = evt.startTime.split(':').map(Number);
+    return m;
+  }
+
   function renderEventChip(evt: CalendarEventItem) {
+    const duration = getEventDuration(evt);
+    const minuteOffset = getEventMinuteOffset(evt);
+    const heightPx = (duration / 60) * 60; // 60px per hour
+    const topPx = (minuteOffset / 60) * 60;
+
     return (
       <div
         key={evt.calendarEventId}
         className={`${getEventStyle(evt.eventType, evt.status)} ${dragEventId === evt.calendarEventId ? styles.eventDragging : ''}`}
+        style={{
+          position: 'absolute',
+          top: `${topPx}px`,
+          left: '1px',
+          right: '1px',
+          height: `${heightPx}px`,
+          minHeight: '18px',
+          zIndex: 1,
+        }}
         onClick={e => handleEventClick(evt, e)}
         draggable
         onDragStart={e => { e.stopPropagation(); dragOffsetY.current = e.clientY - (e.currentTarget as HTMLElement).getBoundingClientRect().top; setDragEventId(evt.calendarEventId); }}
@@ -445,7 +472,7 @@ export default function HomePage() {
       >
         <span>{evt.title}</span>
         {evt.residentCode && <span>({evt.residentCode})</span>}
-        {evt.startTime && <span>{evt.startTime}</span>}
+        {evt.startTime && <span>{evt.startTime}{evt.endTime ? `–${evt.endTime}` : ''}</span>}
       </div>
     );
   }
