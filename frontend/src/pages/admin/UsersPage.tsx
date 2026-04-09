@@ -4,6 +4,7 @@ import { apiFetch } from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
 import DeleteConfirmDialog from '../../components/admin/DeleteConfirmDialog';
 import Dropdown from '../../components/admin/Dropdown';
+import Checkbox from '../../components/admin/Checkbox';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import styles from './UsersPage.module.css';
 
@@ -263,17 +264,15 @@ export default function UsersPage() {
                 <label className={styles.label}>Assigned Safehouses</label>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.35rem' }}>
                   {allSafehouses.map(s => (
-                    <label key={s.safehouseId} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85rem', cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        checked={formSafehouses.includes(s.safehouseId)}
-                        onChange={e => {
-                          if (e.target.checked) setFormSafehouses(prev => [...prev, s.safehouseId]);
-                          else setFormSafehouses(prev => prev.filter(id => id !== s.safehouseId));
-                        }}
-                      />
-                      {s.safehouseCode} - {s.name}
-                    </label>
+                    <Checkbox
+                      key={s.safehouseId}
+                      checked={formSafehouses.includes(s.safehouseId)}
+                      label={`${s.safehouseCode} - ${s.name}`}
+                      onChange={checked => {
+                        if (checked) setFormSafehouses(prev => [...prev, s.safehouseId]);
+                        else setFormSafehouses(prev => prev.filter(id => id !== s.safehouseId));
+                      }}
+                    />
                   ))}
                 </div>
               </div>
@@ -404,17 +403,15 @@ export default function UsersPage() {
                   <label className={styles.label}>Assigned Safehouses</label>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.35rem' }}>
                     {allSafehouses.map(s => (
-                      <label key={s.safehouseId} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85rem', cursor: 'pointer' }}>
-                        <input
-                          type="checkbox"
-                          checked={editSafehouses.includes(s.safehouseId)}
-                          onChange={e => {
-                            if (e.target.checked) setEditSafehouses(prev => [...prev, s.safehouseId]);
-                            else setEditSafehouses(prev => prev.filter(id => id !== s.safehouseId));
-                          }}
-                        />
-                        {s.safehouseCode} - {s.name}
-                      </label>
+                      <Checkbox
+                        key={s.safehouseId}
+                        checked={editSafehouses.includes(s.safehouseId)}
+                        label={`${s.safehouseCode} - ${s.name}`}
+                        onChange={checked => {
+                          if (checked) setEditSafehouses(prev => [...prev, s.safehouseId]);
+                          else setEditSafehouses(prev => prev.filter(id => id !== s.safehouseId));
+                        }}
+                      />
                     ))}
                   </div>
                 </div>
