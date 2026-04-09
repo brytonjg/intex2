@@ -2742,6 +2742,22 @@ app.MapPost("/api/admin/social/hashtag-sets", async (HttpContext ctx, AppDbConte
     return Results.Created($"/api/admin/social/hashtag-sets/{set.HashtagSetId}", set);
 }).RequireAuthorization(p => p.RequireRole("Admin"));
 
+app.MapPut("/api/admin/social/hashtag-sets/{id}", async (int id, HttpContext ctx, AppDbContext db) =>
+{
+    var set = await db.HashtagSets.FindAsync(id);
+    if (set == null) return Results.NotFound();
+    var body = await ctx.Request.ReadFromJsonAsync<JsonElement>();
+    if (body.ValueKind == JsonValueKind.Undefined) return Results.BadRequest();
+    if (body.TryGetProperty("name", out var n)) set.Name = n.GetString();
+    if (body.TryGetProperty("category", out var c)) set.Category = c.GetString();
+    if (body.TryGetProperty("pillar", out var p)) set.Pillar = p.GetString();
+    if (body.TryGetProperty("platform", out var pl)) set.Platform = pl.GetString();
+    if (body.TryGetProperty("hashtags", out var h)) set.Hashtags = h.GetString();
+    set.UpdatedAt = DateTime.UtcNow;
+    await db.SaveChangesAsync();
+    return Results.Ok(set);
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
 app.MapDelete("/api/admin/social/hashtag-sets/{id}", async (int id, AppDbContext db) =>
 {
     var set = await db.HashtagSets.FindAsync(id);
@@ -2983,6 +2999,21 @@ app.MapPost("/api/admin/social/graphic-templates", async (HttpContext ctx, AppDb
     db.GraphicTemplates.Add(template);
     await db.SaveChangesAsync();
     return Results.Created($"/api/admin/social/graphic-templates/{template.GraphicTemplateId}", template);
+}).RequireAuthorization(p => p.RequireRole("Admin"));
+
+app.MapPut("/api/admin/social/graphic-templates/{id}", async (int id, HttpContext ctx, AppDbContext db) =>
+{
+    var template = await db.GraphicTemplates.FindAsync(id);
+    if (template == null) return Results.NotFound();
+    var body = await ctx.Request.ReadFromJsonAsync<JsonElement>();
+    if (body.ValueKind == JsonValueKind.Undefined) return Results.BadRequest();
+    if (body.TryGetProperty("name", out var n)) template.Name = n.GetString();
+    if (body.TryGetProperty("filePath", out var fp)) template.FilePath = fp.GetString();
+    if (body.TryGetProperty("textColor", out var tc)) template.TextColor = tc.GetString();
+    if (body.TryGetProperty("textPosition", out var tp)) template.TextPosition = tp.GetString();
+    if (body.TryGetProperty("suitableFor", out var sf)) template.SuitableFor = sf.GetString();
+    await db.SaveChangesAsync();
+    return Results.Ok(template);
 }).RequireAuthorization(p => p.RequireRole("Admin"));
 
 app.MapDelete("/api/admin/social/graphic-templates/{id}", async (int id, AppDbContext db) =>

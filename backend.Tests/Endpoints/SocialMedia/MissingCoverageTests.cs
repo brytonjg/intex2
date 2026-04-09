@@ -137,26 +137,7 @@ public class MissingCoverageTests : IClassFixture<TestWebApplicationFactory>
 
     // ── Hashtag Set Update ─────────────────────────────────────
 
-    [Fact]
-    public async Task UpdateHashtagSet_NotImplemented_Returns405()
-    {
-        // We only have create and delete for hashtag sets, not update.
-        // If someone tries PUT, it should 404/405.
-        var client = await AuthHelper.GetAdminClientAsync(_factory);
-        var create = await client.PostAsJsonAsync("/api/admin/social/hashtag-sets", new
-        {
-            name = "Update test",
-            category = "cause",
-            platform = "all",
-            hashtags = "[\"#test\"]"
-        });
-        var created = await create.Content.ReadFromJsonAsync<JsonElement>();
-        var id = created.GetProperty("hashtagSetId").GetInt32();
-
-        // PUT doesn't exist, should get 404 or 405
-        var resp = await client.PutAsJsonAsync($"/api/admin/social/hashtag-sets/{id}", new { name = "Updated" });
-        resp.StatusCode.Should().BeOneOf(HttpStatusCode.NotFound, HttpStatusCode.MethodNotAllowed);
-    }
+    // UpdateHashtagSet test moved to FinalCoverageTests now that the endpoint exists
 
     // ── Fact Candidate by ID ───────────────────────────────────
 
