@@ -268,7 +268,7 @@ function formatContextLabel(key: string): string {
 /* ── Component ───────────────────────────────────── */
 
 export default function HomePage() {
-  useDocumentTitle('Home');
+  useDocumentTitle('Calendar & To-Do');
   const navigate = useNavigate();
   const { activeSafehouseId, safehouses } = useSafehouse();
 
@@ -729,7 +729,7 @@ export default function HomePage() {
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.headerLeft}>
-          <h1>Home</h1>
+          <h1>Calendar & To-Do</h1>
           <p>{fmtWeekRange(currentDate)}</p>
         </div>
         <div className={styles.headerActions}>
