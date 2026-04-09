@@ -279,15 +279,15 @@ export default function HomePage() {
           <div className={styles.donateAmounts}>
             <div className={styles.donateCard}>
               <span className={styles.donateAmount}>$500</span>
-              <span className={styles.donateDesc}>One week of education supplies</span>
+              <span className={styles.donateDesc}>Covers counseling and therapy for a survivor</span>
             </div>
             <div className={styles.donateCard}>
-              <span className={styles.donateAmount}>$2,000</span>
-              <span className={styles.donateDesc}>One month of counseling sessions</span>
+              <span className={styles.donateAmount}>$1,000</span>
+              <span className={styles.donateDesc}>Supports a child's full monthly care</span>
             </div>
             <div className={styles.donateCard}>
-              <span className={styles.donateAmount}>$8,000</span>
-              <span className={styles.donateDesc}>Full month of care for one girl</span>
+              <span className={styles.donateAmount}>$1,500</span>
+              <span className={styles.donateDesc}>Shelters and rehabilitates a child for a month</span>
             </div>
           </div>
           <Link to="/donate" className={styles.btnPrimary} style={{ marginTop: '1.5rem' }}>
