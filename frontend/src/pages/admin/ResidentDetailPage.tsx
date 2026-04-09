@@ -191,10 +191,11 @@ export default function ResidentDetailPage() {
       items.push({ type: 'incident', date: i.incidentDate, title: `${i.incidentType || 'Incident'} — ${i.severity}`, detail: i.resolved ? 'Resolved' : 'Open', id: i.incidentId, route: `/admin/incidents/${i.incidentId}` });
     }
     for (const e of educationRecords.slice(0, 10)) {
-      items.push({ type: 'education', date: e.recordDate, title: `Education — ${e.educationLevel || 'Update'}`, detail: e.attendanceRate != null ? `${Math.round(e.attendanceRate * 100)}% attendance` : undefined });
+      items.push({ type: 'education', date: e.recordDate, title: `Education — ${e.educationLevel || 'Update'}`, detail: e.attendanceRate != null ? `${Math.round(e.attendanceRate * 100)}% attendance` : undefined, id: e.educationRecordId, route: `/admin/caseload/${id}/education/${e.educationRecordId}` });
     }
     for (const h of healthRecords.slice(0, 10)) {
-      items.push({ type: 'health', date: h.recordDate, title: 'Health Check', detail: h.generalHealthScore != null ? `Health: ${h.generalHealthScore}/5` : undefined });
+      const score = h.generalHealthScore != null ? parseFloat(Number(h.generalHealthScore).toFixed(1)) : null;
+      items.push({ type: 'health', date: h.recordDate, title: 'Health Check', detail: score != null ? `Health: ${score}/5` : undefined, id: h.healthRecordId, route: `/admin/caseload/${id}/health/${h.healthRecordId}` });
     }
     items.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     return items.slice(0, 15);
@@ -520,7 +521,7 @@ export default function ResidentDetailPage() {
                   <p className={styles.noData}>No education records.</p>
                 ) : (
                   educationRecords.slice(0, 5).map((r: any) => (
-                    <div key={r.educationRecordId} className={styles.recordRow}>
+                    <div key={r.educationRecordId} className={`${styles.recordRow} ${styles.recordClickable}`} onClick={() => navigate(`/admin/caseload/${id}/education/${r.educationRecordId}`)}>
                       <span className={styles.recordDate}>{r.recordDate || '-'}</span>
                       <span>{r.educationLevel || '-'}</span>
                       <span style={{ marginLeft: 'auto', color: 'var(--text-muted)' }}>{r.attendanceRate != null ? `${Math.round(r.attendanceRate * 100)}%` : '-'}</span>
@@ -536,10 +537,10 @@ export default function ResidentDetailPage() {
                   <p className={styles.noData}>No health records.</p>
                 ) : (
                   healthRecords.slice(0, 5).map((r: any) => (
-                    <div key={r.healthRecordId} className={styles.recordRow}>
+                    <div key={r.healthRecordId} className={`${styles.recordRow} ${styles.recordClickable}`} onClick={() => navigate(`/admin/caseload/${id}/health/${r.healthRecordId}`)}>
                       <span className={styles.recordDate}>{r.recordDate || '-'}</span>
-                      <span>Health: {r.generalHealthScore ?? '-'}/5</span>
-                      <span style={{ marginLeft: 'auto', color: 'var(--text-muted)' }}>BMI: {r.bmi ?? '-'}</span>
+                      <span>Health: {r.generalHealthScore != null ? parseFloat(Number(r.generalHealthScore).toFixed(1)) : '-'}/5</span>
+                      <span style={{ marginLeft: 'auto', color: 'var(--text-muted)' }}>BMI: {r.bmi != null ? parseFloat(Number(r.bmi).toFixed(1)) : '-'}</span>
                     </div>
                   ))
                 )}
