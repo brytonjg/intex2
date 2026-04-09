@@ -677,7 +677,15 @@ export default function HomePage() {
                     key={task.staffTaskId}
                     className={isDragging ? styles.taskCardDragging : styles.taskCard}
                     draggable
-                    onDragStart={() => handleDragStart(task.staffTaskId)}
+                    onDragStart={e => {
+                      // Create a small drag image so it looks like collapsing to a line
+                      const ghost = document.createElement('div');
+                      ghost.style.cssText = 'width:120px;height:2px;background:var(--color-sage,#0f8f7d);border-radius:1px;position:absolute;top:-9999px;';
+                      document.body.appendChild(ghost);
+                      e.dataTransfer.setDragImage(ghost, 60, 1);
+                      setTimeout(() => document.body.removeChild(ghost), 0);
+                      handleDragStart(task.staffTaskId);
+                    }}
                     onDragEnd={handleDragEnd}
                   >
                     {getTaskIcon(task.taskType)}
