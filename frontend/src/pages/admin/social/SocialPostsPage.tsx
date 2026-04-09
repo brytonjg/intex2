@@ -71,6 +71,9 @@ export default function SocialPostsPage() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
+  function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(null), 2500); }
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editContent, setEditContent] = useState('');
   const [editMediaId, setEditMediaId] = useState<number | null>(null);
@@ -131,6 +134,7 @@ export default function SocialPostsPage() {
     setEditContent('');
     setEditMediaId(null);
     setEditMediaThumb(null);
+    showToast('Post approved and scheduled');
     fetchAll();
   }
 
@@ -143,6 +147,7 @@ export default function SocialPostsPage() {
     setEditContent('');
     setEditMediaId(null);
     setEditMediaThumb(null);
+    showToast('Draft saved');
     fetchAll();
   }
 
@@ -151,31 +156,44 @@ export default function SocialPostsPage() {
     await apiFetch(`/api/admin/social/posts/${id}`, { method: 'PUT', body: JSON.stringify({ content: calEditContent }) });
     setCalEditing(false);
     setSelectedPost(null);
+    showToast('Post updated');
     fetchAll();
   }
 
   async function handleReject(id: number) {
-    const reason = prompt('Why are you rejecting this post? (optional)');
-    await apiFetch(`/api/admin/social/posts/${id}/reject`, { method: 'PATCH', body: JSON.stringify({ rejectionReason: reason || '' }) });
+    if (!confirm('Reject this post? It will be removed from the queue.')) return;
+    await apiFetch(`/api/admin/social/posts/${id}/reject`, { method: 'PATCH', body: JSON.stringify({ rejectionReason: '' }) });
+    showToast('Post rejected');
     fetchAll();
   }
 
   async function handleSnooze(id: number) {
     const hours = prompt('Snooze for how many hours?', '4');
     if (!hours) return;
-    await apiFetch(`/api/admin/social/posts/${id}/snooze`, { method: 'PATCH', body: JSON.stringify({ snoozedUntil: new Date(Date.now() + parseInt(hours) * 3600000).toISOString() }) });
+    const parsed = parseInt(hours);
+    if (isNaN(parsed) || parsed < 1 || parsed > 168) { setError('Enter a number between 1 and 168 hours.'); return; }
+    await apiFetch(`/api/admin/social/posts/${id}/snooze`, { method: 'PATCH', body: JSON.stringify({ snoozedUntil: new Date(Date.now() + parsed * 3600000).toISOString() }) });
+    showToast(`Snoozed for ${parsed} hours`);
     fetchAll();
   }
 
   async function handlePublish(id: number) {
+    if (!confirm('Mark this post as published?')) return;
     await apiFetch(`/api/admin/social/posts/${id}/publish`, { method: 'PATCH', body: '{}' });
+    showToast('Post marked as published');
     fetchAll();
+  }
+
+  async function handleCopy(content: string) {
+    await navigator.clipboard.writeText(content);
+    showToast('Copied to clipboard');
   }
 
   async function handleLogEngagement(id: number) {
     await apiFetch(`/api/admin/social/posts/${id}/engagement`, { method: 'PATCH', body: JSON.stringify({ engagementLikes: engagement.likes, engagementShares: engagement.shares, engagementComments: engagement.comments, engagementDonations: engagement.donations }) });
     setEngagementId(null);
     setEngagement({ likes: 0, shares: 0, comments: 0, donations: 0 });
+    showToast('Engagement data saved');
     fetchAll();
   }
 
@@ -185,6 +203,7 @@ export default function SocialPostsPage() {
     try {
       const result = await apiFetch<{ generated: number }>('/api/admin/social/generate', { method: 'POST', body: JSON.stringify({ maxPosts: 4 }) });
       if (result.generated === 0) setError('No posts generated. Try adding more photos or facts first.');
+      else showToast(`${result.generated} post${result.generated !== 1 ? 's' : ''} generated`);
       fetchAll();
     } catch {
       setError('Generation failed. Is the AI harness running?');
@@ -249,9 +268,9 @@ export default function SocialPostsPage() {
                   <>
                     <div className={styles.editPhotoWrap}>
                       {editMediaThumb ? (
-                        <img src={`${getApiUrl()}${editMediaThumb}`} alt="" className={styles.cardImage} />
+                        <img src={`${getApiUrl()}${editMediaThumb}`} alt="Post photo" className={styles.cardImage} />
                       ) : post.mediaThumbPath ? (
-                        <img src={`${getApiUrl()}${post.mediaThumbPath}`} alt="" className={styles.cardImage} />
+                        <img src={`${getApiUrl()}${post.mediaThumbPath}`} alt="Post photo" className={styles.cardImage} />
                       ) : null}
                       <button className={styles.changePhotoBtn} onClick={openPhotoPicker}><CameraIcon size={13} /> {editMediaThumb || post.mediaThumbPath ? 'Change Photo' : 'Add Photo'}</button>
                     </div>
@@ -260,7 +279,7 @@ export default function SocialPostsPage() {
                 ) : (
                   <>
                     {post.mediaThumbPath && (
-                      <img src={`${getApiUrl()}${post.mediaThumbPath}`} alt="" className={styles.cardImage} />
+                      <img src={`${getApiUrl()}${post.mediaThumbPath}`} alt="Post photo" className={styles.cardImage} />
                     )}
                     <p className={styles.postContent}>{post.content}</p>
                   </>
@@ -300,12 +319,12 @@ export default function SocialPostsPage() {
                   <span className={styles.platform}>{post.platform}</span>
                 </div>
                 {post.mediaThumbPath && (
-                  <img src={`${getApiUrl()}${post.mediaThumbPath}`} alt="" className={styles.cardImage} />
+                  <img src={`${getApiUrl()}${post.mediaThumbPath}`} alt="Post photo" className={styles.cardImage} />
                 )}
                 <p className={styles.postContent}>{post.content}</p>
                 {post.scheduledAt && <p className={styles.scheduledTime}>Scheduled: {new Date(post.scheduledAt).toLocaleString()}</p>}
                 <div className={styles.cardActions}>
-                  <button className={styles.btnCopy} onClick={() => navigator.clipboard.writeText(post.content)}><Copy size={14} /> Copy Text</button>
+                  <button className={styles.btnCopy} onClick={() => handleCopy(post.content)}><Copy size={14} /> Copy Text</button>
                   <button className={styles.btnPublish} onClick={() => handlePublish(post.automatedPostId)}><ExternalLink size={14} /> Mark Published</button>
                 </div>
               </div>
@@ -379,13 +398,13 @@ export default function SocialPostsPage() {
                 <div>
                   <span className={styles.pillar} style={{ background: PILLAR_COLORS[selectedPost.contentPillar] }}>{PILLAR_LABELS[selectedPost.contentPillar]}</span>
                   <span className={styles.platform}>{selectedPost.platform}</span>
-                  <span className={styles.popoverStatus}>{selectedPost.status.replace('_', ' ')}</span>
+                  <span className={styles.popoverStatus}>{selectedPost.status.split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</span>
                 </div>
                 <button className={styles.popoverClose} onClick={() => { setSelectedPost(null); setCalEditing(false); }}><X size={18} /></button>
               </div>
               <div className={styles.popoverBody}>
                 {selectedPost.mediaPath && (
-                  <img src={`${getApiUrl()}${selectedPost.mediaPath}`} alt="" className={styles.popoverImage} />
+                  <img src={`${getApiUrl()}${selectedPost.mediaPath}`} alt="Post photo" className={styles.popoverImage} />
                 )}
                 {selectedPost.scheduledAt && (
                   <p className={styles.popoverDate}>{new Date(selectedPost.scheduledAt).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} · {new Date(selectedPost.scheduledAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</p>
@@ -405,7 +424,7 @@ export default function SocialPostsPage() {
                 ) : (
                   <button className={styles.btnEdit} onClick={() => setCalEditing(true)}><Edit3 size={14} /> Edit</button>
                 )}
-                <button className={styles.btnCopy} onClick={() => navigator.clipboard.writeText(selectedPost.content)}><Copy size={14} /> Copy</button>
+                <button className={styles.btnCopy} onClick={() => handleCopy(selectedPost.content)}><Copy size={14} /> Copy</button>
               </div>
             </div>
           </>
@@ -482,6 +501,14 @@ export default function SocialPostsPage() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Toast notification */}
+      {toast && <div className={styles.toast}>{toast}</div>}
+
+      {/* Photo picker loading state */}
+      {showPhotoPicker && availablePhotos.length === 0 && (
+        <div className={styles.photoPickerLoading}><Loader2 className={styles.spin} size={20} /> Loading photos...</div>
       )}
     </div>
   );

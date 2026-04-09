@@ -272,6 +272,10 @@ export default function SocialSetupPage() {
                 <span className={styles.pct}>%</span>
               </div>
             ))}
+            {(() => {
+              const total = settings.pillarRatioSafehouseLife + settings.pillarRatioTheProblem + settings.pillarRatioTheSolution + settings.pillarRatioDonorImpact + settings.pillarRatioCallToAction;
+              return <p className={`${styles.hint} ${total !== 100 ? styles.ratioWarn : ''}`}>Total: {total}%{total !== 100 ? ' — should add up to 100%' : ''}</p>;
+            })()}
           </div>
           <button className={styles.saveBtn} onClick={saveSettings} disabled={saving}>{saving ? <Loader2 className={styles.spin} size={16} /> : saved ? 'Saved!' : <><Save size={16} /> Save Preferences</>}</button>
         </div>

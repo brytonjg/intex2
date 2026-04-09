@@ -39,6 +39,7 @@
 .usedBadge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.6); color: #fff; font-size: 0.6rem; padding: 0.15rem 0.4rem; border-radius: 4px; }
 .deleteBtn { position: absolute; top: 6px; left: 6px; background: rgba(255,255,255,0.9); border: none; border-radius: 5px; padding: 0.3rem; cursor: pointer; color: #dc2626; opacity: 0; transition: opacity 0.15s; }
 .photoCard:hover .deleteBtn { opacity: 1; }
+@media (hover: none) { .deleteBtn { opacity: 0.7; } }
 .photoMeta { padding: 0.5rem 0.7rem; }
 .activityTag { font-size: 0.65rem; font-weight: 600; color: var(--color-sage); text-transform: uppercase; letter-spacing: 0.03em; }
 .photoCaption { font-size: 0.78rem; color: var(--color-deep-navy); margin: 0.2rem 0 0; line-height: 1.3; }

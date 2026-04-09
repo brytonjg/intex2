@@ -24,8 +24,8 @@
 .termsList { display: flex; flex-direction: column; gap: 0.4rem; }
 .chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
 .chip { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.25rem 0.55rem; background: #f0fdf9; border: 1px solid #a7f3d0; border-radius: 6px; font-size: 0.78rem; color: #065f46; }
-.chip button { background: none; border: none; color: #065f46; cursor: pointer; padding: 0; display: flex; opacity: 0.5; }
-.chip button:hover { opacity: 1; }
+.chip button { background: none; border: none; color: #065f46; cursor: pointer; padding: 0.1rem; display: flex; opacity: 0.7; border-radius: 3px; }
+.chip button:hover { opacity: 1; background: rgba(6, 95, 70, 0.1); }
 .termsAdd { display: flex; gap: 0.35rem; }
 .termsAdd input { flex: 1; padding: 0.4rem 0.6rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.8rem; font-family: var(--font-body); }
 .termsAdd input:focus { outline: none; border-color: var(--color-sage); }
@@ -43,6 +43,7 @@
 .ratioLabel { width: 120px; font-size: 0.8rem; font-weight: 500; color: #374151; }
 .ratioInput { width: 55px; padding: 0.35rem; text-align: center; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.85rem; }
 .pct { font-size: 0.8rem; color: var(--text-muted); }
+.ratioWarn { color: #dc2626; font-weight: 600; }
 .aiTag { font-size: 0.6rem; background: #dbeafe; color: #1e40af; padding: 0.1rem 0.45rem; border-radius: 4px; font-weight: 600; }
 .tooltipWrap { position: relative; display: inline-flex; }
 .helpIcon { color: #9ca3af; cursor: help; }
