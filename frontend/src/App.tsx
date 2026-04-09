@@ -98,6 +98,8 @@ const CaseConferencesPage = lazyRetry(() => import('./pages/admin/CaseConference
 const EducationRecordFormPage = lazyRetry(() => import('./pages/admin/EducationRecordFormPage'));
 const HealthRecordFormPage = lazyRetry(() => import('./pages/admin/HealthRecordFormPage'));
 const PostPlacementPage = lazyRetry(() => import('./pages/admin/PostPlacementPage'));
+const CalendarPage = lazyRetry(() => import('./pages/admin/CalendarPage'));
+const StaffTasksPage = lazyRetry(() => import('./pages/admin/StaffTasksPage'));
 const DonorPortal = lazyRetry(() => import('./pages/DonorPortal'));
 const DonatePage = lazyRetry(() => import('./pages/DonatePage'));
 const DonateSuccessPage = lazyRetry(() => import('./pages/DonateSuccessPage'));
@@ -168,6 +170,8 @@ function App() {
               <Route path="queue" element={<CaseQueuePage />} />
               <Route path="conferences" element={<CaseConferencesPage />} />
               <Route path="post-placement" element={<PostPlacementPage />} />
+              <Route path="calendar" element={<CalendarPage />} />
+              <Route path="tasks" element={<StaffTasksPage />} />
               <Route path="caseload" element={<CaseloadPage />} />
               <Route path="caseload/new" element={<ResidentFormPage />} />
               <Route path="caseload/:id" element={<ResidentDetailPage />} />
