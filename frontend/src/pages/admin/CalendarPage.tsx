@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Loader2, Plus } from 'lucide-react';
 import { apiFetch } from '../../api';
@@ -46,6 +46,10 @@ const EVENT_TYPE_STYLES: Record<string, string> = {
 };
 
 const HOURS = Array.from({ length: 14 }, (_, i) => i + 6); // 6am to 7pm
+const HALF_HOURS: { hour: number; minute: 0 | 30 }[] = HOURS.flatMap(h => [
+  { hour: h, minute: 0 as const },
+  { hour: h, minute: 30 as const },
+]);
 
 function formatDate(d: Date): string {
   return d.toISOString().split('T')[0];
@@ -90,6 +94,9 @@ export default function CalendarPage() {
     residentId: '',
   });
   const [residents, setResidents] = useState<{ residentId: number; internalCode: string }[]>([]);
+  const [dragId, setDragId] = useState<number | null>(null);
+  const [dropTarget, setDropTarget] = useState<string | null>(null); // "HH:MM" or "unscheduled"
+  const dragRef = useRef<number | null>(null);
 
   const fetchEvents = useCallback(async () => {
     setLoading(true);
@@ -164,12 +171,50 @@ export default function CalendarPage() {
     return classes.join(' ');
   }
 
-  function renderEventChip(evt: CalendarEventItem) {
+  function handleDragStart(evt: CalendarEventItem) {
+    setDragId(evt.calendarEventId);
+    dragRef.current = evt.calendarEventId;
+  }
+
+  function handleDragEnd() {
+    setDragId(null);
+    setDropTarget(null);
+    dragRef.current = null;
+  }
+
+  function handleDragOver(e: React.DragEvent, slotKey: string) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDropTarget(slotKey);
+  }
+
+  function handleDragLeave() {
+    setDropTarget(null);
+  }
+
+  async function handleDropOnSlot(timeStr: string) {
+    const id = dragRef.current;
+    if (!id) return;
+    handleDragEnd();
+    await handleUpdateEvent(id, { startTime: timeStr });
+  }
+
+  async function handleDropOnUnscheduled() {
+    const id = dragRef.current;
+    if (!id) return;
+    handleDragEnd();
+    await handleUpdateEvent(id, { startTime: null });
+  }
+
+  function renderEventChip(evt: CalendarEventItem, draggable = true) {
     return (
       <div
         key={evt.calendarEventId}
-        className={getEventStyle(evt.eventType, evt.status)}
-        onClick={() => setSelectedEvent(evt)}
+        className={`${getEventStyle(evt.eventType, evt.status)} ${draggable ? styles.draggable : ''} ${dragId === evt.calendarEventId ? styles.dragging : ''}`}
+        onClick={() => { if (!dragId) setSelectedEvent(evt); }}
+        draggable={draggable && evt.status !== 'Completed'}
+        onDragStart={(e) => { e.dataTransfer.effectAllowed = 'move'; handleDragStart(evt); }}
+        onDragEnd={handleDragEnd}
       >
         {evt.startTime && <span>{evt.startTime}</span>}
         <span>{evt.title}</span>
@@ -216,31 +261,54 @@ export default function CalendarPage() {
         <div className={styles.error}>{error}</div>
       ) : view === 'day' ? (
         <>
-          {unscheduled.length > 0 && (
-            <div className={styles.unscheduledSection}>
-              <div className={styles.sectionLabel}>Unscheduled</div>
+          <div
+            className={`${styles.unscheduledSection} ${dropTarget === 'unscheduled' ? styles.dropTargetActive : ''}`}
+            onDragOver={(e) => handleDragOver(e, 'unscheduled')}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => { e.preventDefault(); handleDropOnUnscheduled(); }}
+          >
+            <div className={styles.sectionLabel}>To Do {unscheduled.length > 0 && `(${unscheduled.length})`}</div>
+            {unscheduled.length > 0 ? (
               <div className={styles.unscheduledList}>
                 {unscheduled.map(evt => (
                   <div
                     key={evt.calendarEventId}
-                    className={styles.unscheduledCard}
-                    onClick={() => setSelectedEvent(evt)}
+                    className={`${styles.unscheduledCard} ${dragId === evt.calendarEventId ? styles.dragging : ''}`}
+                    onClick={() => { if (!dragId) setSelectedEvent(evt); }}
+                    draggable
+                    onDragStart={(e) => { e.dataTransfer.effectAllowed = 'move'; handleDragStart(evt); }}
+                    onDragEnd={handleDragEnd}
                   >
                     {evt.title} {evt.residentCode && `(${evt.residentCode})`}
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <div className={styles.unscheduledEmpty}>
+                {dragId ? 'Drop here to unschedule' : 'No unscheduled events'}
+              </div>
+            )}
+          </div>
           <div className={styles.dayGrid}>
-            {HOURS.map(hour => {
-              const hourStr = hour.toString().padStart(2, '0');
-              const hourEvents = scheduled.filter(e => e.startTime?.startsWith(hourStr));
+            {HALF_HOURS.map(({ hour, minute }) => {
+              const timeStr = `${hour.toString().padStart(2, '0')}:${minute === 0 ? '00' : '30'}`;
+              const slotEvents = scheduled.filter(e => e.startTime === timeStr);
+              const isHalfHour = minute === 30;
+              const isTarget = dropTarget === timeStr;
+              const label = minute === 0
+                ? (hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`)
+                : '';
               return (
-                <div key={hour} className={styles.timeSlot}>
-                  <div className={styles.timeLabel}>{hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`}</div>
+                <div
+                  key={timeStr}
+                  className={`${styles.timeSlot} ${isHalfHour ? styles.halfHourSlot : ''} ${isTarget ? styles.dropTargetActive : ''}`}
+                  onDragOver={(e) => handleDragOver(e, timeStr)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => { e.preventDefault(); handleDropOnSlot(timeStr); }}
+                >
+                  <div className={styles.timeLabel}>{label}</div>
                   <div className={styles.slotContent}>
-                    {hourEvents.map(renderEventChip)}
+                    {slotEvents.map(evt => renderEventChip(evt))}
                   </div>
                 </div>
               );
