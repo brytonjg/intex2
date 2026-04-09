@@ -2809,8 +2809,15 @@ app.MapPatch("/api/admin/social/posts/{id}/approve", async (int id, HttpContext 
 {
     var post = await db.AutomatedPosts.FindAsync(id);
     if (post == null) return Results.NotFound();
-    var user = await userManager.GetUserAsync(ctx.User);
     var body = await ctx.Request.ReadFromJsonAsync<JsonElement>();
+    // Optimistic concurrency: if client sends updatedAt, verify it matches
+    if (body.ValueKind != JsonValueKind.Undefined && body.TryGetProperty("updatedAt", out var ua))
+    {
+        var expected = DateTime.Parse(ua.GetString()!, null, System.Globalization.DateTimeStyles.AdjustToUniversal | System.Globalization.DateTimeStyles.AssumeUniversal);
+        if (post.UpdatedAt != null && Math.Abs((post.UpdatedAt.Value - expected).TotalSeconds) > 1)
+            return Results.Conflict(new { error = "Post was modified by another user. Please refresh." });
+    }
+    var user = await userManager.GetUserAsync(ctx.User);
     if (body.ValueKind != JsonValueKind.Undefined && body.TryGetProperty("content", out var edited))
     {
         post.OriginalContent = post.Content;
@@ -2829,6 +2836,12 @@ app.MapPatch("/api/admin/social/posts/{id}/reject", async (int id, HttpContext c
     var post = await db.AutomatedPosts.FindAsync(id);
     if (post == null) return Results.NotFound();
     var body = await ctx.Request.ReadFromJsonAsync<JsonElement>();
+    if (body.ValueKind != JsonValueKind.Undefined && body.TryGetProperty("updatedAt", out var ua))
+    {
+        var expected = DateTime.Parse(ua.GetString()!, null, System.Globalization.DateTimeStyles.AdjustToUniversal | System.Globalization.DateTimeStyles.AssumeUniversal);
+        if (post.UpdatedAt != null && Math.Abs((post.UpdatedAt.Value - expected).TotalSeconds) > 1)
+            return Results.Conflict(new { error = "Post was modified by another user. Please refresh." });
+    }
     post.Status = "rejected";
     if (body.ValueKind != JsonValueKind.Undefined && body.TryGetProperty("rejectionReason", out var reason))
         post.RejectionReason = reason.GetString();
@@ -2843,6 +2856,12 @@ app.MapPatch("/api/admin/social/posts/{id}/snooze", async (int id, HttpContext c
     if (post == null) return Results.NotFound();
     var body = await ctx.Request.ReadFromJsonAsync<JsonElement>();
     if (body.ValueKind == JsonValueKind.Undefined) return Results.BadRequest();
+    if (body.TryGetProperty("updatedAt", out var ua))
+    {
+        var expected = DateTime.Parse(ua.GetString()!, null, System.Globalization.DateTimeStyles.AdjustToUniversal | System.Globalization.DateTimeStyles.AssumeUniversal);
+        if (post.UpdatedAt != null && Math.Abs((post.UpdatedAt.Value - expected).TotalSeconds) > 1)
+            return Results.Conflict(new { error = "Post was modified by another user. Please refresh." });
+    }
     post.Status = "snoozed";
     if (body.TryGetProperty("snoozedUntil", out var su)) post.SnoozedUntil = DateTime.Parse(su.GetString()!, null, System.Globalization.DateTimeStyles.AdjustToUniversal | System.Globalization.DateTimeStyles.AssumeUniversal);
     post.UpdatedAt = DateTime.UtcNow;
@@ -3201,9 +3220,26 @@ app.MapPost("/api/social/media/upload", async (HttpContext ctx, AppDbContext db,
     db.MediaLibraryItems.Add(item);
     await db.SaveChangesAsync();
     return Results.Created($"/api/social/media/upload/{item.MediaLibraryItemId}", item);
-}).RequireAuthorization(p => p.RequireRole("Admin", "Staff")).DisableAntiforgery();
+}).RequireAuthorization(p => p.RequireRole("Admin", "Staff", "SocialMediaManager")).DisableAntiforgery();
 
-// Content Fact Candidates (Admin only)
+// Staff media browse — scoped to their assigned safehouses
+app.MapGet("/api/social/media", async (string? activityType, HttpContext ctx, AppDbContext db, UserManager<ApplicationUser> userManager) =>
+{
+    var user = await userManager.GetUserAsync(ctx.User);
+    if (user == null) return Results.Unauthorized();
+    var roles = await userManager.GetRolesAsync(user);
+    var query = db.MediaLibraryItems.Where(m => m.ConsentConfirmed);
+    if (!roles.Contains("Admin") && !roles.Contains("SocialMediaManager"))
+    {
+        var safehouseIds = await db.UserSafehouses.Where(us => us.UserId == user.Id).Select(us => us.SafehouseId).ToListAsync();
+        query = query.Where(m => m.SafehouseId == null || safehouseIds.Contains(m.SafehouseId.Value));
+    }
+    if (!string.IsNullOrEmpty(activityType)) query = query.Where(m => m.ActivityType == activityType);
+    var items = await query.OrderByDescending(m => m.UploadedAt).Take(100).ToListAsync();
+    return Results.Ok(items);
+}).RequireAuthorization(p => p.RequireRole("Admin", "Staff", "SocialMediaManager"));
+
+// Content Fact Candidates
 app.MapGet("/api/admin/social/fact-candidates", async (string? status, AppDbContext db) =>
 {
     var query = db.ContentFactCandidates.AsQueryable();

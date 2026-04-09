@@ -12,6 +12,7 @@ from ai_harness.llm import generate_post_simple
 from ai_harness.planner import plan_content
 from ai_harness.photo_selector import select_photo
 from ai_harness.researcher import refresh_facts
+from ai_harness.graphics import generate_graphic
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -125,11 +126,49 @@ def generate_post_endpoint(req: GeneratePostRequest):
         photo_caption=photo_caption,
     )
 
+    content = result.get("content", "")
+    generated_graphic_data = None
+
+    # Auto-generate a branded graphic for pillars that don't have a photo
+    if not req.photo_id and req.pillar in ("the_problem", "donor_impact", "call_to_action"):
+        # Extract a short headline for the graphic
+        headline = content.split("\n")[0][:80] if content else overlay_text_from_material(raw_material)
+        try:
+            graphic = generate_graphic(
+                template_path=None,
+                overlay_text=headline,
+                text_color="#FFFFFF",
+                text_position="center",
+            )
+            generated_graphic_data = {
+                "file_path": graphic["file_path"],
+                "overlay_text": headline,
+            }
+        except Exception as e:
+            logger.warning(f"Graphic generation failed: {e}")
+
     return GeneratePostResponse(
-        content=result.get("content", ""),
+        content=content,
         hashtags=result.get("hashtags", []),
         photo_id=req.photo_id,
+        generated_graphic=generated_graphic_data,
     )
+
+
+def overlay_text_from_material(raw_material: str) -> str:
+    """Extract a short text suitable for a graphic overlay."""
+    if not raw_material:
+        return "Making a Difference"
+    # Try to get the first meaningful sentence
+    for line in raw_material.split("\n"):
+        line = line.strip()
+        if line.startswith("Fact:"):
+            return line[5:].strip()[:80]
+        if line.startswith("CTA:"):
+            return line[4:].strip()[:80]
+        if len(line) > 10:
+            return line[:80]
+    return raw_material[:80]
 
 
 # ── Photo Selection ─────────────────────────────────────────────────────────
@@ -152,6 +191,25 @@ def select_photo_endpoint(req: SelectPhotoRequest):
 
 
 # ── Research Refresh ────────────────────────────────────────────────────────
+
+class GenerateGraphicRequest(BaseModel):
+    overlay_text: str
+    template_path: str | None = None
+    text_color: str = "#FFFFFF"
+    text_position: str = "center"
+
+
+@app.post("/generate-graphic")
+def generate_graphic_endpoint(req: GenerateGraphicRequest):
+    """Generate a branded graphic with text overlay."""
+    result = generate_graphic(
+        template_path=req.template_path,
+        overlay_text=req.overlay_text,
+        text_color=req.text_color,
+        text_position=req.text_position,
+    )
+    return result
+
 
 class RefreshFactsRequest(BaseModel):
     categories: list[str] | None = None
