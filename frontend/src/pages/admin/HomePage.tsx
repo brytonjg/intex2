@@ -542,9 +542,15 @@ export default function HomePage() {
         onDragStart={e => { e.stopPropagation(); dragOffsetY.current = e.clientY - (e.currentTarget as HTMLElement).getBoundingClientRect().top; setDragEventId(evt.calendarEventId); }}
         onDragEnd={() => setDragEventId(null)}
       >
-        <span>{evt.title}</span>
-        {evt.residentCode && <span>({evt.residentCode})</span>}
-        {evt.startTime && <span>{evt.startTime}{evt.endTime ? `–${evt.endTime}` : ''}</span>}
+        {heightPx >= 40 ? (
+          <>
+            <span>{evt.title}</span>
+            {evt.residentCode && <span>({evt.residentCode})</span>}
+            {evt.startTime && <span>{evt.startTime}{evt.endTime ? `–${evt.endTime}` : ''}</span>}
+          </>
+        ) : (
+          <span>{evt.title} {evt.startTime ?? ''}</span>
+        )}
       </div>
     );
   }
