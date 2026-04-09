@@ -4,6 +4,7 @@ import { Heart, Loader2, Users, GraduationCap, Shield, Settings, ArrowRight } fr
 import { apiFetch } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import { formatDate, formatAmount, formatEnumLabel } from '../constants';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import styles from './DonorPortal.module.css';
 
 interface Supporter {
@@ -44,6 +45,7 @@ interface DonorData {
 type Tab = 'impact' | 'history' | 'settings';
 
 export default function DonorPortal() {
+  useDocumentTitle('Donor Portal');
   const { user } = useAuth();
   const [data, setData] = useState<DonorData | null>(null);
   const [loading, setLoading] = useState(true);

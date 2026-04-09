@@ -18,6 +18,7 @@ import {
   Cell,
   ReferenceLine,
 } from 'recharts';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import styles from './ImpactPage.module.css';
 
 
@@ -38,6 +39,7 @@ const allocationColors = [
 /* ── Impact Page ───────────────────────────────────────── */
 
 export default function ImpactPage() {
+  useDocumentTitle('Our Impact');
   const statsRef = useReveal();
   const donationsChartRef = useReveal();
   const metricsRef = useReveal();

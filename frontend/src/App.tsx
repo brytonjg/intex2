@@ -76,6 +76,7 @@ const PostPlacementPage = lazy(() => import('./pages/admin/PostPlacementPage'));
 const DonorPortal = lazy(() => import('./pages/DonorPortal'));
 const DonatePage = lazy(() => import('./pages/DonatePage'));
 const DonateSuccessPage = lazy(() => import('./pages/DonateSuccessPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 function LoadingFallback() {
   return (
@@ -163,6 +164,9 @@ function App() {
               <Route path="donations/:id/edit" element={<DonationFormPage />} />
               <Route path="users" element={<UsersPage />} />
             </Route>
+
+            {/* 404 catch-all */}
+            <Route path="*" element={<PublicLayout><NotFoundPage /></PublicLayout>} />
           </Routes>
           <CookieConsent />
           <CookiePreferencesModal />

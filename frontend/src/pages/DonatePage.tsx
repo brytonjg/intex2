@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Heart } from 'lucide-react';
 import { apiFetch } from '../api';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import styles from './DonatePage.module.css';
 
 const PRESET_AMOUNTS = [500, 1000, 2500, 5000, 10000];
@@ -9,6 +10,7 @@ type Mode = 'one-time' | 'recurring';
 type Cadence = 'monthly' | 'quarterly' | 'yearly';
 
 export default function DonatePage() {
+  useDocumentTitle('Donate');
   const [mode, setMode] = useState<Mode>('one-time');
   const [cadence, setCadence] = useState<Cadence>('monthly');
   const [selectedAmount, setSelectedAmount] = useState<number | null>(1000);
