@@ -28,7 +28,7 @@ interface ResidentOption {
 export default function CaseConferencesPage() {
   useDocumentTitle('Case Conferences');
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [plans, setPlans] = useState<ConferenceItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
