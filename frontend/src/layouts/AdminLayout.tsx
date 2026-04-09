@@ -18,6 +18,8 @@ import {
   HomeIcon,
   ChevronDown,
   Check,
+  Calendar,
+  ClipboardList,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { SafehouseProvider, useSafehouse } from '../contexts/SafehouseContext';
@@ -72,6 +74,13 @@ interface NavGroup {
 const homeLink: NavItem = { to: '/admin', icon: LayoutDashboard, label: 'Home', end: true };
 
 const navGroups: NavGroup[] = [
+  {
+    label: 'Schedule',
+    items: [
+      { to: '/admin/calendar', icon: Calendar, label: 'Calendar' },
+      { to: '/admin/tasks', icon: ClipboardList, label: 'To-Do List' },
+    ],
+  },
   {
     label: 'Cases',
     items: [
