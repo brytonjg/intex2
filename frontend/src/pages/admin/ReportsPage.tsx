@@ -847,6 +847,56 @@ function MlInsightsTab() {
 }
 
 // ── Main Page ────────────────────────────────────────────
+const OKR_TARGET = 30;
+
+function OkrBanner() {
+  const [data, setData] = useState<{ successRate: number; completedReintegrations: number; totalResidents: number; avgLengthOfStayDays: number; byType: { type: string; count: number }[] } | null>(null);
+
+  useEffect(() => {
+    apiFetch<{ successRate: number; completedReintegrations: number; totalResidents: number; avgLengthOfStayDays: number; byType: { type: string; count: number }[] }>('/api/admin/reports/reintegration-summary')
+      .then(setData)
+      .catch(() => {});
+  }, []);
+
+  if (!data) return null;
+  const progress = Math.min(100, (data.successRate / OKR_TARGET) * 100);
+
+  return (
+    <div className={styles.okrBanner}>
+      <div className={styles.okrMain}>
+        <div className={styles.okrHeadline}>
+          <span className={styles.okrLabel}>OKR: Reintegration Success</span>
+          <h2 className={styles.okrRate}>{data.successRate}%</h2>
+          <span className={styles.okrTarget}>Target: {OKR_TARGET}%</span>
+        </div>
+        <div className={styles.okrProgress}>
+          <div className={styles.okrBarTrack}>
+            <div className={styles.okrBarFill} style={{ width: `${progress}%` }} />
+          </div>
+          <span className={styles.okrBarLabel}>{data.completedReintegrations} of {data.totalResidents} residents reintegrated</span>
+        </div>
+      </div>
+      <div className={styles.okrDetails}>
+        <div className={styles.okrStat}>
+          <span className={styles.okrStatValue}>{data.avgLengthOfStayDays}</span>
+          <span className={styles.okrStatLabel}>Avg days to reintegration</span>
+        </div>
+        {data.byType.slice(0, 3).map(t => (
+          <div key={t.type} className={styles.okrStat}>
+            <span className={styles.okrStatValue}>{t.count}</span>
+            <span className={styles.okrStatLabel}>{t.type}</span>
+          </div>
+        ))}
+      </div>
+      <p className={styles.okrWhy}>
+        Reintegration rate is our north-star metric because every service we provide &mdash; counseling,
+        education, medical care, and legal support &mdash; exists to reach one outcome: safely returning
+        each child to family, foster care, or independent living.
+      </p>
+    </div>
+  );
+}
+
 export default function ReportsPage() {
   useDocumentTitle('Reports & Analytics');
   const [searchParams] = useSearchParams();
@@ -863,6 +913,8 @@ export default function ReportsPage() {
         <h1 className={styles.title}>Reports & Analytics</h1>
         <p className={styles.subtitle}>Aggregated insights and trends for decision-making</p>
       </div>
+
+      <OkrBanner />
 
       <div className={styles.tabs}>
         {TABS.map(t => (
