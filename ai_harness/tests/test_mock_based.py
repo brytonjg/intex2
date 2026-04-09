@@ -16,10 +16,17 @@ class TestBuildSystemPrompt:
         prompt = build_system_prompt()
         assert "nonprofit" in prompt.lower() or "organization" in prompt.lower()
 
-    def test_includes_hard_rules(self):
-        prompt = build_system_prompt()
-        assert "NEVER reference specific residents" in prompt
-        assert "guilt" in prompt.lower() or "shame" in prompt.lower()
+    def test_includes_hard_rules_when_guide_exists(self):
+        """Hard rules appear when a voice guide exists in the DB."""
+        with patch.object(harness_db, 'fetch_voice_guide', return_value={
+            'org_description': 'Test org',
+            'tone_description': 'Warm',
+            'preferred_terms': None, 'avoided_terms': None,
+            'structural_rules': None, 'visual_rules': None,
+        }):
+            prompt = build_system_prompt()
+            assert "NEVER reference specific residents" in prompt
+            assert "guilt" in prompt.lower() or "shame" in prompt.lower()
 
     def test_handles_missing_voice_guide(self):
         with patch.object(harness_db, 'fetch_voice_guide', return_value=None):
