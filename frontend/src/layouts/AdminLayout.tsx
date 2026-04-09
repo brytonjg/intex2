@@ -18,6 +18,9 @@ import {
   Inbox,
   MessageSquare,
   HomeIcon,
+  Share2,
+  CameraIcon,
+  Settings,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { SafehouseProvider, useSafehouse } from '../contexts/SafehouseContext';
@@ -71,6 +74,9 @@ const navItems = [
   { to: '/admin/donors', icon: HandHeart, label: 'Donors' },
   { to: '/admin/reports', icon: BarChart3, label: 'Reports' },
   { to: '/admin/users', icon: Shield, label: 'Users' },
+  { to: '/admin/social/queue', icon: Share2, label: 'Social Media' },
+  { to: '/admin/social/upload', icon: CameraIcon, label: 'Photo Upload' },
+  { to: '/admin/social/settings', icon: Settings, label: 'Social Settings' },
 ];
 
 function AdminLayoutInner() {

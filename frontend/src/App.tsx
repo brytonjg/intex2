@@ -73,6 +73,10 @@ const CaseConferencesPage = lazy(() => import('./pages/admin/CaseConferencesPage
 const EducationRecordFormPage = lazy(() => import('./pages/admin/EducationRecordFormPage'));
 const HealthRecordFormPage = lazy(() => import('./pages/admin/HealthRecordFormPage'));
 const PostPlacementPage = lazy(() => import('./pages/admin/PostPlacementPage'));
+// Social media pages
+const SocialQueuePage = lazy(() => import('./pages/admin/social/SocialQueuePage'));
+const PhotoUploadPage = lazy(() => import('./pages/admin/social/PhotoUploadPage'));
+const SocialSettingsPage = lazy(() => import('./pages/admin/social/SocialSettingsPage'));
 const DonorPortal = lazy(() => import('./pages/DonorPortal'));
 const DonatePage = lazy(() => import('./pages/DonatePage'));
 const DonateSuccessPage = lazy(() => import('./pages/DonateSuccessPage'));
@@ -162,6 +166,9 @@ function App() {
               <Route path="donations/new" element={<DonationFormPage />} />
               <Route path="donations/:id/edit" element={<DonationFormPage />} />
               <Route path="users" element={<UsersPage />} />
+              <Route path="social/queue" element={<SocialQueuePage />} />
+              <Route path="social/upload" element={<PhotoUploadPage />} />
+              <Route path="social/settings" element={<SocialSettingsPage />} />
             </Route>
           </Routes>
           <CookieConsent />
