@@ -270,6 +270,17 @@ export default function ResidentDetailPage() {
         </div>
       </div>
 
+      {/* Closed Case Banner */}
+      {resident.caseStatus === 'Closed' && (
+        <div className={styles.closedBanner}>
+          <AlertTriangle size={16} />
+          <div>
+            <strong>Case Closed</strong>
+            <span>This resident's case is closed. ML risk assessments are not generated for closed cases.</span>
+          </div>
+        </div>
+      )}
+
       {/* ML Predictions */}
       {predictions.length > 0 && (
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
@@ -331,7 +342,7 @@ export default function ResidentDetailPage() {
       )}
 
       {/* Sections */}
-      <Section title="Identity" icon={User} defaultOpen>
+      <Section title="Identity" icon={User}>
         <div className={styles.fieldGrid}>
           <InfoField label="Internal Code" value={resident.internalCode} />
           <InfoField label="Case Control No." value={resident.caseControlNo} />
@@ -353,7 +364,7 @@ export default function ResidentDetailPage() {
         </div>
       </Section>
 
-      <Section title="Case Information" icon={Briefcase} defaultOpen>
+      <Section title="Case Information" icon={Briefcase}>
         <div className={styles.fieldGrid}>
           <InfoField label="Case Category" value={resident.caseCategory} />
           <InfoField label="Case Status" value={resident.caseStatus} />
@@ -428,7 +439,7 @@ export default function ResidentDetailPage() {
       </Section>
 
       {emotionalTrends.length > 0 && (
-        <Section title="Emotional Trajectory" icon={Activity} defaultOpen>
+        <Section title="Emotional Trajectory" icon={Activity}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '0.5rem 0' }}>
             {(() => {
               const EMOTIONAL_ORDER = ['Severe Distress', 'Distressed', 'Struggling', 'Unsettled', 'Neutral', 'Coping', 'Stable', 'Good', 'Thriving'];
