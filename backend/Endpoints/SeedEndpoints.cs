@@ -622,21 +622,101 @@ public static class SeedEndpoints
             await db.SaveChangesAsync();
             results.Add($"Admin/staff pending tasks added");
 
-            // ── 7. Clear social worker from a few residents to make unclaimed queue ──
-            var unclaimedCount = await db.Residents.CountAsync(r =>
-                (r.AssignedSocialWorker == null || r.AssignedSocialWorker == "") && r.CaseStatus == "Active");
-            if (unclaimedCount == 0)
+            // ── 7. Ensure every safehouse has unclaimed residents + every SW has claimed residents ──
+            var allSwCodes = staffNames.Keys.ToList();
+            var categories = new[] { "Abandoned", "Neglected", "Surrendered", "Foundling" };
+            var riskLevels = new[] { "Low", "Medium", "High", "Critical" };
+            var religions = new[] { "Catholic", "Protestant", "Iglesia ni Cristo", "Muslim", "None" };
+            var referralSources = new[] { "DSWD", "PNP", "NGO Referral", "Court Order", "Community", "Self-Referral" };
+            var girlNames = new[] { "Maria", "Ana", "Rosa", "Elena", "Carmen", "Linda", "Grace", "Joy", "Faith", "Hope", "Liza", "Diana", "Sarah", "Ruth", "Esther", "Mercy", "Alma", "Nina", "Luz", "Paz", "Delia", "Nora", "Perla", "Jasmine", "Iris", "Daisy", "Ruby", "Pearl", "Crystal", "Jade", "Angel", "Sunshine", "Precious", "Princess", "Gem", "Star" };
+            var maxId = await db.Residents.MaxAsync(r => r.ResidentId);
+            var maxCode = maxId;
+            var newResCount = 0;
+
+            // 7a. Add 2-3 unclaimed residents per safehouse
+            for (int shId = 1; shId <= 9; shId++)
             {
-                var toUnclaim = await db.Residents
-                    .Where(r => r.CaseStatus == "Active")
-                    .OrderBy(r => r.ResidentId)
-                    .Take(5)
-                    .ToListAsync();
-                foreach (var r in toUnclaim)
-                    r.AssignedSocialWorker = null;
-                await db.SaveChangesAsync();
-                results.Add($"Cleared social worker from {toUnclaim.Count} residents for queue");
+                var existing = await db.Residents.CountAsync(r =>
+                    r.SafehouseId == shId && r.CaseStatus == "Active" &&
+                    (r.AssignedSocialWorker == null || r.AssignedSocialWorker == ""));
+                var needed = Math.Max(0, random.Next(2, 4) - existing);
+                for (int n = 0; n < needed; n++)
+                {
+                    maxCode++;
+                    var age = random.Next(6, 17);
+                    db.Residents.Add(new Resident
+                    {
+                        InternalCode = $"LS-{maxCode:D4}",
+                        SafehouseId = shId,
+                        CaseStatus = "Active",
+                        Sex = "Female",
+                        DateOfBirth = today.AddYears(-age).AddDays(-random.Next(0, 365)),
+                        Religion = religions[random.Next(religions.Length)],
+                        CaseCategory = categories[random.Next(categories.Length)],
+                        SubCatPhysicalAbuse = random.Next(3) == 0,
+                        SubCatSexualAbuse = random.Next(4) == 0,
+                        SubCatAtRisk = random.Next(2) == 0,
+                        DateOfAdmission = today.AddDays(-random.Next(0, 5)),
+                        AgeUponAdmission = age.ToString(),
+                        PresentAge = age.ToString(),
+                        ReferralSource = referralSources[random.Next(referralSources.Length)],
+                        AssignedSocialWorker = null, // unclaimed — for queue
+                        InitialRiskLevel = riskLevels[random.Next(riskLevels.Length)],
+                        CurrentRiskLevel = riskLevels[random.Next(riskLevels.Length)],
+                        CreatedAt = todayDt.AddDays(-random.Next(0, 3)),
+                    });
+                    newResCount++;
+                }
             }
+            await db.SaveChangesAsync();
+            results.Add($"Added {newResCount} unclaimed residents across safehouses");
+
+            // 7b. Ensure every SW code has at least 3 claimed active residents
+            var claimedPerSw = await db.Residents
+                .Where(r => r.CaseStatus == "Active" && r.AssignedSocialWorker != null && r.AssignedSocialWorker != "")
+                .GroupBy(r => r.AssignedSocialWorker!)
+                .Select(g => new { Sw = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(g => g.Sw, g => g.Count);
+
+            var swResAdded = 0;
+            foreach (var sw in allSwCodes)
+            {
+                var current = claimedPerSw.GetValueOrDefault(sw, 0);
+                var needed = Math.Max(0, 3 - current);
+                if (needed == 0) continue;
+                // Find which safehouses this SW is assigned to
+                var shIds = swToSafehouse.GetValueOrDefault(sw, [1]);
+                for (int n = 0; n < needed; n++)
+                {
+                    maxCode++;
+                    var shId = shIds[random.Next(shIds.Length)];
+                    var age = random.Next(7, 16);
+                    db.Residents.Add(new Resident
+                    {
+                        InternalCode = $"LS-{maxCode:D4}",
+                        SafehouseId = shId,
+                        CaseStatus = "Active",
+                        Sex = "Female",
+                        DateOfBirth = today.AddYears(-age).AddDays(-random.Next(0, 365)),
+                        Religion = religions[random.Next(religions.Length)],
+                        CaseCategory = categories[random.Next(categories.Length)],
+                        SubCatTrafficked = random.Next(3) == 0,
+                        SubCatChildLabor = random.Next(4) == 0,
+                        SubCatAtRisk = random.Next(2) == 0,
+                        DateOfAdmission = today.AddDays(-random.Next(14, 90)),
+                        AgeUponAdmission = age.ToString(),
+                        PresentAge = age.ToString(),
+                        ReferralSource = referralSources[random.Next(referralSources.Length)],
+                        AssignedSocialWorker = sw,
+                        InitialRiskLevel = riskLevels[random.Next(riskLevels.Length)],
+                        CurrentRiskLevel = riskLevels[random.Next(riskLevels.Length)],
+                        CreatedAt = todayDt.AddDays(-random.Next(14, 60)),
+                    });
+                    swResAdded++;
+                }
+            }
+            await db.SaveChangesAsync();
+            results.Add($"Added {swResAdded} claimed residents to fill SW caseloads");
 
             results.Add($"TOTAL: {eventCount} events, {taskCount} tasks");
             return Results.Ok(new { results });
