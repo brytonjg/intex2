@@ -380,13 +380,13 @@ export default function CalendarPage() {
       </header>
 
       <div className={styles.controls}>
-        <button className={styles.navBtn} onClick={() => navigate_date(-1)}><ChevronLeft size={18} /></button>
+        <button className={styles.navBtn} onClick={() => navigate_date(-1)} title="Previous"><ChevronLeft size={18} /></button>
         <button className={styles.todayBtn} onClick={() => setCurrentDate(new Date(APP_TODAY))}>Today</button>
         <span className={styles.dateLabel}>
           {view === 'day' ? formatDateDisplay(currentDate) :
             `${formatDate(getWeekStart(currentDate))} - ${formatDate(addDays(getWeekStart(currentDate), 6))}`}
         </span>
-        <button className={styles.navBtn} onClick={() => navigate_date(1)}><ChevronRight size={18} /></button>
+        <button className={styles.navBtn} onClick={() => navigate_date(1)} title="Next"><ChevronRight size={18} /></button>
       </div>
 
       {loading ? (

@@ -67,7 +67,7 @@ function NewsletterBar({ visible, onHide }: { visible: boolean; onHide: () => vo
             onChange={e => setEmail(e.target.value)}
             className={styles.newsletterInput}
           />
-          <button type="submit" className={styles.newsletterBtn} aria-label="Subscribe">
+          <button type="submit" className={styles.newsletterBtn} aria-label="Subscribe" title="Subscribe">
             <ArrowRight size={14} />
           </button>
         </form>
@@ -75,6 +75,7 @@ function NewsletterBar({ visible, onHide }: { visible: boolean; onHide: () => vo
           className={styles.newsletterDismiss}
           onClick={handleDismiss}
           aria-label="Dismiss"
+          title="Dismiss"
         >
           <X size={14} />
         </button>
@@ -145,6 +146,7 @@ export default function Header() {
             className={styles.menuToggle}
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            title={menuOpen ? 'Close menu' : 'Open menu'}
           >
             {menuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
