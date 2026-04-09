@@ -622,16 +622,26 @@ export default function HomePage() {
     e.stopPropagation();
     const chip = e.currentTarget as HTMLElement;
     const panel = calendarPanelRef.current;
+    const popoverWidth = 300;
     if (panel) {
       const panelRect = panel.getBoundingClientRect();
       const chipRect = chip.getBoundingClientRect();
-      setPopoverPos({
-        top: chipRect.bottom - panelRect.top + panel.scrollTop + 4,
-        left: chipRect.left - panelRect.left,
-      });
+      const top = chipRect.bottom - panelRect.top + panel.scrollTop + 4;
+      let left = chipRect.left - panelRect.left;
+      // If popover would overflow the right edge of the panel, anchor to the right side of the chip
+      if (left + popoverWidth > panelRect.width) {
+        left = chipRect.right - panelRect.left - popoverWidth;
+      }
+      if (left < 0) left = 0;
+      setPopoverPos({ top, left });
     } else {
       const rect = chip.getBoundingClientRect();
-      setPopoverPos({ top: rect.bottom + 4, left: rect.left });
+      let left = rect.left;
+      if (left + popoverWidth > window.innerWidth) {
+        left = rect.right - popoverWidth;
+      }
+      if (left < 0) left = 0;
+      setPopoverPos({ top: rect.bottom + 4, left });
     }
     setSelectedEvent(evt);
   }
