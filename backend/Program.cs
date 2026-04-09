@@ -1128,6 +1128,20 @@ app.MapGet("/api/impact/summary", async (AppDbContext db) =>
     };
 });
 
+app.MapGet("/api/donate/monthly-progress", async (AppDbContext db) =>
+{
+    var startOfMonth = new DateOnly(DATA_CUTOFF.Year, DATA_CUTOFF.Month, 1);
+    var raised = await db.Donations
+        .Where(d => d.DonationDate >= startOfMonth && d.DonationDate <= DATA_CUTOFF)
+        .SumAsync(d => (decimal?)d.Amount ?? 0);
+    var goal = 15000m;
+    var donorCount = await db.Donations
+        .Where(d => d.DonationDate >= startOfMonth && d.DonationDate <= DATA_CUTOFF)
+        .CountAsync();
+
+    return new { raised, goal, donorCount };
+});
+
 app.MapGet("/api/impact/donations-by-month", async (AppDbContext db) =>
 {
     var data = await db.Donations

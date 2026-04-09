@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Heart } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Heart, Users } from 'lucide-react';
 import { apiFetch } from '../api';
 import styles from './DonatePage.module.css';
 
@@ -23,6 +23,13 @@ export default function DonatePage() {
   const [newsletter, setNewsletter] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [goalData, setGoalData] = useState<{ raised: number; goal: number; donorCount: number } | null>(null);
+
+  useEffect(() => {
+    apiFetch<{ raised: number; goal: number; donorCount: number }>('/api/donate/monthly-progress')
+      .then(setGoalData)
+      .catch(() => {});
+  }, []);
 
   const amountCents = customAmount
     ? Math.round(parseFloat(customAmount) * 100)
@@ -75,6 +82,31 @@ export default function DonatePage() {
       </section>
 
       <section className={styles.formSection}>
+        {goalData && (
+          <div className={styles.goalCard}>
+            <div className={styles.goalHeader}>
+              <span className={styles.goalTitle}>This month's goal</span>
+              <span className={styles.goalNumbers}>
+                ${Math.round(goalData.raised).toLocaleString()} of ${goalData.goal.toLocaleString()}
+              </span>
+            </div>
+            <div className={styles.goalBar}>
+              <div
+                className={styles.goalFill}
+                style={{ width: `${Math.min(100, (goalData.raised / goalData.goal) * 100)}%` }}
+              />
+            </div>
+            <div className={styles.goalFooter}>
+              <span className={styles.goalPct}>
+                {Math.round((goalData.raised / goalData.goal) * 100)}% funded
+              </span>
+              <span className={styles.goalDonors}>
+                <Users size={14} />
+                {goalData.donorCount} donor{goalData.donorCount !== 1 ? 's' : ''} this month
+              </span>
+            </div>
+          </div>
+        )}
         <div className={styles.card}>
           {/* Mode toggle */}
           <div className={styles.modeToggle}>
