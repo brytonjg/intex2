@@ -67,11 +67,13 @@ interface NavItem {
   icon: React.ComponentType<{ size: number }>;
   label: string;
   end?: boolean;
+  adminOnly?: boolean;
 }
 
 interface NavGroup {
   label: string;
   items: NavItem[];
+  adminOnly?: boolean;
 }
 
 const navGroups: NavGroup[] = [
@@ -102,14 +104,15 @@ const navGroups: NavGroup[] = [
   {
     label: 'Donor Nurturing',
     items: [
-      { to: '/admin/social/posts', icon: Share2, label: 'Social Posts' },
+      { to: '/admin/social/posts', icon: Share2, label: 'Social Posts', adminOnly: true },
       { to: '/admin/social/photos', icon: CameraIcon, label: 'Photos' },
-      { to: '/admin/newsletters', icon: Mail, label: 'Newsletter' },
-      { to: '/admin/social/setup', icon: Settings, label: 'Setup' },
+      { to: '/admin/newsletters', icon: Mail, label: 'Newsletter', adminOnly: true },
+      { to: '/admin/social/setup', icon: Settings, label: 'Setup', adminOnly: true },
     ],
   },
   {
     label: 'Admin',
+    adminOnly: true,
     items: [
       { to: '/admin/reports', icon: BarChart3, label: 'Reports' },
       { to: '/admin/donors', icon: HandHeart, label: 'Donors' },
@@ -211,8 +214,12 @@ function AdminLayoutInner() {
 
           {/* Desktop nav: Home link + category hover dropdowns */}
           <nav className={styles.nav}>
-            {navGroups.map(group => {
-              const groupActive = group.items.some(item =>
+            {navGroups
+              .filter(group => !group.adminOnly || isAdmin)
+              .map(group => {
+              const visibleItems = group.items.filter(item => !item.adminOnly || isAdmin);
+              if (visibleItems.length === 0) return null;
+              const groupActive = visibleItems.some(item =>
                 item.end ? location.pathname === item.to : location.pathname.startsWith(item.to)
               );
               return (
@@ -221,7 +228,7 @@ function AdminLayoutInner() {
                     {group.label}
                   </span>
                   <div className={styles.navDropdown}>
-                    {group.items.map(({ to, icon: Icon, label, end }) => (
+                    {visibleItems.map(({ to, icon: Icon, label, end }) => (
                       <NavLink
                         key={to}
                         to={to}
@@ -267,25 +274,31 @@ function AdminLayoutInner() {
 
       {/* Mobile nav: grouped sections — placed outside header to avoid backdrop-filter containment */}
       <nav className={`${styles.mobileNav} ${menuOpen ? styles.navOpen : ''}`}>
-        {navGroups.map(group => (
-          <div key={group.label} className={styles.mobileNavSection}>
-            <span className={styles.mobileNavLabel}>{group.label}</span>
-            {group.items.map(({ to, icon: Icon, label, end }) => (
-              <NavLink
-                key={to}
-                to={to}
-                end={end}
-                className={({ isActive }) =>
-                  `${styles.navItem} ${isActive ? styles.navItemActive : ''}`
-                }
-                onClick={() => setMenuOpen(false)}
-              >
-                <Icon size={16} />
-                <span>{label}</span>
-              </NavLink>
-            ))}
-          </div>
-        ))}
+        {navGroups
+          .filter(group => !group.adminOnly || isAdmin)
+          .map(group => {
+          const visibleItems = group.items.filter(item => !item.adminOnly || isAdmin);
+          if (visibleItems.length === 0) return null;
+          return (
+            <div key={group.label} className={styles.mobileNavSection}>
+              <span className={styles.mobileNavLabel}>{group.label}</span>
+              {visibleItems.map(({ to, icon: Icon, label, end }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  end={end}
+                  className={({ isActive }) =>
+                    `${styles.navItem} ${isActive ? styles.navItemActive : ''}`
+                  }
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <Icon size={16} />
+                  <span>{label}</span>
+                </NavLink>
+              ))}
+            </div>
+          );
+        })}
       </nav>
 
       <main className={styles.content}>
