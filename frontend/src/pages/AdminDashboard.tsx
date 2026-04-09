@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowUpRight, AlertTriangle, Calendar, UserPlus, DollarSign, FileText, Filter } from 'lucide-react';
+import { ArrowUpRight, AlertTriangle, Calendar, UserPlus, DollarSign, FileText } from 'lucide-react';
+import { useSafehouse } from '../contexts/SafehouseContext';
 import { apiFetch } from '../api';
 import { formatMonthLabel, formatEnumLabel } from '../constants';
 import { ChartTooltip } from '../components/ChartTooltip';
@@ -83,13 +84,9 @@ interface ApiDonation {
 }
 
 
-interface SafehouseOption {
-  safehouseId: number;
-  label: string;
-}
-
 export default function AdminDashboard() {
   const navigate = useNavigate();
+  const { activeSafehouseId: safehouseId } = useSafehouse();
 
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [residents, setResidents] = useState<ResidentRow[]>([]);
@@ -100,15 +97,6 @@ export default function AdminDashboard() {
   const [flaggedChart, setFlaggedChart] = useState<Array<{ month: string; count: number }>>([]);
   const [channels, setChannels] = useState<Array<{ channel: string; amount: number }>>([]);
   const [error, setError] = useState(false);
-  const [safehouses, setSafehouses] = useState<SafehouseOption[]>([]);
-  const [safehouseId, setSafehouseId] = useState<number | null>(null);
-
-  // Fetch safehouse options once
-  useEffect(() => {
-    apiFetch<{ safehouses: SafehouseOption[] }>('/api/admin/residents/filter-options')
-      .then(resp => setSafehouses(resp.safehouses ?? []))
-      .catch(() => {});
-  }, []);
 
   const fetchData = useCallback((shId: number | null) => {
     const onErr = (e: unknown) => { console.error('API fetch failed', e); };
@@ -178,19 +166,6 @@ export default function AdminDashboard() {
           <p className={styles.dateText}>{dataDateStr}</p>
         </div>
         <div className={styles.quickActions}>
-          <div className={styles.filterWrap}>
-            <Filter size={14} className={styles.filterIcon} />
-            <select
-              className={styles.safehouseSelect}
-              value={safehouseId ?? ''}
-              onChange={e => setSafehouseId(e.target.value ? Number(e.target.value) : null)}
-            >
-              <option value="">All Safehouses</option>
-              {safehouses.map(s => (
-                <option key={s.safehouseId} value={s.safehouseId}>{s.label}</option>
-              ))}
-            </select>
-          </div>
           <button className={styles.actionBtn} onClick={() => navigate('/admin/caseload/new')}>
             <UserPlus size={15} />
             <span>Add Resident</span>
@@ -382,22 +357,22 @@ export default function AdminDashboard() {
 
         <div className={styles.chartCard}>
           <div className={styles.chartMeta}>
-            <h2 className={styles.cardTitle}>Cases Flagged for Review</h2>
-            <span className={styles.chartCalloutDanger}>7 currently flagged</span>
+            <h2 className={styles.cardTitle}>Incidents Reported</h2>
+            <span className={styles.chartCalloutWarning}>{metrics?.openIncidents ?? 0} currently open</span>
           </div>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={flaggedChart}>
               <defs>
-                <linearGradient id="gradFlagged" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#C4756E" stopOpacity={0.12} />
-                  <stop offset="100%" stopColor="#C4756E" stopOpacity={0.01} />
+                <linearGradient id="gradIncidents" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#D4A853" stopOpacity={0.15} />
+                  <stop offset="100%" stopColor="#D4A853" stopOpacity={0.01} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#E8E0D4" vertical={false} />
               <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#8A8078' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11, fill: '#8A8078' }} axisLine={false} tickLine={false} domain={[0, 'dataMax + 2']} />
               <Tooltip content={<ChartTooltip />} />
-              <Area type="monotone" dataKey="count" stroke="#C4756E" strokeWidth={2} fill="url(#gradFlagged)" />
+              <Area type="monotone" dataKey="count" stroke="#D4A853" strokeWidth={2} fill="url(#gradIncidents)" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
