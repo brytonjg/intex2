@@ -418,8 +418,8 @@ public static class AdminEndpoints
                 .Distinct().OrderBy(x => x).ToListAsync();
 
             var safehouses = await db.Safehouses
-                .Select(s => new { s.SafehouseId, label = s.SafehouseCode + " " + s.City })
-                .OrderBy(s => s.label)
+                .Select(s => new { s.SafehouseId, s.SafehouseCode, s.Name })
+                .OrderBy(s => s.Name)
                 .ToListAsync();
 
             var categories = await db.Residents

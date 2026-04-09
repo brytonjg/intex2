@@ -139,6 +139,15 @@
 /* ── Unscheduled parking lot ─────────────────────────────── */
 .unscheduledSection {
   margin-bottom: 1rem;
+  padding: 0.75rem;
+  border: 2px dashed transparent;
+  border-radius: 10px;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.unscheduledSection.dropTargetActive {
+  border-color: var(--color-sage);
+  background: rgba(15, 143, 125, 0.04);
 }
 
 .sectionLabel {
@@ -167,11 +176,18 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
+  user-select: none;
 }
 
 .unscheduledCard:hover {
   border-color: var(--color-sage);
   background: rgba(15, 143, 125, 0.03);
+}
+
+.unscheduledEmpty {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  padding: 0.5rem 0;
 }
 
 /* ── Day view grid ───────────────────────────────────────── */
@@ -185,12 +201,30 @@
 .timeSlot {
   display: flex;
   border-bottom: 1px solid rgba(15, 27, 45, 0.04);
-  min-height: 48px;
+  min-height: 42px;
   transition: background 0.2s;
+}
+
+.halfHourSlot {
+  border-bottom: 1px dashed rgba(15, 27, 45, 0.03);
+  min-height: 42px;
 }
 
 .timeSlot:hover {
   background: rgba(15, 143, 125, 0.02);
+}
+
+.dropTargetActive {
+  background: rgba(15, 143, 125, 0.08) !important;
+}
+
+.draggable {
+  cursor: grab;
+  user-select: none;
+}
+
+.dragging {
+  opacity: 0.4;
 }
 
 .timeLabel {
