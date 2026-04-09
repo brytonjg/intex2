@@ -122,11 +122,10 @@ function SafehouseDropdown({
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
-  const activeLabel = activeSafehouseId
-    ? safehouses.find(s => s.safehouseId === activeSafehouseId)
-      ? `${safehouses.find(s => s.safehouseId === activeSafehouseId)!.safehouseCode} - ${safehouses.find(s => s.safehouseId === activeSafehouseId)!.name}`
-      : 'All Safehouses'
-    : 'All Safehouses';
+  const activeSh = activeSafehouseId ? safehouses.find(s => s.safehouseId === activeSafehouseId) : null;
+  const activeLabel = activeSh
+    ? `${activeSh.safehouseCode} - ${activeSh.name}`
+    : isAdmin ? 'All Safehouses' : 'All My Safehouses';
 
   return (
     <div className={styles.shDropdown} ref={ref}>
@@ -140,14 +139,26 @@ function SafehouseDropdown({
       </button>
       {open && (
         <div className={styles.shDropdownMenu}>
-          <button
-            className={`${styles.shDropdownItem} ${activeSafehouseId === null ? styles.shDropdownItemActive : ''}`}
-            onClick={() => { setActiveSafehouseId(null); setOpen(false); }}
-            type="button"
-          >
-            <span>All Safehouses</span>
-            {activeSafehouseId === null && <Check size={14} />}
-          </button>
+          {isAdmin && (
+            <button
+              className={`${styles.shDropdownItem} ${activeSafehouseId === null ? styles.shDropdownItemActive : ''}`}
+              onClick={() => { setActiveSafehouseId(null); setOpen(false); }}
+              type="button"
+            >
+              <span>All Safehouses</span>
+              {activeSafehouseId === null && <Check size={14} />}
+            </button>
+          )}
+          {!isAdmin && safehouses.length > 1 && (
+            <button
+              className={`${styles.shDropdownItem} ${activeSafehouseId === null ? styles.shDropdownItemActive : ''}`}
+              onClick={() => { setActiveSafehouseId(null); setOpen(false); }}
+              type="button"
+            >
+              <span>All My Safehouses</span>
+              {activeSafehouseId === null && <Check size={14} />}
+            </button>
+          )}
           {safehouses.map(s => (
             <button
               key={s.safehouseId}
