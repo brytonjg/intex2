@@ -10,6 +10,7 @@ import { apiFetch } from '../../api';
 import { formatMonthLabel, formatEnumLabel } from '../../constants';
 import { ChartTooltip } from '../../components/ChartTooltip';
 import KpiCard from '../../components/admin/KpiCard';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import styles from './ReportsPage.module.css';
 
 // ── Palette ──────────────────────────────────────────────
@@ -45,6 +46,7 @@ const TABS = [
   { key: 'donations', label: 'Donations' },
   { key: 'outcomes', label: 'Outcomes' },
   { key: 'safehouses', label: 'Safehouses' },
+  { key: 'aar', label: 'Annual Report' },
 ] as const;
 
 type TabKey = typeof TABS[number]['key'];
@@ -302,7 +304,7 @@ function OutcomesTab() {
           <LineChart data={healthData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#F0EDE6" />
             <XAxis dataKey="month" tick={{ fontSize: 11 }} stroke="#B0A99F" />
-            <YAxis tick={{ fontSize: 11 }} stroke="#B0A99F" />
+            <YAxis tick={{ fontSize: 11 }} stroke="#B0A99F" domain={[0, 100]} label={{ value: 'Score (0–100)', angle: -90, position: 'insideLeft', style: { fontSize: 11, fill: '#8A8078' } }} />
             <Tooltip />
             <Line type="monotone" dataKey="health" stroke="#D4A853" strokeWidth={2} dot={{ r: 2 }} name="Health" />
             <Line type="monotone" dataKey="nutrition" stroke="#7A9E7E" strokeWidth={2} dot={{ r: 2 }} name="Nutrition" />
@@ -435,6 +437,7 @@ function SafehousesTab() {
 
 // ── Main Page ────────────────────────────────────────────
 export default function ReportsPage() {
+  useDocumentTitle('Reports & Analytics');
   const [activeTab, setActiveTab] = useState<TabKey>('overview');
 
   const handleTabChange = useCallback((key: TabKey) => {
@@ -464,6 +467,96 @@ export default function ReportsPage() {
       {activeTab === 'donations' && <DonationsTab />}
       {activeTab === 'outcomes' && <OutcomesTab />}
       {activeTab === 'safehouses' && <SafehousesTab />}
+      {activeTab === 'aar' && <AARTab />}
+    </div>
+  );
+}
+
+// ── AAR (Annual Accomplishment Report) Tab ──────────────
+interface AARCategory {
+  category: string;
+  serviceCount: number;
+  beneficiaryCount: number;
+  services: { service: string; count: number; beneficiaries: number }[];
+}
+
+function AARTab() {
+  const [data, setData] = useState<{ categories: AARCategory[]; totalBeneficiaries: number } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    apiFetch<{ categories: AARCategory[]; totalBeneficiaries: number }>('/api/admin/reports/aar-summary')
+      .then(setData)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <Loading />;
+  if (!data) return <div className={styles.empty}>Failed to load AAR data.</div>;
+
+  const CATEGORY_COLORS: Record<string, string> = {
+    Caring: '#3498db',
+    Healing: '#27ae60',
+    Teaching: '#f39c12',
+  };
+
+  return (
+    <div>
+      <h2 className={styles.sectionTitle}>Annual Accomplishment Report</h2>
+      <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
+        Services categorized by Philippine DSWD Annual Accomplishment Report framework: Caring, Healing, and Teaching.
+      </p>
+
+      {/* Total beneficiaries */}
+      <div style={{ background: 'linear-gradient(135deg, #B8913A 0%, #D4A853 100%)', borderRadius: '12px', padding: '1.25rem', marginBottom: '1.5rem', color: '#fff' }}>
+        <div style={{ fontSize: '0.82rem', fontWeight: 600, opacity: 0.9 }}>Total Unique Beneficiaries</div>
+        <div style={{ fontSize: '2rem', fontWeight: 700 }}>{data.totalBeneficiaries}</div>
+      </div>
+
+      {/* Category cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+        {data.categories.map(cat => {
+          const color = CATEGORY_COLORS[cat.category] || '#8A8078';
+          return (
+            <div key={cat.category} style={{ background: '#fff', border: '1px solid rgba(15,27,45,0.08)', borderRadius: '12px', padding: '1.25rem', borderLeft: `4px solid ${color}` }}>
+              <div style={{ fontSize: '1rem', fontWeight: 700, color, marginBottom: '0.75rem' }}>{cat.category}</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Services Delivered</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-strong)' }}>{cat.serviceCount}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Beneficiaries</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-strong)' }}>{cat.beneficiaryCount}</div>
+                </div>
+              </div>
+              <div style={{ borderTop: '1px solid rgba(15,27,45,0.06)', paddingTop: '0.5rem' }}>
+                {cat.services.map(s => (
+                  <div key={s.service} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', padding: '0.25rem 0' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>{s.service}</span>
+                    <span style={{ fontWeight: 600 }}>{s.count} ({s.beneficiaries} beneficiaries)</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Bar chart comparing categories */}
+      <div className={styles.chartCard}>
+        <h3 className={styles.chartTitle}>Service Delivery by Category</h3>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={data.categories} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(15,27,45,0.06)" />
+            <XAxis dataKey="category" tick={{ fontSize: 12 }} />
+            <YAxis tick={{ fontSize: 12 }} />
+            <Tooltip content={<ChartTooltip />} />
+            <Bar dataKey="serviceCount" name="Services" fill="#3498db" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="beneficiaryCount" name="Beneficiaries" fill="#27ae60" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }
