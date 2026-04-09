@@ -12,11 +12,12 @@ namespace backend.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<int>(
-                name: "SourceCalendarEventId",
-                table: "process_recordings",
-                type: "integer",
-                nullable: true);
+            // SourceCalendarEventId already exists from a prior migration
+            // migrationBuilder.AddColumn<int>(
+            //     name: "SourceCalendarEventId",
+            //     table: "process_recordings",
+            //     type: "integer",
+            //     nullable: true);
 
             migrationBuilder.CreateTable(
                 name: "awareness_dates",
@@ -399,10 +400,11 @@ namespace backend.Migrations
                         onDelete: ReferentialAction.SetNull);
                 });
 
-            migrationBuilder.CreateIndex(
-                name: "IX_process_recordings_SourceCalendarEventId",
-                table: "process_recordings",
-                column: "SourceCalendarEventId");
+            // Index already exists from prior migration
+            // migrationBuilder.CreateIndex(
+            //     name: "IX_process_recordings_SourceCalendarEventId",
+            //     table: "process_recordings",
+            //     column: "SourceCalendarEventId");
 
             migrationBuilder.CreateIndex(
                 name: "automated_posts_pillar_idx",
@@ -515,20 +517,22 @@ namespace backend.Migrations
                 table: "media_library",
                 column: "safehouse_id");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_process_recordings_calendar_events_SourceCalendarEventId",
-                table: "process_recordings",
-                column: "SourceCalendarEventId",
-                principalTable: "calendar_events",
-                principalColumn: "calendar_event_id");
+            // FK already exists from prior migration
+            // migrationBuilder.AddForeignKey(
+            //     name: "FK_process_recordings_calendar_events_SourceCalendarEventId",
+            //     table: "process_recordings",
+            //     column: "SourceCalendarEventId",
+            //     principalTable: "calendar_events",
+            //     principalColumn: "calendar_event_id");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_process_recordings_calendar_events_SourceCalendarEventId",
-                table: "process_recordings");
+            // FK managed by prior migration
+            // migrationBuilder.DropForeignKey(
+            //     name: "FK_process_recordings_calendar_events_SourceCalendarEventId",
+            //     table: "process_recordings");
 
             migrationBuilder.DropTable(
                 name: "automated_posts");
@@ -575,13 +579,14 @@ namespace backend.Migrations
             migrationBuilder.DropTable(
                 name: "graphic_templates");
 
-            migrationBuilder.DropIndex(
-                name: "IX_process_recordings_SourceCalendarEventId",
-                table: "process_recordings");
+            // Index and column managed by prior migration
+            // migrationBuilder.DropIndex(
+            //     name: "IX_process_recordings_SourceCalendarEventId",
+            //     table: "process_recordings");
 
-            migrationBuilder.DropColumn(
-                name: "SourceCalendarEventId",
-                table: "process_recordings");
+            // migrationBuilder.DropColumn(
+            //     name: "SourceCalendarEventId",
+            //     table: "process_recordings");
         }
     }
 }
