@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom';
 import {
   ChevronLeft, ChevronRight, Plus, Loader2,
-  CheckCircle, Clock, X, Calendar,
+  CheckCircle, Clock, X,
   Stethoscope, GraduationCap, Heart, AlertTriangle, Home, ClipboardList, User,
 } from 'lucide-react';
 import { apiFetch } from '../../api';
@@ -238,7 +238,7 @@ function parseContext(json: string | null): Record<string, string> {
   try { return JSON.parse(json); } catch { return {}; }
 }
 
-function formatContextValue(key: string, value: string): string {
+function formatContextValue(_key: string, value: string): string {
   // Format date values nicely
   if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     const d = new Date(value + 'T00:00:00');
@@ -416,7 +416,6 @@ export default function HomePage() {
   /* ── Drag-and-drop handlers ────────────────────── */
 
   function handleDragStart(taskId: number) {
-    dragGrabOffsetPx.current = 0;
     setDragTaskId(taskId);
   }
 
@@ -442,11 +441,6 @@ export default function HomePage() {
     }
   }
 
-
-  function formatDropTime(hour: number, minute: number): string | null {
-    if (hour < 0) return null;
-    return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-  }
 
   function handleSlotDrop(hour: number, date?: string) {
     if (!dragTaskId) return;

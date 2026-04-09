@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft, Edit, Trash2, ChevronDown, ChevronRight,
   Loader2, User, Briefcase, Heart, Home, Shield, ClipboardList, RefreshCw,
@@ -142,7 +142,9 @@ export default function ResidentDetailPage() {
   useDocumentTitle('Resident Detail');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
+  const backTo = `/admin/caseload${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
   const isAdmin = user?.roles?.includes('Admin') ?? false;
 
   const [resident, setResident] = useState<ResidentDetail | null>(null);
@@ -180,7 +182,7 @@ export default function ResidentDetailPage() {
     setIsDeleting(true);
     try {
       await apiFetch(`/api/admin/residents/${id}`, { method: 'DELETE' });
-      navigate('/admin/caseload', { replace: true });
+      navigate(backTo, { replace: true });
     } catch (err: unknown) {
       setError((err as Error).message);
       setIsDeleting(false);
@@ -204,7 +206,7 @@ export default function ResidentDetailPage() {
       <div className={styles.page}>
         <div className={styles.errorState}>
           <p>{error ?? 'Resident not found.'}</p>
-          <button className={styles.backLink} onClick={() => navigate('/admin/caseload')}>
+          <button className={styles.backLink} onClick={() => navigate(backTo)}>
             <ArrowLeft size={16} /> Back to Caseload
           </button>
         </div>
@@ -229,7 +231,7 @@ export default function ResidentDetailPage() {
 
       {/* Top bar */}
       <div className={styles.topBar}>
-        <button className={styles.backLink} onClick={() => navigate('/admin/caseload')}>
+        <button className={styles.backLink} onClick={() => navigate(backTo)}>
           <ArrowLeft size={16} /> Back to Caseload
         </button>
         {isAdmin && (

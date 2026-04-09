@@ -321,7 +321,7 @@ export default function CaseloadPage() {
                     <tr
                       key={r.residentId}
                       className={`${styles.row} ${(RISK_ORDER[r.currentRiskLevel ?? ''] ?? 99) <= 1 ? styles.rowHighRisk : ''}`}
-                      onClick={() => navigate(`/admin/caseload/${r.residentId}`)}
+                      onClick={() => navigate(`/admin/caseload/${r.residentId}?${searchParams.toString()}`)}
                     >
                       <td>
                         <span className={styles.codeCell}>{r.internalCode ?? '--'}</span>
