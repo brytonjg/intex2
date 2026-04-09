@@ -1,11 +1,25 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Loader2, Plus, GripVertical } from 'lucide-react';
+import {
+  DndContext,
+  DragOverlay,
+  useDraggable,
+  useDroppable,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragStartEvent,
+  type DragEndEvent,
+  type DragOverEvent,
+} from '@dnd-kit/core';
 import { apiFetch } from '../../api';
 import { APP_TODAY, APP_TODAY_STR } from '../../constants';
 import { useSafehouse } from '../../contexts/SafehouseContext';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import styles from './CalendarPage.module.css';
+
+/* ── Types ───────────────────────────────────────────────── */
 
 interface CalendarEventItem {
   calendarEventId: number;
@@ -34,6 +48,8 @@ interface NewEventForm {
   residentId: string;
 }
 
+/* ── Constants ───────────────────────────────────────────── */
+
 const EVENT_TYPE_STYLES: Record<string, string> = {
   Counseling: 'eventCounseling',
   DoctorApt: 'eventDoctorApt',
@@ -45,47 +61,36 @@ const EVENT_TYPE_STYLES: Record<string, string> = {
   PostPlacementVisit: 'eventPostPlacementVisit',
 };
 
-const HOURS = Array.from({ length: 14 }, (_, i) => i + 6); // 6am to 7pm
+const HOURS = Array.from({ length: 14 }, (_, i) => i + 6);
+const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-// All half-hour time strings in order: "06:00", "06:30", "07:00", ...
-const ALL_SLOTS: string[] = HOURS.flatMap(h => [
-  `${h.toString().padStart(2, '0')}:00`,
-  `${h.toString().padStart(2, '0')}:30`,
-]);
+/* ── Helpers ─────────────────────────────────────────────── */
 
 function formatDate(d: Date): string {
   return d.toISOString().split('T')[0];
 }
-
 function formatDateDisplay(d: Date): string {
   return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 }
-
 function getWeekStart(d: Date): Date {
   const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  return new Date(d.getFullYear(), d.getMonth(), diff);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() - day + (day === 0 ? -6 : 1));
 }
-
 function addDays(d: Date, n: number): Date {
-  const result = new Date(d);
-  result.setDate(result.getDate() + n);
-  return result;
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
 }
-
 function snapToSlot(time: string): string {
   const [h, m] = time.split(':').map(Number);
   return `${h.toString().padStart(2, '0')}:${m < 30 ? '00' : '30'}`;
 }
-
 function formatHour(hour: number): string {
   if (hour === 0) return '12 AM';
   if (hour < 12) return `${hour} AM`;
   if (hour === 12) return '12 PM';
   return `${hour - 12} PM`;
 }
-
-/** Calculate how many half-hour slots an event spans (min 1, default 2 = 1 hour) */
 function calcSlotSpan(evt: CalendarEventItem): number {
   if (evt.startTime && evt.endTime) {
     const [sh, sm] = evt.startTime.split(':').map(Number);
@@ -93,36 +98,88 @@ function calcSlotSpan(evt: CalendarEventItem): number {
     const mins = (eh * 60 + em) - (sh * 60 + sm);
     if (mins > 0) return Math.max(1, Math.round(mins / 30));
   }
-  return 2; // default: 1 hour = 2 half-hour slots
+  return 2;
+}
+function getEventStyle(eventType: string, status: string) {
+  const base = EVENT_TYPE_STYLES[eventType] || 'eventOther';
+  const classes = [styles.eventChip, styles[base]];
+  if (status === 'Completed') classes.push(styles.eventCompleted);
+  return classes.join(' ');
 }
 
-const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+/* ── Draggable event chip ────────────────────────────────── */
 
-// ─── Drag helper: all DOM-based, no React state ─────────────────
-// We store drag state in refs and manipulate CSS classes directly
-// to avoid React re-renders that kill the HTML5 drag session.
+function DraggableChip({ evt, onClick }: { evt: CalendarEventItem; onClick: () => void }) {
+  const canDrag = evt.status !== 'Completed';
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `event-${evt.calendarEventId}`,
+    data: { evt },
+    disabled: !canDrag,
+  });
 
-const DRAG_HIGHLIGHT = 'dragHighlight';
-const DRAG_QUEUE_HIGHLIGHT = 'dragQueueHighlight';
-
-function clearAllHighlights(gridRef: HTMLDivElement | null, queueRef: HTMLDivElement | null) {
-  if (gridRef) {
-    gridRef.querySelectorAll(`.${DRAG_HIGHLIGHT}`).forEach(el => el.classList.remove(DRAG_HIGHLIGHT));
-  }
-  if (queueRef) {
-    queueRef.classList.remove(DRAG_QUEUE_HIGHLIGHT);
-  }
+  return (
+    <div
+      ref={setNodeRef}
+      className={`${getEventStyle(evt.eventType, evt.status)} ${canDrag ? styles.draggableChip : ''} ${isDragging ? styles.chipDragging : ''}`}
+      onClick={onClick}
+      {...(canDrag ? { ...listeners, ...attributes } : {})}
+    >
+      {canDrag && <GripVertical size={12} className={styles.gripIcon} />}
+      {evt.startTime && <span>{evt.startTime}</span>}
+      <span>{evt.title}</span>
+      {evt.residentCode && <span>({evt.residentCode})</span>}
+    </div>
+  );
 }
 
-function highlightSlots(gridRef: HTMLDivElement | null, timeStr: string, span: number) {
-  if (!gridRef) return;
-  const startIdx = ALL_SLOTS.indexOf(timeStr);
-  if (startIdx === -1) return;
-  for (let i = 0; i < span && startIdx + i < ALL_SLOTS.length; i++) {
-    const slot = gridRef.querySelector(`[data-time="${ALL_SLOTS[startIdx + i]}"]`);
-    if (slot) slot.classList.add(DRAG_HIGHLIGHT);
-  }
+/* ── Droppable time slot ─────────────────────────────────── */
+
+function TimeSlot({
+  timeStr,
+  isHalf,
+  isHighlighted,
+  children,
+}: {
+  timeStr: string;
+  isHalf: boolean;
+  isHighlighted: boolean;
+  children: React.ReactNode;
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id: `slot-${timeStr}` });
+  const hour = parseInt(timeStr.split(':')[0]);
+  const minute = parseInt(timeStr.split(':')[1]);
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`${styles.timeSlot} ${isHalf ? styles.halfHourSlot : ''} ${isOver || isHighlighted ? styles.slotHighlight : ''}`}
+    >
+      <div className={styles.timeLabel}>
+        {minute === 0 ? formatHour(hour) : ''}
+      </div>
+      <div className={styles.slotContent}>
+        {children}
+      </div>
+    </div>
+  );
 }
+
+/* ── Droppable To Do queue ───────────────────────────────── */
+
+function TodoQueue({ children }: { children: React.ReactNode }) {
+  const { setNodeRef, isOver } = useDroppable({ id: 'todo-queue' });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`${styles.unscheduledSection} ${isOver ? styles.queueHighlight : ''}`}
+    >
+      {children}
+    </div>
+  );
+}
+
+/* ── Main component ──────────────────────────────────────── */
 
 export default function CalendarPage() {
   useDocumentTitle('Calendar');
@@ -136,21 +193,18 @@ export default function CalendarPage() {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEventItem | null>(null);
   const [showNewForm, setShowNewForm] = useState(false);
   const [newEvent, setNewEvent] = useState<NewEventForm>({
-    eventType: 'Counseling',
-    title: '',
-    description: '',
-    eventDate: APP_TODAY_STR,
-    startTime: '',
-    endTime: '',
-    residentId: '',
+    eventType: 'Counseling', title: '', description: '',
+    eventDate: APP_TODAY_STR, startTime: '', endTime: '', residentId: '',
   });
   const [residents, setResidents] = useState<{ residentId: number; internalCode: string }[]>([]);
 
-  // Refs for drag — NO React state during drag
-  const dragEvtRef = useRef<CalendarEventItem | null>(null);
-  const dragSpanRef = useRef(2);
-  const gridRef = useRef<HTMLDivElement>(null);
-  const queueRef = useRef<HTMLDivElement>(null);
+  // dnd-kit state
+  const [activeEvent, setActiveEvent] = useState<CalendarEventItem | null>(null);
+  const [highlightedSlots, setHighlightedSlots] = useState<Set<string>>(new Set());
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
 
   const fetchEvents = useCallback(async () => {
     setLoading(true);
@@ -193,12 +247,9 @@ export default function CalendarPage() {
         body: JSON.stringify({
           safehouseId: activeSafehouseId || safehouses[0]?.safehouseId || 1,
           residentId: newEvent.residentId ? Number(newEvent.residentId) : null,
-          eventType: newEvent.eventType,
-          title: newEvent.title,
-          description: newEvent.description || null,
-          eventDate: newEvent.eventDate,
-          startTime: newEvent.startTime || null,
-          endTime: newEvent.endTime || null,
+          eventType: newEvent.eventType, title: newEvent.title,
+          description: newEvent.description || null, eventDate: newEvent.eventDate,
+          startTime: newEvent.startTime || null, endTime: newEvent.endTime || null,
         }),
       });
       setShowNewForm(false);
@@ -209,116 +260,69 @@ export default function CalendarPage() {
 
   async function updateEvent(id: number, updates: Record<string, unknown>) {
     try {
-      await apiFetch(`/api/staff/calendar/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(updates),
-      });
+      await apiFetch(`/api/staff/calendar/${id}`, { method: 'PUT', body: JSON.stringify(updates) });
       setSelectedEvent(null);
       fetchEvents();
     } catch { /* ignore */ }
   }
 
-  function getEventStyle(eventType: string, status: string) {
-    const base = EVENT_TYPE_STYLES[eventType] || 'eventOther';
-    const classes = [styles.eventChip, styles[base]];
-    if (status === 'Completed') classes.push(styles.eventCompleted);
-    return classes.join(' ');
+  // ── dnd-kit handlers ─────────────────────────────────
+
+  function handleDragStart(event: DragStartEvent) {
+    const evt = event.active.data.current?.evt as CalendarEventItem;
+    if (evt) setActiveEvent(evt);
   }
 
-  // ── HTML5 Drag handlers (all DOM-based, zero React setState) ──
-
-  function onDragStart(e: React.DragEvent, evt: CalendarEventItem) {
-    dragEvtRef.current = evt;
-    dragSpanRef.current = calcSlotSpan(evt);
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', String(evt.calendarEventId));
-    // Make the dragged element semi-transparent
-    const el = e.currentTarget as HTMLElement;
-    requestAnimationFrame(() => { el.style.opacity = '0.4'; });
-  }
-
-  function onDragEnd(e: React.DragEvent) {
-    (e.currentTarget as HTMLElement).style.opacity = '';
-    clearAllHighlights(gridRef.current, queueRef.current);
-    dragEvtRef.current = null;
-  }
-
-  // Slot drag-over: highlight the target slots (direct DOM, no setState)
-  function onSlotDragOver(e: React.DragEvent) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    const timeStr = (e.currentTarget as HTMLElement).dataset.time;
-    if (!timeStr) return;
-    // Clear previous highlights and apply new ones
-    clearAllHighlights(gridRef.current, queueRef.current);
-    highlightSlots(gridRef.current, timeStr, dragSpanRef.current);
-  }
-
-  function onSlotDragLeave(e: React.DragEvent) {
-    // Only clear if actually leaving the slot (not entering a child)
-    const related = e.relatedTarget as HTMLElement | null;
-    const current = e.currentTarget as HTMLElement;
-    if (!related || !current.contains(related)) {
-      clearAllHighlights(gridRef.current, queueRef.current);
+  function handleDragOver(event: DragOverEvent) {
+    const overId = event.over?.id as string | undefined;
+    if (!overId || !activeEvent) {
+      setHighlightedSlots(new Set());
+      return;
+    }
+    if (overId === 'todo-queue') {
+      setHighlightedSlots(new Set());
+      return;
+    }
+    // Calculate which slots to highlight based on event duration
+    if (overId.startsWith('slot-')) {
+      const timeStr = overId.replace('slot-', '');
+      const span = calcSlotSpan(activeEvent);
+      const allSlots = HOURS.flatMap(h => [`${h.toString().padStart(2, '0')}:00`, `${h.toString().padStart(2, '0')}:30`]);
+      const startIdx = allSlots.indexOf(timeStr);
+      const newHighlights = new Set<string>();
+      if (startIdx !== -1) {
+        for (let i = 0; i < span && startIdx + i < allSlots.length; i++) {
+          newHighlights.add(allSlots[startIdx + i]);
+        }
+      }
+      setHighlightedSlots(newHighlights);
     }
   }
 
-  async function onSlotDrop(e: React.DragEvent) {
-    e.preventDefault();
-    const timeStr = (e.currentTarget as HTMLElement).dataset.time;
-    const evt = dragEvtRef.current;
-    clearAllHighlights(gridRef.current, queueRef.current);
-    if (!evt || !timeStr) return;
-    dragEvtRef.current = null;
-    await updateEvent(evt.calendarEventId, { startTime: timeStr });
-  }
+  async function handleDragEnd(event: DragEndEvent) {
+    const evt = activeEvent;
+    setActiveEvent(null);
+    setHighlightedSlots(new Set());
 
-  // Queue drag handlers
-  function onQueueDragOver(e: React.DragEvent) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    clearAllHighlights(gridRef.current, null);
-    queueRef.current?.classList.add(DRAG_QUEUE_HIGHLIGHT);
-  }
+    if (!evt || !event.over) return;
 
-  function onQueueDragLeave(e: React.DragEvent) {
-    const related = e.relatedTarget as HTMLElement | null;
-    const current = e.currentTarget as HTMLElement;
-    if (!related || !current.contains(related)) {
-      queueRef.current?.classList.remove(DRAG_QUEUE_HIGHLIGHT);
+    const overId = event.over.id as string;
+
+    if (overId === 'todo-queue') {
+      // Unschedule: send empty string to clear startTime
+      await updateEvent(evt.calendarEventId, { startTime: '' });
+    } else if (overId.startsWith('slot-')) {
+      const timeStr = overId.replace('slot-', '');
+      await updateEvent(evt.calendarEventId, { startTime: timeStr });
     }
   }
 
-  async function onQueueDrop(e: React.DragEvent) {
-    e.preventDefault();
-    const evt = dragEvtRef.current;
-    clearAllHighlights(gridRef.current, queueRef.current);
-    if (!evt) return;
-    dragEvtRef.current = null;
-    // Send empty string to clear startTime on the backend
-    await updateEvent(evt.calendarEventId, { startTime: '' });
+  function handleDragCancel() {
+    setActiveEvent(null);
+    setHighlightedSlots(new Set());
   }
 
-  // ── Rendering ──────────────────────────────────────────
-
-  function renderDraggableChip(evt: CalendarEventItem) {
-    const canDrag = evt.status !== 'Completed';
-    return (
-      <div
-        key={evt.calendarEventId}
-        className={`${getEventStyle(evt.eventType, evt.status)} ${canDrag ? styles.draggableChip : ''}`}
-        draggable={canDrag}
-        onDragStart={canDrag ? (e) => onDragStart(e, evt) : undefined}
-        onDragEnd={canDrag ? onDragEnd : undefined}
-        onClick={() => setSelectedEvent(evt)}
-      >
-        {canDrag && <GripVertical size={12} className={styles.gripIcon} />}
-        {evt.startTime && <span>{evt.startTime}</span>}
-        <span>{evt.title}</span>
-        {evt.residentCode && <span>({evt.residentCode})</span>}
-      </div>
-    );
-  }
+  // ── Derived data ───────────────────────────────────────
 
   const todayStr = APP_TODAY_STR;
   const unscheduled = events.filter(e => !e.startTime && e.status !== 'Completed');
@@ -357,58 +361,66 @@ export default function CalendarPage() {
       ) : error ? (
         <div className={styles.error}>{error}</div>
       ) : view === 'day' ? (
-        <>
-          {/* ── To Do queue (drop target) ───────────────── */}
-          <div
-            ref={queueRef}
-            className={styles.unscheduledSection}
-            onDragOver={onQueueDragOver}
-            onDragLeave={onQueueDragLeave}
-            onDrop={onQueueDrop}
-          >
+        <DndContext
+          sensors={sensors}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+          onDragCancel={handleDragCancel}
+        >
+          {/* ── To Do queue ──────────────────────────── */}
+          <TodoQueue>
             <div className={styles.sectionLabel}>
               To Do {unscheduled.length > 0 && `(${unscheduled.length})`}
             </div>
             {unscheduled.length > 0 ? (
               <div className={styles.unscheduledList}>
-                {unscheduled.map(evt => renderDraggableChip(evt))}
+                {unscheduled.map(evt => (
+                  <DraggableChip key={evt.calendarEventId} evt={evt} onClick={() => setSelectedEvent(evt)} />
+                ))}
               </div>
             ) : (
               <div className={styles.unscheduledEmpty}>
                 Drag events here to unschedule
               </div>
             )}
-          </div>
+          </TodoQueue>
 
-          {/* ── Day grid with half-hour slots ────────────── */}
-          <div className={styles.dayGrid} ref={gridRef}>
-            {HOURS.map(hour => (
+          {/* ── Day grid ─────────────────────────────── */}
+          <div className={styles.dayGrid}>
+            {HOURS.map(hour =>
               [0, 30].map(minute => {
                 const timeStr = `${hour.toString().padStart(2, '0')}:${minute === 0 ? '00' : '30'}`;
                 const slotEvents = scheduled.filter(e => e.startTime && snapToSlot(e.startTime) === timeStr);
-                const isHalf = minute === 30;
 
                 return (
-                  <div
+                  <TimeSlot
                     key={timeStr}
-                    data-time={timeStr}
-                    className={`${styles.timeSlot} ${isHalf ? styles.halfHourSlot : ''}`}
-                    onDragOver={onSlotDragOver}
-                    onDragLeave={onSlotDragLeave}
-                    onDrop={onSlotDrop}
+                    timeStr={timeStr}
+                    isHalf={minute === 30}
+                    isHighlighted={highlightedSlots.has(timeStr)}
                   >
-                    <div className={styles.timeLabel}>
-                      {minute === 0 ? formatHour(hour) : ''}
-                    </div>
-                    <div className={styles.slotContent}>
-                      {slotEvents.map(evt => renderDraggableChip(evt))}
-                    </div>
-                  </div>
+                    {slotEvents.map(evt => (
+                      <DraggableChip key={evt.calendarEventId} evt={evt} onClick={() => setSelectedEvent(evt)} />
+                    ))}
+                  </TimeSlot>
                 );
               })
-            ))}
+            )}
           </div>
-        </>
+
+          {/* ── Drag overlay (the ghost that follows cursor) ── */}
+          <DragOverlay dropAnimation={null}>
+            {activeEvent && (
+              <div className={`${getEventStyle(activeEvent.eventType, activeEvent.status)} ${styles.dragOverlay}`}>
+                <GripVertical size={12} className={styles.gripIcon} />
+                {activeEvent.startTime && <span>{activeEvent.startTime}</span>}
+                <span>{activeEvent.title}</span>
+                {activeEvent.residentCode && <span>({activeEvent.residentCode})</span>}
+              </div>
+            )}
+          </DragOverlay>
+        </DndContext>
       ) : (
         <div className={styles.weekGrid}>
           {DAY_NAMES.map((name, i) => {
@@ -422,7 +434,13 @@ export default function CalendarPage() {
                   {name} {dayDate.getDate()}
                 </div>
                 <div className={styles.weekEventList}>
-                  {dayEvents.map(evt => renderDraggableChip(evt))}
+                  {dayEvents.map(evt => (
+                    <div key={evt.calendarEventId} className={getEventStyle(evt.eventType, evt.status)} onClick={() => setSelectedEvent(evt)}>
+                      {evt.startTime && <span>{evt.startTime}</span>}
+                      <span>{evt.title}</span>
+                      {evt.residentCode && <span>({evt.residentCode})</span>}
+                    </div>
+                  ))}
                 </div>
               </div>
             );
@@ -444,30 +462,20 @@ export default function CalendarPage() {
             <div className={styles.modalActions}>
               {selectedEvent.status === 'Scheduled' && (
                 <>
-                  <button className={styles.modalBtnPrimary} onClick={() => updateEvent(selectedEvent.calendarEventId, { status: 'Completed' })}>
-                    Mark Complete
-                  </button>
+                  <button className={styles.modalBtnPrimary} onClick={() => updateEvent(selectedEvent.calendarEventId, { status: 'Completed' })}>Mark Complete</button>
                   {selectedEvent.eventType === 'Counseling' && (
-                    <button className={styles.modalBtn} onClick={() => { navigate(`/admin/recordings/new?residentId=${selectedEvent.residentId || ''}`); setSelectedEvent(null); }}>
-                      Log Recording
-                    </button>
+                    <button className={styles.modalBtn} onClick={() => { navigate(`/admin/recordings/new?residentId=${selectedEvent.residentId || ''}`); setSelectedEvent(null); }}>Log Recording</button>
                   )}
                   {selectedEvent.eventType === 'HomeVisit' && (
-                    <button className={styles.modalBtn} onClick={() => { navigate(`/admin/visitations/new?residentId=${selectedEvent.residentId || ''}`); setSelectedEvent(null); }}>
-                      Log Visit
-                    </button>
+                    <button className={styles.modalBtn} onClick={() => { navigate(`/admin/visitations/new?residentId=${selectedEvent.residentId || ''}`); setSelectedEvent(null); }}>Log Visit</button>
                   )}
                   {!selectedEvent.startTime && (
                     <button className={styles.modalBtn} onClick={() => {
                       const time = prompt('Enter start time (HH:MM):', '09:00');
                       if (time) updateEvent(selectedEvent.calendarEventId, { startTime: time });
-                    }}>
-                      Set Time
-                    </button>
+                    }}>Set Time</button>
                   )}
-                  <button className={styles.modalBtn} onClick={() => updateEvent(selectedEvent.calendarEventId, { status: 'Cancelled' })}>
-                    Cancel Event
-                  </button>
+                  <button className={styles.modalBtn} onClick={() => updateEvent(selectedEvent.calendarEventId, { status: 'Cancelled' })}>Cancel Event</button>
                 </>
               )}
               <button className={styles.modalBtn} onClick={() => setSelectedEvent(null)}>Close</button>
@@ -482,8 +490,7 @@ export default function CalendarPage() {
           <div className={styles.formModal} onClick={e => e.stopPropagation()}>
             <h3 className={styles.modalTitle}>New Event</h3>
             <div className={styles.formGrid}>
-              <label className={styles.formLabel}>
-                Type
+              <label className={styles.formLabel}>Type
                 <select className={styles.formSelect} value={newEvent.eventType} onChange={e => setNewEvent({ ...newEvent, eventType: e.target.value })}>
                   <option value="Counseling">Counseling</option>
                   <option value="DoctorApt">Doctor Appointment</option>
@@ -496,33 +503,25 @@ export default function CalendarPage() {
                   <option value="Other">Other</option>
                 </select>
               </label>
-              <label className={styles.formLabel}>
-                Resident
+              <label className={styles.formLabel}>Resident
                 <select className={styles.formSelect} value={newEvent.residentId} onChange={e => setNewEvent({ ...newEvent, residentId: e.target.value })}>
                   <option value="">None</option>
-                  {residents.map(r => (
-                    <option key={r.residentId} value={r.residentId}>{r.internalCode}</option>
-                  ))}
+                  {residents.map(r => <option key={r.residentId} value={r.residentId}>{r.internalCode}</option>)}
                 </select>
               </label>
-              <label className={`${styles.formLabel} ${styles.formFull}`}>
-                Title
+              <label className={`${styles.formLabel} ${styles.formFull}`}>Title
                 <input className={styles.formInput} value={newEvent.title} onChange={e => setNewEvent({ ...newEvent, title: e.target.value })} placeholder="Event title" />
               </label>
-              <label className={styles.formLabel}>
-                Date
+              <label className={styles.formLabel}>Date
                 <input type="date" className={styles.formInput} value={newEvent.eventDate} onChange={e => setNewEvent({ ...newEvent, eventDate: e.target.value })} />
               </label>
-              <label className={styles.formLabel}>
-                Start Time
+              <label className={styles.formLabel}>Start Time
                 <input type="time" className={styles.formInput} value={newEvent.startTime} onChange={e => setNewEvent({ ...newEvent, startTime: e.target.value })} />
               </label>
-              <label className={styles.formLabel}>
-                End Time
+              <label className={styles.formLabel}>End Time
                 <input type="time" className={styles.formInput} value={newEvent.endTime} onChange={e => setNewEvent({ ...newEvent, endTime: e.target.value })} />
               </label>
-              <label className={`${styles.formLabel} ${styles.formFull}`}>
-                Description
+              <label className={`${styles.formLabel} ${styles.formFull}`}>Description
                 <input className={styles.formInput} value={newEvent.description} onChange={e => setNewEvent({ ...newEvent, description: e.target.value })} placeholder="Optional" />
               </label>
             </div>
