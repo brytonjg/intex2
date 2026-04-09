@@ -213,13 +213,13 @@ export default function ResidentDetailPage() {
   const timeline = useMemo<TimelineEntry[]>(() => {
     const items: TimelineEntry[] = [];
     for (const r of recordings.slice(0, 20)) {
-      items.push({ type: 'recording', date: r.sessionDate || r.createdAt, title: `Counseling — ${r.sessionType || 'Session'}`, detail: r.socialWorker ? `by ${r.socialWorker}` : undefined, id: r.recordingId, route: `/admin/recordings/${r.recordingId}` });
+      items.push({ type: 'recording', date: r.sessionDate || r.createdAt, title: `Counseling — ${r.sessionType || 'Session'}`, detail: r.socialWorker ? `by ${r.socialWorker}` : undefined, id: r.recordingId, route: `/admin/recordings/${r.recordingId}?fromResident=${id}` });
     }
     for (const v of visitations.slice(0, 20)) {
-      items.push({ type: 'visit', date: v.visitDate || v.createdAt, title: `${v.visitType || 'Home'} Visit`, detail: v.socialWorker ? `by ${v.socialWorker}` : undefined, id: v.visitationId, route: `/admin/visitations/${v.visitationId}` });
+      items.push({ type: 'visit', date: v.visitDate || v.createdAt, title: `${v.visitType || 'Home'} Visit`, detail: v.socialWorker ? `by ${v.socialWorker}` : undefined, id: v.visitationId, route: `/admin/visitations/${v.visitationId}?fromResident=${id}` });
     }
     for (const i of incidents.slice(0, 20)) {
-      items.push({ type: 'incident', date: i.incidentDate, title: `${i.incidentType || 'Incident'} — ${i.severity}`, detail: i.resolved ? 'Resolved' : 'Open', id: i.incidentId, route: `/admin/incidents/${i.incidentId}` });
+      items.push({ type: 'incident', date: i.incidentDate, title: `${i.incidentType || 'Incident'} — ${i.severity}`, detail: i.resolved ? 'Resolved' : 'Open', id: i.incidentId, route: `/admin/incidents/${i.incidentId}?fromResident=${id}` });
     }
     for (const e of educationRecords.slice(0, 10)) {
       items.push({ type: 'education', date: e.recordDate, title: `Education — ${e.educationLevel || 'Update'}`, detail: e.attendanceRate != null ? `${Math.round(e.attendanceRate * 100)}% attendance` : undefined, id: e.educationRecordId });
