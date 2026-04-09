@@ -3,7 +3,6 @@ using backend.DTOs;
 using backend.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Stripe.Checkout;
 
 namespace backend.Endpoints;
 
@@ -72,117 +71,54 @@ public static class DonorPortalEndpoints
             return Results.Ok(new { supporter, donations, allocations });
         }).RequireAuthorization();
 
-        // ── Stripe donation endpoints ──────────────────────────────
+        // ── Donation processing ──────────────────────────────────
 
-        app.MapPost("/api/donate/create-checkout-session", async (HttpContext httpContext) =>
+        app.MapPost("/api/donate/process", async (HttpContext httpContext, AppDbContext db) =>
         {
             var body = await httpContext.Request.ReadFromJsonAsync<CreateCheckoutRequest>();
             if (body == null) return Results.BadRequest(new { error = "Request body is required." });
             var (valid, err) = DtoValidator.Validate(body);
             if (!valid) return Results.BadRequest(new { error = err });
 
-            var origin = httpContext.Request.Headers.Origin.FirstOrDefault()
-                      ?? "https://intex2-1.vercel.app";
-
-            var options = new SessionCreateOptions
+            var donation = new backend.Models.Donation
             {
-                SuccessUrl = $"{origin}/donate/success?session_id={{CHECKOUT_SESSION_ID}}",
-                CancelUrl = $"{origin}/donate",
-                CustomerEmail = body.DonorEmail,
+                DonationType = "Monetary",
+                DonationDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                ChannelSource = "Online",
+                CurrencyCode = "USD",
+                Amount = (body.AmountCents ?? 0) / 100m,
+                IsRecurring = body.Mode == "recurring",
+                Notes = $"Online donation: {body.Mode}" + (body.Cadence != null ? $" ({body.Cadence})" : "")
             };
+            db.Donations.Add(donation);
+            await db.SaveChangesAsync();
 
-            if (body.Mode == "one-time")
+            // Auto-subscribe to newsletter if opted in
+            if (body.Newsletter && !string.IsNullOrEmpty(body.DonorEmail))
             {
-                options.Mode = "payment";
-                options.LineItems = new List<SessionLineItemOptions>
+                var existingSub = await db.NewsletterSubscribers
+                    .FirstOrDefaultAsync(s => s.Email == body.DonorEmail.ToLowerInvariant());
+                if (existingSub != null)
                 {
-                    new()
+                    existingSub.IsActive = true;
+                }
+                else
+                {
+                    db.NewsletterSubscribers.Add(new backend.Models.NewsletterSubscriber
                     {
-                        PriceData = new SessionLineItemPriceDataOptions
-                        {
-                            Currency = "usd",
-                            UnitAmount = body.AmountCents,
-                            ProductData = new SessionLineItemPriceDataProductDataOptions
-                            {
-                                Name = "One-Time Donation to Beacon of Hope"
-                            }
-                        },
-                        Quantity = 1
-                    }
-                };
-            }
-            else
-            {
-                var interval = body.Cadence switch
-                {
-                    "quarterly" => "month",
-                    "yearly" => "year",
-                    _ => "month"
-                };
-                var intervalCount = body.Cadence == "quarterly" ? 3L : 1L;
-
-                options.Mode = "subscription";
-                options.LineItems = new List<SessionLineItemOptions>
-                {
-                    new()
-                    {
-                        PriceData = new SessionLineItemPriceDataOptions
-                        {
-                            Currency = "usd",
-                            UnitAmount = body.AmountCents,
-                            ProductData = new SessionLineItemPriceDataProductDataOptions
-                            {
-                                Name = "Recurring Donation to Beacon of Hope"
-                            },
-                            Recurring = new SessionLineItemPriceDataRecurringOptions
-                            {
-                                Interval = interval,
-                                IntervalCount = intervalCount
-                            }
-                        },
-                        Quantity = 1
-                    }
-                };
-            }
-
-            var service = new SessionService();
-            var session = await service.CreateAsync(options);
-
-            return Results.Ok(new { url = session.Url });
-        });
-
-        app.MapGet("/api/donate/success", async (string session_id, AppDbContext db) =>
-        {
-            var service = new SessionService();
-            var session = await service.GetAsync(session_id);
-
-            if (session.PaymentStatus != "paid" && session.Status != "complete")
-                return Results.BadRequest(new { error = "Payment not completed." });
-
-            // Idempotency: don't double-record
-            var existing = await db.Donations.AnyAsync(d => d.Notes != null && d.Notes.Contains(session_id));
-            if (!existing)
-            {
-                var donation = new backend.Models.Donation
-                {
-                    DonationType = "Monetary",
-                    DonationDate = DateOnly.FromDateTime(DateTime.UtcNow),
-                    ChannelSource = "Stripe",
-                    CurrencyCode = "USD",
-                    Amount = (session.AmountTotal ?? 0) / 100m,
-                    IsRecurring = session.Mode == "subscription",
-                    Notes = $"Stripe Session: {session_id}"
-                };
-                db.Donations.Add(donation);
+                        Email = body.DonorEmail.ToLowerInvariant(),
+                        SubscribedAt = DateTime.UtcNow,
+                        IsActive = true
+                    });
+                }
                 await db.SaveChangesAsync();
             }
 
             return Results.Ok(new
             {
-                amount = (session.AmountTotal ?? 0) / 100m,
-                currency = session.Currency?.ToUpper(),
-                isRecurring = session.Mode == "subscription",
-                email = session.CustomerEmail
+                amount = (body.AmountCents ?? 0) / 100m,
+                isRecurring = body.Mode == "recurring",
+                email = body.DonorEmail
             });
         });
     }

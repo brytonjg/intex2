@@ -395,6 +395,28 @@
   cursor: not-allowed;
 }
 
+.paymentSection {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  background: #f9fafb;
+}
+
+.paymentTitle {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-deep-navy);
+  margin: 0 0 1rem;
+}
+
+.cardRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
 .secure {
   text-align: center;
   font-size: 0.78rem;

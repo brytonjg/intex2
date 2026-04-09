@@ -4,8 +4,6 @@ using System.Text.Json;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Stripe;
-using Stripe.Checkout;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using Azure.Storage.Blobs;
@@ -96,8 +94,6 @@ builder.Services.AddCors(options =>
               .AllowCredentials();
     });
 });
-
-StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
 // Register social media services and background jobs
 builder.Services.AddSingleton<backend.Services.IEmailNotificationService, backend.Services.EmailNotificationService>();

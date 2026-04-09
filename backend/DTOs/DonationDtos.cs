@@ -34,4 +34,5 @@ public class CreateCheckoutRequest
     public long? AmountCents { get; set; }
     [EmailAddress]
     public string? DonorEmail { get; set; }
+    public bool Newsletter { get; set; }
 }
