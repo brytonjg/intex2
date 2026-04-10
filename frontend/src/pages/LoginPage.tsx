@@ -14,8 +14,16 @@ export default function LoginPage() {
   const [searchParams] = useSearchParams();
   const returnUrl = searchParams.get('returnUrl');
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState(() => {
+    const demo = sessionStorage.getItem('demo_email');
+    if (demo) sessionStorage.removeItem('demo_email');
+    return demo || '';
+  });
+  const [password, setPassword] = useState(() => {
+    const demo = sessionStorage.getItem('demo_password');
+    if (demo) sessionStorage.removeItem('demo_password');
+    return demo || '';
+  });
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
