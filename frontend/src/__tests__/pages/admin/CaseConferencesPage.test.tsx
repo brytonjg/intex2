@@ -12,27 +12,27 @@ describe('CaseConferencesPage', () => {
     });
   });
 
-  it('renders a Schedule Conference button', async () => {
+  it('renders a New Conference button', async () => {
     renderWithProviders(<CaseConferencesPage />);
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /schedule conference/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /new conference/i })).toBeInTheDocument();
     });
   });
 
-  it('shows form fields when Schedule Conference is clicked', async () => {
+  it('shows form fields when New Conference is clicked', async () => {
     const user = userEvent.setup();
     renderWithProviders(<CaseConferencesPage />);
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /schedule conference/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /new conference/i })).toBeInTheDocument();
     });
 
-    await user.click(screen.getByRole('button', { name: /schedule conference/i }));
+    await user.click(screen.getByRole('button', { name: /new conference/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/^resident$/i)).toBeInTheDocument();
-      expect(screen.getByText(/^category$/i)).toBeInTheDocument();
-      expect(screen.getByText(/conference date/i)).toBeInTheDocument();
+      expect(screen.getByText('Safehouse')).toBeInTheDocument();
+      expect(screen.getByText('Date')).toBeInTheDocument();
+      expect(screen.getByText('Notes (optional)')).toBeInTheDocument();
     });
   });
 });

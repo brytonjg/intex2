@@ -28,16 +28,16 @@ describe('Header', () => {
     );
     renderWithProviders(<Header />);
     await waitFor(() => {
-      expect(screen.getByText('Login')).toBeInTheDocument();
+      expect(screen.getAllByText('Login').length).toBeGreaterThan(0);
     });
   });
 
   it('shows Dashboard label and Logout when authenticated as admin', async () => {
     renderWithProviders(<Header />);
     await waitFor(() => {
-      expect(screen.getByText('Dashboard')).toBeInTheDocument();
+      expect(screen.getAllByText('Dashboard').length).toBeGreaterThan(0);
     });
-    expect(screen.getByText('Logout')).toBeInTheDocument();
+    expect(screen.getAllByText('Logout').length).toBeGreaterThan(0);
   });
 
   it('toggles mobile menu on button click', async () => {

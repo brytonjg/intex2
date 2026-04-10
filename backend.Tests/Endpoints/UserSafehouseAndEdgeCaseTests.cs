@@ -150,7 +150,11 @@ public class UserSafehouseAndEdgeCaseTests : IClassFixture<TestWebApplicationFac
         var createResp = await client.PostAsJsonAsync("/api/admin/residents", new
         {
             internalCode = "TREND-TEST-01",
-            caseStatus = "Active"
+            caseStatus = "Active",
+            safehouseId = 1,
+            caseCategory = "Trafficking",
+            assignedSocialWorker = "test@example.com",
+            currentRiskLevel = "Medium"
         });
         var created = await createResp.Content.ReadFromJsonAsync<JsonElement>();
         var id = created.GetProperty("residentId").GetInt32();

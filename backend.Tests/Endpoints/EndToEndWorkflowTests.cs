@@ -81,7 +81,11 @@ public class EndToEndWorkflowTests : IClassFixture<TestWebApplicationFactory>
         var resResp = await client.PostAsJsonAsync("/api/admin/residents", new
         {
             internalCode = $"INC-{Guid.NewGuid():N}"[..10],
-            caseStatus = "Active"
+            caseStatus = "Active",
+            safehouseId = 1,
+            caseCategory = "Trafficking",
+            assignedSocialWorker = "test@example.com",
+            currentRiskLevel = "Medium"
         });
         var residentId = (await resResp.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("residentId").GetInt32();
 

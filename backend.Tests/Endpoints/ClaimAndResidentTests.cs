@@ -33,7 +33,10 @@ public class ClaimAndResidentTests : IClassFixture<TestWebApplicationFactory>
             internalCode = "CLAIM-TEST-01",
             caseControlNo = "CT001",
             caseStatus = "Active",
-            safehouseId = (int?)null
+            safehouseId = 1,
+            caseCategory = "Trafficking",
+            assignedSocialWorker = "test@example.com",
+            currentRiskLevel = "Medium"
         });
         createResp.StatusCode.Should().Be(HttpStatusCode.Created);
         var created = await createResp.Content.ReadFromJsonAsync<JsonElement>();
@@ -58,7 +61,11 @@ public class ClaimAndResidentTests : IClassFixture<TestWebApplicationFactory>
         {
             internalCode = "CLAIM-TEST-02",
             caseControlNo = "CT002",
-            caseStatus = "Active"
+            caseStatus = "Active",
+            safehouseId = 1,
+            caseCategory = "Trafficking",
+            assignedSocialWorker = "test@example.com",
+            currentRiskLevel = "Medium"
         });
         var created = await createResp.Content.ReadFromJsonAsync<JsonElement>();
         var residentId = created.GetProperty("residentId").GetInt32();
@@ -102,6 +109,7 @@ public class ClaimAndResidentTests : IClassFixture<TestWebApplicationFactory>
             internalCode = "FULL-TEST-01",
             caseControlNo = "CFT001",
             caseStatus = "Active",
+            safehouseId = 1,
             sex = "Female",
             dateOfBirth = "2015-03-15",
             placeOfBirth = "Dededo",
@@ -152,6 +160,9 @@ public class ClaimAndResidentTests : IClassFixture<TestWebApplicationFactory>
         {
             internalCode = "EDIT-TEST-01",
             caseStatus = "Active",
+            safehouseId = 1,
+            caseCategory = "Trafficking",
+            assignedSocialWorker = "test@example.com",
             currentRiskLevel = "Low"
         });
         var created = await createResp.Content.ReadFromJsonAsync<JsonElement>();
@@ -162,6 +173,9 @@ public class ClaimAndResidentTests : IClassFixture<TestWebApplicationFactory>
         {
             internalCode = "EDIT-TEST-01",
             caseStatus = "Closed",
+            safehouseId = 1,
+            caseCategory = "Trafficking",
+            assignedSocialWorker = "test@example.com",
             currentRiskLevel = "High",
             reintegrationType = "Family Reunification",
             reintegrationStatus = "Completed"

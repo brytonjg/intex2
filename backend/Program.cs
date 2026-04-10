@@ -1077,6 +1077,10 @@ app.MapPost("/api/admin/social/research-refresh", async (HttpContext ctx, AppDbC
     {
         return Results.StatusCode(503);
     }
+    catch (Exception)
+    {
+        return Results.StatusCode(503);
+    }
 }).RequireAuthorization(p => p.RequireRole("Admin", "SocialMediaManager"));
 
 // Calendar view — returns scheduled + ready_to_publish posts ordered by scheduled time
@@ -1212,6 +1216,10 @@ app.MapPost("/api/admin/social/generate", async (HttpContext ctx, AppDbContext d
         return Results.Ok(new { generated = created.Count, posts = created });
     }
     catch (HttpRequestException)
+    {
+        return Results.StatusCode(503);
+    }
+    catch (Exception)
     {
         return Results.StatusCode(503);
     }

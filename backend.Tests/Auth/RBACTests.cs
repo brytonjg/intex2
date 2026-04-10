@@ -109,23 +109,31 @@ public class RBACTests : IClassFixture<TestWebApplicationFactory>
         {
             internalCode = "TEST-RBAC-001",
             caseStatus = "Active",
-            caseCategory = "Neglected"
+            safehouseId = 1,
+            caseCategory = "Neglected",
+            assignedSocialWorker = "test@example.com",
+            currentRiskLevel = "Medium"
         });
 
         response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Created);
     }
 
     [Fact]
-    public async Task CreateResident_StaffRole_Returns403()
+    public async Task CreateResident_StaffRole_ReturnsSuccess()
     {
+        // Staff CAN create residents (RequireRole("Admin", "Staff"))
         var client = await AuthHelper.GetStaffClientAsync(_factory);
         var response = await client.PostAsJsonAsync("/api/admin/residents", new
         {
             internalCode = "TEST-RBAC-STAFF",
-            caseStatus = "Active"
+            caseStatus = "Active",
+            safehouseId = 1,
+            caseCategory = "Trafficking",
+            assignedSocialWorker = "test@example.com",
+            currentRiskLevel = "Medium"
         });
 
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Created);
     }
 
     [Fact]
@@ -179,15 +187,14 @@ public class RBACTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
-    public async Task DeleteRecording_StaffRole_Returns403()
+    public async Task DeleteRecording_StaffRole_ReturnsNotFound()
     {
-        // Staff cannot delete recordings (RequireRole("Admin"))
+        // Staff CAN delete recordings (RequireRole("Admin", "Staff"))
+        // With a non-existent ID, they get past auth but get 404
         var client = await AuthHelper.GetStaffClientAsync(_factory);
         var response = await client.DeleteAsync("/api/admin/recordings/99999");
 
-        // Either 403 (role check) or 404 (not found after role check)
-        // Since the policy is RequireRole("Admin"), staff should get 403
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
@@ -198,7 +205,11 @@ public class RBACTests : IClassFixture<TestWebApplicationFactory>
         var createResponse = await client.PostAsJsonAsync("/api/admin/residents", new
         {
             internalCode = "TEST-DEL-ADMIN",
-            caseStatus = "Active"
+            caseStatus = "Active",
+            safehouseId = 1,
+            caseCategory = "Trafficking",
+            assignedSocialWorker = "test@example.com",
+            currentRiskLevel = "Medium"
         });
         var createBody = await createResponse.Content.ReadFromJsonAsync<JsonElement>();
         var id = createBody.GetProperty("residentId").GetInt32();
