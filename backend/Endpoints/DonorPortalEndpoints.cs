@@ -89,6 +89,8 @@ public static class DonorPortalEndpoints
             if (!valid) return Results.BadRequest(new { error = err });
 
             var email = body.DonorEmail?.Trim().ToLowerInvariant() ?? "";
+            var firstName = body.DonorFirstName?.Trim() ?? "";
+            var lastName = body.DonorLastName?.Trim() ?? "";
             int? supporterId = null;
 
             // Check if this donor already has an account
@@ -100,12 +102,13 @@ public static class DonorPortalEndpoints
             else if (!string.IsNullOrEmpty(email))
             {
                 // First-time donor: create Supporter + User account
+                var displayName = !string.IsNullOrEmpty(firstName) ? $"{firstName} {lastName}".Trim() : email;
                 var supporter = new Supporter
                 {
-                    FirstName = "Donor",
-                    LastName = "",
+                    FirstName = !string.IsNullOrEmpty(firstName) ? firstName : "Donor",
+                    LastName = lastName,
                     Email = email,
-                    DisplayName = email,
+                    DisplayName = displayName,
                     SupporterType = "Individual",
                     Status = "Active",
                     FirstDonationDate = AppConstants.DataCutoff,
@@ -122,8 +125,8 @@ public static class DonorPortalEndpoints
                 {
                     UserName = email,
                     Email = email,
-                    FirstName = "Donor",
-                    LastName = "",
+                    FirstName = !string.IsNullOrEmpty(firstName) ? firstName : "Donor",
+                    LastName = lastName,
                     EmailConfirmed = true,
                     SupporterId = supporterId
                 };

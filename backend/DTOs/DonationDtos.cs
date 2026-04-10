@@ -32,6 +32,8 @@ public class CreateCheckoutRequest
     public string? Cadence { get; set; }
     [Required, Range(100, 100_000_000, ErrorMessage = "Amount must be at least 100 cents ($1).")]
     public long? AmountCents { get; set; }
+    public string? DonorFirstName { get; set; }
+    public string? DonorLastName { get; set; }
     [EmailAddress]
     public string? DonorEmail { get; set; }
     public bool Newsletter { get; set; }

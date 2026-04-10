@@ -35,6 +35,8 @@ export default function DonatePage() {
   const [cadence, setCadence] = useState<Cadence>('monthly');
   const [selectedAmount, setSelectedAmount] = useState<number | null>(500);
   const [customAmount, setCustomAmount] = useState('');
+  const [donorFirstName, setDonorFirstName] = useState('');
+  const [donorLastName, setDonorLastName] = useState('');
   const [donorEmail, setDonorEmail] = useState(prefillEmail);
   const [newsletter, setNewsletter] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -105,6 +107,8 @@ export default function DonatePage() {
       mode,
       cadence: mode === 'recurring' ? cadence : undefined,
       amountCents,
+      donorFirstName: donorFirstName.trim() || undefined,
+      donorLastName: donorLastName.trim() || undefined,
       donorEmail,
       newsletter,
     };
@@ -232,6 +236,32 @@ export default function DonatePage() {
               </div>
             </div>
           )}
+
+          {/* Name fields */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+            <div className={styles.fieldGroup}>
+              <label className={styles.label} htmlFor="donorFirstName">First name</label>
+              <input
+                id="donorFirstName"
+                type="text"
+                className={styles.input}
+                placeholder="First name"
+                value={donorFirstName}
+                onChange={e => setDonorFirstName(e.target.value)}
+              />
+            </div>
+            <div className={styles.fieldGroup}>
+              <label className={styles.label} htmlFor="donorLastName">Last name</label>
+              <input
+                id="donorLastName"
+                type="text"
+                className={styles.input}
+                placeholder="Last name"
+                value={donorLastName}
+                onChange={e => setDonorLastName(e.target.value)}
+              />
+            </div>
+          </div>
 
           {/* Email (required) */}
           <div className={styles.fieldGroup}>
