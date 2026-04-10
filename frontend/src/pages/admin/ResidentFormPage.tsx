@@ -461,7 +461,7 @@ export default function ResidentFormPage() {
               <Shield size={16} /> Confidential Notes
             </div>
             <div className={styles.field}>
-              <TextArea className={styles.textarea} value={form.notesRestricted} onChange={e => u('notesRestricted', e.target.value)} rows={3} placeholder="Restricted notes — only visible to authorized staff..." style={{ background: '#fff' }} />
+              <TextArea className={styles.textarea} value={form.notesRestricted} onChange={e => u('notesRestricted', e.target.value)} rows={3} placeholder="Restricted notes - only visible to authorized staff..." style={{ background: '#fff' }} />
             </div>
           </div>
         </div>

@@ -453,11 +453,11 @@ export default function HomePage() {
     const eventType = TASK_TYPE_TO_EVENT_TYPE[task.taskType] || 'Other';
     const code = residentName(task);
     const eventTitle: Record<string, string> = {
-      DoctorApt: `Doctor appt — ${code}`,
-      DentistApt: `Dentist appt — ${code}`,
-      HomeVisit: `Home visit — ${code}`,
-      ReintegrationVisit: `Reintegration visit — ${code}`,
-      PostPlacementVisit: `Post-placement visit — ${code}`,
+      DoctorApt: `Doctor appt - ${code}`,
+      DentistApt: `Dentist appt - ${code}`,
+      HomeVisit: `Home visit - ${code}`,
+      ReintegrationVisit: `Reintegration visit - ${code}`,
+      PostPlacementVisit: `Post-placement visit - ${code}`,
     };
     try {
       await apiFetch('/api/staff/calendar', {
@@ -935,7 +935,7 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Event detail popover — inside calendar panel so it scrolls with it */}
+          {/* Event detail popover - inside calendar panel so it scrolls with it */}
           {selectedEvent && popoverPos && (
             <div
               ref={popoverRef}
@@ -1036,7 +1036,7 @@ export default function HomePage() {
                     className={`${isDragging ? styles.taskCardDragging : styles.taskCard} ${exitingTaskIds.has(task.staffTaskId) ? styles.taskCardExiting : ''}`}
                     draggable
                     onDragStart={e => {
-                      // Hide native drag image — we render our own ghost
+                      // Hide native drag image - we render our own ghost
                       const blank = document.createElement('canvas');
                       blank.width = 1; blank.height = 1;
                       e.dataTransfer.setDragImage(blank, 0, 0);
@@ -1214,7 +1214,7 @@ export default function HomePage() {
                 <p className={styles.scheduleSummary}>
                   <Calendar size={14} />
                   {selDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                  {scheduleForm.startTime ? ` at ${fmtSlot(scheduleForm.startTime)}` : ' — no time set'}
+                  {scheduleForm.startTime ? ` at ${fmtSlot(scheduleForm.startTime)}` : ' - no time set'}
                 </p>
                 <div className={styles.scheduleActions}>
                   <button className={styles.modalBtn} onClick={() => setScheduleTask(null)}>Cancel</button>
@@ -1226,7 +1226,7 @@ export default function HomePage() {
         );
       })()}
 
-      {/* Task drag ghost — follows cursor, collapses over calendar */}
+      {/* Task drag ghost - follows cursor, collapses over calendar */}
       {dragTaskId && (() => {
         const task = tasks.find(t => t.staffTaskId === dragTaskId);
         if (!task) return null;

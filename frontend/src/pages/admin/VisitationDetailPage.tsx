@@ -151,7 +151,7 @@ export default function VisitationDetailPage() {
       <header className={styles.header}>
         <div className={styles.headerLeft}>
           <h1 className={styles.title}>
-            Home Visitation — {visitation.residentCode ?? `Resident #${visitation.residentId}`}
+            Home Visitation - {visitation.residentCode ?? `Resident #${visitation.residentId}`}
           </h1>
           <div className={styles.headerMeta}>
             <span>{formatDate(visitation.visitDate)}</span>

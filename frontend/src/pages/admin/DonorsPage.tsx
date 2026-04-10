@@ -910,11 +910,11 @@ export default function DonorsPage() {
                       <tbody>
                         {recentAllocs.map(a => (
                           <tr key={a.allocationId}>
-                            <td>{a.allocationDate ? formatDate(a.allocationDate) : '—'}</td>
-                            <td>{a.safehouseName || '—'}</td>
-                            <td>{a.programArea || '—'}</td>
+                            <td>{a.allocationDate ? formatDate(a.allocationDate) : '-'}</td>
+                            <td>{a.safehouseName || '-'}</td>
+                            <td>{a.programArea || '-'}</td>
                             <td className={styles.amountCol}>{formatAmount(a.amountAllocated ?? 0)}</td>
-                            <td className={styles.notesCol}>{a.allocationNotes || '—'}</td>
+                            <td className={styles.notesCol}>{a.allocationNotes || '-'}</td>
                           </tr>
                         ))}
                       </tbody>

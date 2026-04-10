@@ -1,7 +1,7 @@
-/** Build: 2026-04-09T12:45 — HomePage @dnd-kit drag-and-drop */
+/** Build: 2026-04-09T12:45 - HomePage @dnd-kit drag-and-drop */
 /**
  * IMPORTANT: The app is frozen to February 16, 2026.
- * All "today" references MUST use APP_TODAY / APP_TODAY_STR — NEVER new Date().
+ * All "today" references MUST use APP_TODAY / APP_TODAY_STR - NEVER new Date().
  * new Date() is only acceptable for real system timestamps (analytics, cookies).
  * See CLAUDE.md rule #9.
  */
@@ -15,12 +15,12 @@ export function formatMonthLabel(year: number, month: number): string {
 }
 
 export function formatDate(dateStr: string | null | undefined): string {
-  if (!dateStr) return '—';
+  if (!dateStr) return '-';
   return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 export function formatAmount(amount: number | null | undefined): string {
-  if (amount == null) return '—';
+  if (amount == null) return '-';
   return Number(amount).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 }
 

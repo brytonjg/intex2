@@ -341,7 +341,7 @@ export default function SupporterDetailPage() {
         </div>
       )}
 
-      {/* Outreach History — always visible when records exist */}
+      {/* Outreach History - always visible when records exist */}
       {outreachRecords.length > 0 && (
         <div className={styles.outreachHistoryCard}>
           <span className={styles.outreachHistoryTitle}>Outreach History</span>

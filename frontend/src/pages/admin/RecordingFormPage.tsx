@@ -132,7 +132,7 @@ Rules:
 - For sessionDate: use ISO format YYYY-MM-DD.
 - For socialWorker: this is the person recording.
 - For durationMinutes: integer, e.g. 45.
-- For the narrative field: clean up filler words, false starts, and verbal tics. Exclude filler words or pauses, but try to keep the recorder's voice. This should sound like a professional clinician, NOT AI. Do NOT fabricate details for any reason — only include what the speaker actually said.
+- For the narrative field: clean up filler words, false starts, and verbal tics. Exclude filler words or pauses, but try to keep the recorder's voice. This should sound like a professional clinician, NOT AI. Do NOT fabricate details for any reason - only include what the speaker actually said.
 - For riskLevel: MUST be one of: "Critical", "High", "Medium", "Low". Only set if the speaker explicitly mentions a risk level change or assessment. If not mentioned, use null.
 - For boolean flags: only set to true if the speaker explicitly mentions progress, concerns, or a referral. Default to false.
 - If the audio is unclear, too short, or contains no session-relevant content, return all fields as null except the three booleans (which should be false).
@@ -639,7 +639,7 @@ export default function RecordingFormPage() {
         </span>
       </div>
 
-      {/* Voice Memo — only on new recordings */}
+      {/* Voice Memo - only on new recordings */}
       {!isEdit && (
         <div className={`${styles.memoCard} ${memoState === 'recording' ? styles.memoRecording : ''} ${memoState === 'done' ? styles.memoDone : ''}`}>
           <div className={styles.memoCenter}>

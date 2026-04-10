@@ -30,7 +30,7 @@ export default function DatePicker({ value, onChange, placeholder = 'Select date
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Calendar state — month being viewed
+  // Calendar state - month being viewed
   const viewDate = value ? parseDate(value) : APP_TODAY;
   const [viewMonth, setViewMonth] = useState(viewDate.getMonth());
   const [viewYear, setViewYear] = useState(viewDate.getFullYear());

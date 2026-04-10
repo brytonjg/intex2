@@ -5,7 +5,7 @@ export default function ScrollToTop() {
   const { pathname, hash } = useLocation();
 
   useEffect(() => {
-    // Don't scroll to top if there's a hash anchor — let the target page handle it
+    // Don't scroll to top if there's a hash anchor - let the target page handle it
     if (!hash) {
       window.scrollTo(0, 0);
     }

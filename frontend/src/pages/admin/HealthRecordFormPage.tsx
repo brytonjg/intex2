@@ -35,11 +35,11 @@ const emptyForm: FormData = {
 };
 
 const SCORE_OPTIONS = [
-  { value: '1', label: '1 — Poor' },
-  { value: '2', label: '2 — Fair' },
-  { value: '3', label: '3 — Average' },
-  { value: '4', label: '4 — Good' },
-  { value: '5', label: '5 — Excellent' },
+  { value: '1', label: '1 - Poor' },
+  { value: '2', label: '2 - Fair' },
+  { value: '3', label: '3 - Average' },
+  { value: '4', label: '4 - Good' },
+  { value: '5', label: '5 - Excellent' },
 ];
 
 const CHECKUP_FIELDS = [

@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../helpers/renderWithProviders';
 import RecordingFormPage from '../../../pages/admin/RecordingFormPage';
 
-describe('RecordingFormPage — New Fields', () => {
+describe('RecordingFormPage - New Fields', () => {
   it('shows Needs Case Conference flag', () => {
     renderWithProviders(<RecordingFormPage />, { route: '/admin/recordings/new' });
     expect(screen.getByText('Needs Case Conference')).toBeInTheDocument();

@@ -262,7 +262,7 @@ export default function CaseConferencesPage() {
       <header className={styles.header}>
         <div>
           <h1 className={styles.title}>Case Conferences</h1>
-          <p className={styles.subtitle}>Monday morning team reviews — discuss resident progress and update intervention plans</p>
+          <p className={styles.subtitle}>Monday morning team reviews - discuss resident progress and update intervention plans</p>
         </div>
         <button className={styles.addBtn} onClick={() => setShowCreate(s => !s)} style={{ background: 'linear-gradient(120deg, var(--color-sage), #0d7a6b)' , boxShadow: '0 8px 20px rgba(15,143,125,0.22)' }}>
           {showCreate ? <><X size={16} /> Cancel</> : <><Plus size={16} /> New Conference</>}
@@ -444,7 +444,7 @@ function ConferenceCard({ conf, isExpanded, expandedData, expandedLoading, onTog
 
   return (
     <div style={{ background: '#fff', border: isExpanded ? '2px solid var(--color-sage)' : '1px solid rgba(15,27,45,0.08)', borderRadius: '12px', overflow: 'hidden', transition: 'border-color 0.2s' }}>
-      {/* Card header — always visible */}
+      {/* Card header - always visible */}
       <div
         style={{ padding: '1rem 1.25rem', cursor: 'pointer' }}
         onClick={onToggle}
@@ -490,7 +490,7 @@ function ConferenceCard({ conf, isExpanded, expandedData, expandedLoading, onTog
             </div>
           ) : (
             <>
-              {/* Status actions — no Start Meeting, just Complete */}
+              {/* Status actions - no Start Meeting, just Complete */}
               {isActive && conf.status === 'InProgress' && (
                 <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
                   <button onClick={() => onUpdateStatus('Completed')} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', padding: '0.35rem 0.75rem', borderRadius: '6px', border: '1px solid rgba(39,174,96,0.3)', background: 'rgba(39,174,96,0.08)', color: '#27ae60', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer' }}>

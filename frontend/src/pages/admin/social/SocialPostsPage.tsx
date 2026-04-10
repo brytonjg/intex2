@@ -311,9 +311,9 @@ export default function SocialPostsPage() {
         ) : (
           <div className={`${styles.genExpanded} ${genClosing ? styles.genExpandedClosing : styles.genExpandedOpen}`}>
             {([
-              ['safehouse_life', 'Safehouse Life', 'Photos and stories from daily safehouse life — art therapy, meals, celebrations'],
+              ['safehouse_life', 'Safehouse Life', 'Photos and stories from daily safehouse life - art therapy, meals, celebrations'],
               ['the_problem', 'Awareness', 'Educational content about trafficking, abuse, and the need for action'],
-              ['the_solution', 'Our Work', 'What your organization does — counseling, education, rehabilitation'],
+              ['the_solution', 'Our Work', 'What your organization does - counseling, education, rehabilitation'],
               ['donor_impact', 'Impact', 'Shows supporters how their donations fund real operations'],
               ['call_to_action', 'Call to Action', 'Fundraising asks, volunteer recruitment, event promotion'],
             ] as [string, string, string][]).map(([key, label, desc]) => {
@@ -401,7 +401,7 @@ export default function SocialPostsPage() {
                     </>
                   )}
                   <button className={styles.btnReject} onClick={() => handleReject(post.automatedPostId)} title="Reject this post"><ThumbsDown size={14} /></button>
-                  <button className={styles.btnSnooze} onClick={() => handleSnooze(post.automatedPostId)} title="Snooze — review later"><Clock size={14} /></button>
+                  <button className={styles.btnSnooze} onClick={() => handleSnooze(post.automatedPostId)} title="Snooze - review later"><Clock size={14} /></button>
                 </div>
               </div>
             ))}
@@ -492,7 +492,7 @@ export default function SocialPostsPage() {
           })}
         </div>
 
-        {/* Post Detail Popover — anchored near clicked bar */}
+        {/* Post Detail Popover - anchored near clicked bar */}
         {selectedPost && popoverPos && (
           <>
             <div className={styles.popoverBackdrop} onClick={() => { setSelectedPost(null); setCalEditing(false); }} />
@@ -534,7 +534,7 @@ export default function SocialPostsPage() {
         )}
       </section>
 
-      {/* Published — Log Engagement */}
+      {/* Published - Log Engagement */}
       {published.length > 0 && (
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Log Engagement</h2>

@@ -165,7 +165,7 @@ function TimeSlot({
     <div
       className={`${styles.timeSlot} ${isHalf ? styles.halfHourSlot : ''} ${isOver || isHighlighted ? styles.slotHighlight : ''}`}
     >
-      {/* Invisible droppable overlay — receives drop events but doesn't block draggable children */}
+      {/* Invisible droppable overlay - receives drop events but doesn't block draggable children */}
       <div ref={setNodeRef} className={styles.dropOverlay} />
       <div className={styles.timeLabel}>
         {minute === 0 ? formatHour(hour) : ''}

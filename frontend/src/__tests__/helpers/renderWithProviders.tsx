@@ -6,7 +6,7 @@ import { SafehouseProvider } from '../../contexts/SafehouseContext';
 import type { ReactElement } from 'react';
 
 interface Options extends Omit<RenderOptions, 'wrapper'> {
-  /** Initial route for MemoryRouter — if omitted uses BrowserRouter */
+  /** Initial route for MemoryRouter - if omitted uses BrowserRouter */
   route?: string;
 }
 

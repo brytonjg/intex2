@@ -100,7 +100,7 @@ export default function HomePage() {
           </h1>
           <p className={styles.heroSub}>
             We operate safe homes in Guam for girls who are survivors
-            of sexual abuse and trafficking — providing shelter, healing, education,
+            of sexual abuse and trafficking - providing shelter, healing, education,
             and a path to a new life.
           </p>
           <div className={styles.heroCtas}>
@@ -249,7 +249,7 @@ export default function HomePage() {
         <div className={`${styles.involvedInner} reveal`}>
           <h2 className={styles.sectionTitle}>Get Involved</h2>
           <p className={styles.involvedSub}>
-            Every act of generosity — no matter the form — helps a girl heal,
+            Every act of generosity - no matter the form - helps a girl heal,
             learn, and build a future she deserves.
           </p>
 

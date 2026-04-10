@@ -44,7 +44,7 @@ vi.mock('../../../api', async () => {
   };
 });
 
-describe('CalendarPage — @dnd-kit Integration', () => {
+describe('CalendarPage - @dnd-kit Integration', () => {
   it('renders unscheduled events in the To Do queue', async () => {
     renderWithProviders(<CalendarPage />);
     await waitFor(() => {

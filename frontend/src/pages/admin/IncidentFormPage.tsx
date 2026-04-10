@@ -161,7 +161,7 @@ export default function IncidentFormPage() {
               <Dropdown
                 value={String(form.safehouseId)}
                 placeholder="Select safehouse..."
-                options={safehouses.map(s => ({ value: String(s.safehouseId), label: `${s.safehouseCode} — ${s.name}` }))}
+                options={safehouses.map(s => ({ value: String(s.safehouseId), label: `${s.safehouseCode} - ${s.name}` }))}
                 onChange={v => handleChange('safehouseId', v ? Number(v) : '')}
               />
             </div>

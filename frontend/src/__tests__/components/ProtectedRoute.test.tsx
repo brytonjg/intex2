@@ -83,7 +83,7 @@ describe('ProtectedRoute', () => {
         HttpResponse.json({ isAuthenticated: false }),
       ),
     );
-    // This test mainly verifies the component doesn't crash — the Navigate
+    // This test mainly verifies the component doesn't crash - the Navigate
     // component handles the redirect. We verify protected content is not shown.
     renderWithProviders(
       <ProtectedRoute>

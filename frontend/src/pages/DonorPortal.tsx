@@ -189,7 +189,7 @@ export default function DonorPortal() {
         </div>
       </section>
 
-      {/* Donate CTA — after stats, before detailed tabs */}
+      {/* Donate CTA - after stats, before detailed tabs */}
       <div className={styles.topCta}>
         <button className={styles.topCtaBtn} onClick={() => navigate('/donate', { state: { email: user?.email } })}>
           <Heart size={16} />

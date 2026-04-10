@@ -103,7 +103,7 @@ export default function IncidentDetailPage() {
       const tasks = await apiFetch<FollowUpTask[]>(`/api/admin/incidents/${id}/tasks`);
       setFollowUpTasks(tasks);
     } catch {
-      // silently fail — user will see no task appeared
+      // silently fail - user will see no task appeared
     } finally {
       setCreatingTask(false);
     }
@@ -326,7 +326,7 @@ export default function IncidentDetailPage() {
                         <Calendar size={13} />
                         <span style={{ fontWeight: 600 }}>{task.calendarEvent.title}</span>
                         <span style={{ color: '#7f8c8d' }}>
-                          {' '}— {formatDate(task.calendarEvent.eventDate)}
+                          {' '}- {formatDate(task.calendarEvent.eventDate)}
                           {task.calendarEvent.startTime && ` at ${task.calendarEvent.startTime}`}
                         </span>
                         <span style={{

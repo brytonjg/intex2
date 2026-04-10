@@ -15,11 +15,11 @@ interface Settings { postsPerWeek: number; platformsActive: string; timezone: st
 
 const TOPICS = ['counseling', 'education', 'health', 'staffing', 'safehouse_model', 'reintegration', 'general'];
 const PILLAR_TOOLTIPS: Record<string, string> = {
-  pillarRatioSafehouseLife: 'Photos and stories from daily life — builds emotional connection.',
-  pillarRatioTheProblem: 'Educational content about trafficking and abuse — motivates new donors.',
-  pillarRatioTheSolution: 'What your org does — builds credibility.',
-  pillarRatioDonorImpact: 'Shows supporters their money matters — retains donors.',
-  pillarRatioCallToAction: 'Fundraising asks — kept low so followers don\'t feel sold to.',
+  pillarRatioSafehouseLife: 'Photos and stories from daily life - builds emotional connection.',
+  pillarRatioTheProblem: 'Educational content about trafficking and abuse - motivates new donors.',
+  pillarRatioTheSolution: 'What your org does - builds credibility.',
+  pillarRatioDonorImpact: 'Shows supporters their money matters - retains donors.',
+  pillarRatioCallToAction: 'Fundraising asks - kept low so followers don\'t feel sold to.',
 };
 
 function TermsList({ value, onChange, placeholder, showNotes }: { value: string; onChange: (v: string) => void; placeholder: string; showNotes: boolean }) {
@@ -166,7 +166,7 @@ export default function SocialSetupPage() {
             )}
             {candidates.length > 0 && (
               <div className={styles.candidatesBanner}>
-                <strong>{candidates.length} new fact{candidates.length !== 1 ? 's' : ''} found by research</strong> — review below
+                <strong>{candidates.length} new fact{candidates.length !== 1 ? 's' : ''} found by research</strong> - review below
               </div>
             )}
             <div className={styles.itemList}>
@@ -287,7 +287,7 @@ export default function SocialSetupPage() {
             ))}
             {(() => {
               const total = settings.pillarRatioSafehouseLife + settings.pillarRatioTheProblem + settings.pillarRatioTheSolution + settings.pillarRatioDonorImpact + settings.pillarRatioCallToAction;
-              return <p className={`${styles.hint} ${total !== 100 ? styles.ratioWarn : ''}`}>Total: {total}%{total !== 100 ? ' — should add up to 100%' : ''}</p>;
+              return <p className={`${styles.hint} ${total !== 100 ? styles.ratioWarn : ''}`}>Total: {total}%{total !== 100 ? ' - should add up to 100%' : ''}</p>;
             })()}
           </div>
           <button className={styles.saveBtn} onClick={saveSettings} disabled={saving}>{saving ? <Loader2 className={styles.spin} size={16} /> : saved ? 'Saved!' : <><Save size={16} /> Save Preferences</>}</button>

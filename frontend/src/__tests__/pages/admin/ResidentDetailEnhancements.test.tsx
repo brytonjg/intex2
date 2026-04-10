@@ -22,7 +22,7 @@ function renderResidentDetail(id = '1') {
   );
 }
 
-describe('ResidentDetailPage — Redesigned Layout', () => {
+describe('ResidentDetailPage - Redesigned Layout', () => {
   it('renders without crashing', async () => {
     renderResidentDetail();
     await waitFor(() => {

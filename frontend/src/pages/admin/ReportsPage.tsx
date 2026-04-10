@@ -580,7 +580,7 @@ function MlInsightsTab() {
   const contentFindings: { feature: string; effect: string; label?: string }[] =
     contentPred ? (JSON.parse(contentPred.metadata).top_findings ?? []) : [];
 
-  // Social media timing — parse timing summary into best time per platform
+  // Social media timing - parse timing summary into best time per platform
   const platformBest: { platform: string; day: string; hour: string; score: number }[] = [];
   if (timingSummary.length > 0) {
     const grouped: Record<string, { day: string; hour: string; score: number }[]> = {};

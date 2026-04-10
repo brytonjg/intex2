@@ -15,7 +15,7 @@ function lazyRetry<T extends ComponentType<unknown>>(
       if (!reloaded) {
         sessionStorage.setItem('chunk_reload', '1');
         window.location.reload();
-        return new Promise<never>(() => {}); // never resolves — page is reloading
+        return new Promise<never>(() => {}); // never resolves - page is reloading
       }
       sessionStorage.removeItem('chunk_reload');
       throw err; // already retried once, let error boundary handle it
@@ -61,16 +61,16 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
     return this.props.children;
   }
 }
-// Public pages — eagerly loaded (common entry points)
+// Public pages - eagerly loaded (common entry points)
 import HomePage from './pages/HomePage';
 import ImpactPage from './pages/ImpactPage';
 import LoginPage from './pages/LoginPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
-// SignupPage removed — donors get accounts after donating
+// SignupPage removed - donors get accounts after donating
 const NewsletterPage = lazyRetry(() => import('./pages/NewsletterPage'));
 const VolunteerPage = lazyRetry(() => import('./pages/VolunteerPage'));
 const PartnerPage = lazyRetry(() => import('./pages/PartnerPage'));
-// Admin pages — lazy loaded (code-split)
+// Admin pages - lazy loaded (code-split)
 const AdminLayout = lazyRetry(() => import('./layouts/AdminLayout'));
 const AdminHomePage = lazyRetry(() => import('./pages/admin/HomePage'));
 const ReportsPage = lazyRetry(() => import('./pages/admin/ReportsPage'));
@@ -158,7 +158,7 @@ function App() {
               </ProtectedRoute>
             } />
 
-            {/* Admin portal — lazy-loaded with Suspense */}
+            {/* Admin portal - lazy-loaded with Suspense */}
             <Route path="/admin" element={
               <ProtectedRoute allowedRoles={['Admin', 'Staff']}>
                 <Suspense fallback={<LoadingFallback />}>

@@ -23,7 +23,7 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
     const errorBody = await res.json().catch(() => ({}));
     const err = new Error(
       (errorBody as Record<string, string>)?.error ??
-      `API error: ${res.status} ${res.statusText} — ${url}`
+      `API error: ${res.status} ${res.statusText} - ${url}`
     );
     (err as Error & { status: number }).status = res.status;
     throw err;

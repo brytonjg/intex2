@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../helpers/renderWithProviders';
 import UsersPage from '../../../pages/admin/UsersPage';
 
-describe('UsersPage — Enhancements', () => {
+describe('UsersPage - Enhancements', () => {
   it('renders page title', async () => {
     renderWithProviders(<UsersPage />);
     await waitFor(() => {

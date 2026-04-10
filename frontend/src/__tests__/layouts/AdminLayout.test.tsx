@@ -52,7 +52,7 @@ function SafehouseTestConsumer() {
   );
 }
 
-describe('SafehouseContext — Switcher Behavior', () => {
+describe('SafehouseContext - Switcher Behavior', () => {
   it('provides context values', async () => {
     render(
       <AuthProvider>

@@ -363,7 +363,7 @@ export default function UsersPage() {
                           ))}
                         </span>
                       ) : (
-                        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{isDonor ? '—' : 'None'}</span>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{isDonor ? '-' : 'None'}</span>
                       )}
                     </td>
                     <td className={styles.actionsCell}>

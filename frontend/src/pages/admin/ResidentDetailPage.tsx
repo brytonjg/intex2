@@ -214,16 +214,16 @@ export default function ResidentDetailPage() {
   const timeline = useMemo<TimelineEntry[]>(() => {
     const items: TimelineEntry[] = [];
     for (const r of recordings.slice(0, 20)) {
-      items.push({ type: 'recording', date: r.sessionDate || r.createdAt, title: `Counseling — ${r.sessionType || 'Session'}`, detail: r.socialWorker ? `by ${r.socialWorker}` : undefined, id: r.recordingId, route: `/admin/recordings/${r.recordingId}?fromResident=${id}` });
+      items.push({ type: 'recording', date: r.sessionDate || r.createdAt, title: `Counseling - ${r.sessionType || 'Session'}`, detail: r.socialWorker ? `by ${r.socialWorker}` : undefined, id: r.recordingId, route: `/admin/recordings/${r.recordingId}?fromResident=${id}` });
     }
     for (const v of visitations.slice(0, 20)) {
       items.push({ type: 'visit', date: v.visitDate || v.createdAt, title: `${v.visitType || 'Home'} Visit`, detail: v.socialWorker ? `by ${v.socialWorker}` : undefined, id: v.visitationId, route: `/admin/visitations/${v.visitationId}?fromResident=${id}` });
     }
     for (const i of incidents.slice(0, 20)) {
-      items.push({ type: 'incident', date: i.incidentDate, title: `${i.incidentType || 'Incident'} — ${i.severity}`, detail: i.resolved ? 'Resolved' : 'Open', id: i.incidentId, route: `/admin/incidents/${i.incidentId}?fromResident=${id}` });
+      items.push({ type: 'incident', date: i.incidentDate, title: `${i.incidentType || 'Incident'} - ${i.severity}`, detail: i.resolved ? 'Resolved' : 'Open', id: i.incidentId, route: `/admin/incidents/${i.incidentId}?fromResident=${id}` });
     }
     for (const e of educationRecords.slice(0, 10)) {
-      items.push({ type: 'education', date: e.recordDate, title: `Education — ${e.educationLevel || 'Update'}`, detail: e.attendanceRate != null ? `${Math.round(e.attendanceRate * 100)}% attendance` : undefined, id: e.educationRecordId });
+      items.push({ type: 'education', date: e.recordDate, title: `Education - ${e.educationLevel || 'Update'}`, detail: e.attendanceRate != null ? `${Math.round(e.attendanceRate * 100)}% attendance` : undefined, id: e.educationRecordId });
     }
     for (const h of healthRecords.slice(0, 10)) {
       items.push({ type: 'health', date: h.recordDate, title: 'Health Check', detail: h.generalHealthScore != null ? `Health: ${h.generalHealthScore}/5` : undefined, id: h.healthRecordId });
@@ -343,7 +343,7 @@ export default function ResidentDetailPage() {
       <div className={styles.body}>
         {/* ── Left column: active case data ─────── */}
         <div>
-          {/* Risk & Predictions — hidden when case is closed */}
+          {/* Risk & Predictions - hidden when case is closed */}
           {resident.caseStatus !== 'Closed' ? (
           <div className={styles.card}>
             <div className={styles.cardHeader}><Shield size={15} className={styles.cardIcon} /> Risk & Predictions</div>
@@ -419,7 +419,7 @@ export default function ResidentDetailPage() {
               {hasHighRisk && !conferenceResult && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginTop: '0.75rem', padding: '0.65rem 1rem', background: 'rgba(211,84,0,0.06)', border: '1px solid rgba(211,84,0,0.2)', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                   <AlertTriangle size={15} style={{ color: '#d35400', flexShrink: 0 }} />
-                  <span>Elevated risk detected — consider scheduling a case conference.</span>
+                  <span>Elevated risk detected - consider scheduling a case conference.</span>
                   <button onClick={scheduleForNextConference} disabled={schedulingConference} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', marginLeft: 'auto', padding: '0.4rem 0.85rem', background: 'linear-gradient(120deg, var(--color-sage), #13a490)', color: '#fff', border: 'none', borderRadius: '999px', fontSize: '0.78rem', fontWeight: 600, fontFamily: 'var(--font-body)', cursor: 'pointer', whiteSpace: 'nowrap', opacity: schedulingConference ? 0.6 : 1 }}>
                     {schedulingConference ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Users size={14} />}
                     {schedulingConference ? 'Adding...' : 'Add to Next Conference'}

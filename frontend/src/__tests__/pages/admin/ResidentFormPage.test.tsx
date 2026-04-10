@@ -13,7 +13,7 @@ describe('ResidentFormPage', () => {
       { route: '/admin/caseload/new' },
     );
     await waitFor(() => {
-      // The form should be present — look for a Save or form-related element
+      // The form should be present - look for a Save or form-related element
       expect(document.querySelector('form') || screen.getByText(/Save|Add|Resident/i)).toBeTruthy();
     });
   });

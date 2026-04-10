@@ -57,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setState({ user: null, isAuthenticated: false, isLoading: false });
       }
     } catch {
-      // Network error — keep cached auth if we have one rather than logging out
+      // Network error - keep cached auth if we have one rather than logging out
       const cached = sessionStorage.getItem('auth_user');
       if (cached) {
         setState(prev => ({ ...prev, isLoading: false }));

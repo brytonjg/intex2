@@ -145,9 +145,9 @@ export default function AdminDashboard() {
       setDonations(data.map(d => ({
         supporter: d.supporter ?? 'Anonymous',
         type: formatEnumLabel(d.donationType ?? ''),
-        amount: d.amount ? `$${Number(d.amount).toLocaleString()}` : d.estimatedValue ? `$${Number(d.estimatedValue).toLocaleString()} est.` : '—',
+        amount: d.amount ? `$${Number(d.amount).toLocaleString()}` : d.estimatedValue ? `$${Number(d.estimatedValue).toLocaleString()} est.` : '-',
         date: d.donationDate ? new Date(d.donationDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '',
-        campaign: d.campaignName ?? '—',
+        campaign: d.campaignName ?? '-',
       })));
     }).catch(onErr);
 
@@ -349,7 +349,7 @@ export default function AdminDashboard() {
                 <div key={i} className={styles.donationRow}>
                   <div className={styles.donationInfo}>
                     <span className={styles.donationName}>{d.supporter}</span>
-                    <span className={styles.donationType}>{d.type}{d.campaign !== '—' ? ` · ${d.campaign}` : ''}</span>
+                    <span className={styles.donationType}>{d.type}{d.campaign !== '-' ? ` · ${d.campaign}` : ''}</span>
                   </div>
                   <div className={styles.donationRight}>
                     <span className={styles.donationAmount}>{d.amount}</span>

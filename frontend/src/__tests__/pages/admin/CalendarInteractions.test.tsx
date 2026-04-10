@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../helpers/renderWithProviders';
 import CalendarPage from '../../../pages/admin/CalendarPage';
 
-describe('CalendarPage — Interactions', () => {
+describe('CalendarPage - Interactions', () => {
   it('toggles to week view when Week button clicked', async () => {
     renderWithProviders(<CalendarPage />);
     const weekBtn = screen.getByText('Week');

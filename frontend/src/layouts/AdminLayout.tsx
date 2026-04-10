@@ -271,7 +271,7 @@ function AdminLayoutInner() {
         </div>
       </header>
 
-      {/* Mobile nav: grouped sections — placed outside header to avoid backdrop-filter containment */}
+      {/* Mobile nav: grouped sections - placed outside header to avoid backdrop-filter containment */}
       <nav className={`${styles.mobileNav} ${menuOpen ? styles.navOpen : ''}`}>
         {navGroups
           .filter(group => !group.adminOnly || isAdmin)
