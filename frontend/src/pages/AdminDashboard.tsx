@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowUpRight, AlertTriangle, Calendar, UserPlus, DollarSign, FileText } from 'lucide-react';
 import { useSafehouse } from '../contexts/SafehouseContext';
@@ -28,6 +28,7 @@ type Severity = 'Low' | 'Medium' | 'High' | 'Critical';
 
 interface ResidentRow {
   code: string;
+  name: string;
   safehouse: string;
   category: string;
   riskLevel: Severity;
@@ -67,6 +68,8 @@ interface Metrics {
 }
 
 interface ApiResident {
+  firstName: string | null;
+  lastName: string | null;
   internalCode: string;
   safehouse: string;
   caseCategory: string;
@@ -96,7 +99,10 @@ export default function AdminDashboard() {
   useDocumentTitle('Dashboard');
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { activeSafehouseId: safehouseId } = useSafehouse();
+  const { activeSafehouseId: safehouseId, safehouses } = useSafehouse();
+  const activeSafehouseName = safehouseId
+    ? safehouses.find(s => s.safehouseId === safehouseId)?.name ?? 'selected safehouse'
+    : null;
   const displayRole = user?.roles?.[0] ?? 'Staff';
 
   const [metrics, setMetrics] = useState<Metrics | null>(null);
@@ -111,6 +117,40 @@ export default function AdminDashboard() {
   const [donorsAtRisk, setDonorsAtRisk] = useState(0);
   const [incidentAlerts, setIncidentAlerts] = useState(0);
   const [reintegrationReady, setReintegrationReady] = useState(0);
+  const rightColRef = useRef<HTMLDivElement>(null);
+  const tableCardRef = useRef<HTMLDivElement>(null);
+  const [visibleRows, setVisibleRows] = useState(10);
+
+  useEffect(() => {
+    const rightCol = rightColRef.current;
+    const tableCard = tableCardRef.current;
+    if (!rightCol || !tableCard) return;
+
+    const compute = () => {
+      const rightHeight = rightCol.offsetHeight;
+      const cardHeader = tableCard.querySelector('[class*="cardHeader"]');
+      const viewAllRow = tableCard.querySelector('[class*="viewAllRow"]');
+      const firstRow = tableCard.querySelector('tbody tr');
+      if (!cardHeader || !firstRow) return;
+
+      const headerHeight = cardHeader.getBoundingClientRect().height;
+      const theadEl = tableCard.querySelector('thead');
+      const theadHeight = theadEl ? theadEl.getBoundingClientRect().height : 0;
+      const viewAllHeight = viewAllRow ? viewAllRow.getBoundingClientRect().height : 40;
+      const rowHeight = firstRow.getBoundingClientRect().height;
+
+      if (rowHeight === 0) return;
+      const available = rightHeight - headerHeight - theadHeight - viewAllHeight;
+      const count = Math.max(1, Math.floor(available / rowHeight));
+      setVisibleRows(count);
+    };
+
+    const observer = new ResizeObserver(compute);
+    observer.observe(rightCol);
+    // Run once after initial render
+    requestAnimationFrame(compute);
+    return () => observer.disconnect();
+  }, [residents.length]);
 
   const fetchData = useCallback((shId: number | null) => {
     const onErr = (e: unknown) => { console.error('API fetch failed', e); };
@@ -131,6 +171,7 @@ export default function AdminDashboard() {
         }
         return {
           code: r.internalCode,
+          name: r.firstName && r.lastName ? `${r.firstName} ${r.lastName[0]}.` : r.internalCode,
           safehouse: r.safehouse ?? '',
           category: r.caseCategory ?? '',
           riskLevel: (r.currentRiskLevel ?? 'Low') as Severity,
@@ -211,7 +252,7 @@ export default function AdminDashboard() {
           <div className={styles.metricRow}>
             <span className={styles.metricNumber}>{metrics.activeResidents}</span>
           </div>
-          <span className={styles.metricSub}>across all safehouses</span>
+          <span className={styles.metricSub}>{activeSafehouseName ?? 'across all safehouses'}</span>
         </div>
         <div className={styles.metricCard}>
           <span className={styles.metricLabel}>Open Incidents</span>
@@ -269,7 +310,7 @@ export default function AdminDashboard() {
       {/* ── Two-column: Table + Donations ──────────────── */}
       <section className={styles.mainGrid}>
         {/* Residents Table */}
-        <div className={styles.tableCard}>
+        <div className={styles.tableCard} ref={tableCardRef}>
           <div className={styles.cardHeader}>
             <h2 className={styles.cardTitle}>Girls Impacted</h2>
             <div className={styles.legendRow}>
@@ -297,11 +338,11 @@ export default function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {residents.slice(0, 8).map((r, i) => (
+                    {residents.slice(0, visibleRows).map((r, i) => (
                       <tr key={`${r.code}-${i}`} className={r.riskLevel === 'Critical' ? styles.rowCritical : ''}>
                         <td>
-                          <span className={styles.residentCode}>{r.code}</span>
-                          <span className={styles.residentWorker}>{r.socialWorker}</span>
+                          <span className={styles.residentCode}>{r.name}</span>
+                          <span className={styles.residentWorker}>{r.code}</span>
                         </td>
                         <td>{r.safehouse}</td>
                         <td>{r.category}</td>
@@ -326,19 +367,17 @@ export default function AdminDashboard() {
                   </tbody>
                 </table>
               </div>
-              {totalResidents > 8 && (
-                <div className={styles.viewAllRow}>
-                  <button className={styles.viewAllBtn} onClick={() => navigate('/admin/caseload')}>
-                    View all {totalResidents} residents
-                  </button>
-                </div>
-              )}
+              <div className={styles.viewAllRow}>
+                <button className={styles.viewAllBtn} onClick={() => navigate('/admin/caseload')}>
+                  View all {totalResidents} residents
+                </button>
+              </div>
             </>
           )}
         </div>
 
         {/* Right column: Recent Donations + Channel breakdown */}
-        <div className={styles.rightCol}>
+        <div className={styles.rightCol} ref={rightColRef}>
           <div className={styles.donationsCard}>
             <div className={styles.cardHeader}>
               <h2 className={styles.cardTitle}>Recent Donations</h2>
