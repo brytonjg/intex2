@@ -122,6 +122,11 @@ def _infer_chart(columns: list[str], rows: list[dict]) -> ChartDescriptor | None
     if not rows or len(rows) < 2 or len(columns) < 2:
         return None
 
+    # Skip charts for record-level data (many columns = detail rows, not aggregations)
+    # A good chart needs aggregated data, not raw records.
+    if len(columns) > 4:
+        return None
+
     # Look for a string column (labels/x-axis) and a numeric column (values/y-axis)
     str_col = None
     num_col = None
@@ -138,18 +143,24 @@ def _infer_chart(columns: list[str], rows: list[dict]) -> ChartDescriptor | None
     x = [str(row.get(str_col, "")) for row in rows]
     y = [float(row.get(num_col, 0) or 0) for row in rows]
 
+    # Skip if x-axis labels look like IDs or codes (not meaningful for a chart)
+    id_pattern = re.compile(r'^[A-Z]{0,3}\d{3,}$|^\d+$', re.I)
+    if all(id_pattern.match(val) for val in x[:5]):
+        return None
+
     # Choose chart type based on data shape
-    if len(rows) <= 6:
-        chart_type = "bar"
-    elif len(rows) <= 12:
-        # Check if x values look like dates/months
-        date_pattern = re.compile(r"\d{4}[-/]\d{2}|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec", re.I)
-        if any(date_pattern.search(val) for val in x[:3]):
-            chart_type = "line"
-        else:
-            chart_type = "bar"
-    else:
+    date_pattern = re.compile(r"\d{4}[-/]\d{2}|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec", re.I)
+    is_time_series = any(date_pattern.search(val) for val in x[:3])
+
+    if is_time_series:
         chart_type = "line"
+    elif len(rows) <= 6:
+        chart_type = "bar"
+    elif len(rows) <= 15:
+        chart_type = "bar"
+    else:
+        # Too many non-time-series rows for a useful chart
+        return None
 
     # Use pie chart for small categorical data with proportions
     if len(rows) <= 5 and all(v >= 0 for v in y):
@@ -165,6 +176,65 @@ def _infer_chart(columns: list[str], rows: list[dict]) -> ChartDescriptor | None
         x_label=str_col,
         y_label=num_col,
     )
+
+
+def _generate_summary(
+    vn, question: str, sql: str, columns: list[str], rows: list[dict], extra: dict
+) -> str:
+    """Use the LLM to generate a conversational summary of query results."""
+    if not rows:
+        return "No results found for your query."
+
+    # Build a compact data preview (max 10 rows to keep prompt small)
+    preview_rows = rows[:10]
+    data_preview = "\n".join(
+        " | ".join(f"{col}: {row.get(col, '')}" for col in columns)
+        for row in preview_rows
+    )
+    if len(rows) > 10:
+        data_preview += f"\n... and {len(rows) - 10} more rows"
+
+    try:
+        response = vn._client.chat.completions.create(
+            model=vn._model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a helpful data assistant for a nonprofit managing safehouses for at-risk girls. "
+                        "Given a user's question and the query results, write a brief, plain-text summary "
+                        "(1-3 sentences) that answers the question directly and helps the user understand the data. "
+                        "Rules: "
+                        "- Write in plain text only. No markdown, no asterisks, no bold formatting. "
+                        "- No em dashes. Use commas or periods instead. "
+                        "- Be direct and concise. State the key number first, then briefly explain what it means. "
+                        "- Do not mention SQL, queries, or technical details. "
+                        "- Do not be flowery or overly enthusiastic. Just be clear and helpful."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        f"User's question: {question}\n\n"
+                        f"Columns: {', '.join(columns)}\n"
+                        f"Total rows: {len(rows)}\n"
+                        f"Data:\n{data_preview}"
+                    ),
+                },
+            ],
+            temperature=0.3,
+            max_completion_tokens=200,
+        )
+        summary = response.choices[0].message.content.strip()
+        logger.info("Generated summary: %s", summary, extra=extra)
+        return summary
+    except Exception as e:
+        logger.warning("Summary generation failed, using fallback: %s", e, extra=extra)
+        # Fallback to simple summary
+        if len(rows) == 1 and len(columns) == 1:
+            val = rows[0].get(columns[0], "")
+            return f"The answer is **{val}**."
+        return f"Found **{len(rows)}** result{'s' if len(rows) != 1 else ''}."
 
 
 # -- Main endpoint --
@@ -211,19 +281,8 @@ def ask(req: AskRequest, request: Request):
         # Infer chart from results
         chart = _infer_chart(columns, rows)
 
-        # Generate a brief summary
-        summary = None
-        if rows:
-            if len(rows) == 1 and len(columns) == 1:
-                val = rows[0].get(columns[0], "")
-                summary = f"The answer is **{val}**."
-            elif len(rows) == 1:
-                parts = [f"{col}: {rows[0].get(col, '')}" for col in columns]
-                summary = " | ".join(parts)
-            else:
-                summary = f"Found **{len(rows)}** result{'s' if len(rows) != 1 else ''}."
-        else:
-            summary = "No results found for your query."
+        # Generate a conversational summary using the LLM
+        summary = _generate_summary(vn, req.question, sql, columns, rows, extra)
 
         return AskResponse(
             sql=sql,
@@ -246,12 +305,27 @@ def ask(req: AskRequest, request: Request):
         )
 
         raw_error = str(e)
-        if "statement timeout" in raw_error.lower():
+        error_lower = raw_error.lower()
+        if "statement timeout" in error_lower:
             user_msg = "Your query was too complex and timed out. Try a simpler question."
-        elif "permission denied" in raw_error.lower():
+        elif "permission denied" in error_lower:
             user_msg = "You don't have access to the requested data."
+        elif "undefinedcolumn" in error_lower or "does not exist" in error_lower:
+            user_msg = "I tried to query a column that doesn't exist in the database. Try rephrasing your question with different terms."
+        elif "undefinedtable" in error_lower or "relation" in error_lower and "does not exist" in error_lower:
+            user_msg = "I couldn't find the right table for that question. Try asking in a different way."
+        elif "syntax error" in error_lower:
+            user_msg = "I generated an invalid query for that question. Could you try rephrasing it more specifically?"
+        elif "division by zero" in error_lower:
+            user_msg = "The calculation resulted in a division by zero. Try a different question."
+        elif "connect" in error_lower or "connection" in error_lower:
+            user_msg = "I'm having trouble reaching the database right now. Please try again in a moment."
+        elif "rate limit" in error_lower or "429" in raw_error:
+            user_msg = "The AI service is temporarily busy. Please wait a moment and try again."
+        elif "api key" in error_lower or "authentication" in error_lower or "401" in raw_error:
+            user_msg = "There's a configuration issue with the AI service. Please contact an administrator."
         else:
-            user_msg = "Something went wrong processing your question. Try rephrasing it."
+            user_msg = "Something went wrong processing your question. Try rephrasing it or asking something more specific."
 
         # Include the real error details so the .NET backend can log them
         return AskResponse(
