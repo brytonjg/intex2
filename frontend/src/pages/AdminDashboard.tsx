@@ -119,18 +119,38 @@ export default function AdminDashboard() {
   const [reintegrationReady, setReintegrationReady] = useState(0);
   const rightColRef = useRef<HTMLDivElement>(null);
   const tableCardRef = useRef<HTMLDivElement>(null);
+  const [visibleRows, setVisibleRows] = useState(10);
 
   useEffect(() => {
     const rightCol = rightColRef.current;
-    if (!rightCol) return;
-    const observer = new ResizeObserver(() => {
-      if (tableCardRef.current) {
-        tableCardRef.current.style.maxHeight = `${rightCol.offsetHeight}px`;
-      }
-    });
+    const tableCard = tableCardRef.current;
+    if (!rightCol || !tableCard) return;
+
+    const compute = () => {
+      const rightHeight = rightCol.offsetHeight;
+      const cardHeader = tableCard.querySelector('[class*="cardHeader"]');
+      const viewAllRow = tableCard.querySelector('[class*="viewAllRow"]');
+      const firstRow = tableCard.querySelector('tbody tr');
+      if (!cardHeader || !firstRow) return;
+
+      const headerHeight = cardHeader.getBoundingClientRect().height;
+      const theadEl = tableCard.querySelector('thead');
+      const theadHeight = theadEl ? theadEl.getBoundingClientRect().height : 0;
+      const viewAllHeight = viewAllRow ? viewAllRow.getBoundingClientRect().height : 40;
+      const rowHeight = firstRow.getBoundingClientRect().height;
+
+      if (rowHeight === 0) return;
+      const available = rightHeight - headerHeight - theadHeight - viewAllHeight;
+      const count = Math.max(1, Math.floor(available / rowHeight));
+      setVisibleRows(count);
+    };
+
+    const observer = new ResizeObserver(compute);
     observer.observe(rightCol);
+    // Run once after initial render
+    requestAnimationFrame(compute);
     return () => observer.disconnect();
-  }, []);
+  }, [residents.length]);
 
   const fetchData = useCallback((shId: number | null) => {
     const onErr = (e: unknown) => { console.error('API fetch failed', e); };
@@ -318,7 +338,7 @@ export default function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {residents.map((r, i) => (
+                    {residents.slice(0, visibleRows).map((r, i) => (
                       <tr key={`${r.code}-${i}`} className={r.riskLevel === 'Critical' ? styles.rowCritical : ''}>
                         <td>
                           <span className={styles.residentCode}>{r.name}</span>
