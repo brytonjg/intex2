@@ -554,6 +554,23 @@ public static class DataSeeder
             }
         }
 
+        // Recalculate CurrentOccupancy from actual active residents
+        var occupancyCounts = await db.Residents
+            .Where(r => r.CaseStatus == "Active")
+            .GroupBy(r => r.SafehouseId)
+            .Select(g => new { SafehouseId = g.Key, Count = g.Count() })
+            .ToListAsync();
+
+        foreach (var sh in safehouses)
+        {
+            var actual = occupancyCounts.FirstOrDefault(c => c.SafehouseId == sh.SafehouseId)?.Count ?? 0;
+            if (sh.CurrentOccupancy != actual)
+            {
+                sh.CurrentOccupancy = actual;
+                changed = true;
+            }
+        }
+
         if (changed)
         {
             await db.SaveChangesAsync();
