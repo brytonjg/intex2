@@ -28,6 +28,7 @@ type Severity = 'Low' | 'Medium' | 'High' | 'Critical';
 
 interface ResidentRow {
   code: string;
+  name: string;
   safehouse: string;
   category: string;
   riskLevel: Severity;
@@ -67,6 +68,8 @@ interface Metrics {
 }
 
 interface ApiResident {
+  firstName: string | null;
+  lastName: string | null;
   internalCode: string;
   safehouse: string;
   caseCategory: string;
@@ -96,7 +99,10 @@ export default function AdminDashboard() {
   useDocumentTitle('Dashboard');
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { activeSafehouseId: safehouseId } = useSafehouse();
+  const { activeSafehouseId: safehouseId, safehouses } = useSafehouse();
+  const activeSafehouseName = safehouseId
+    ? safehouses.find(s => s.safehouseId === safehouseId)?.name ?? 'selected safehouse'
+    : null;
   const displayRole = user?.roles?.[0] ?? 'Staff';
 
   const [metrics, setMetrics] = useState<Metrics | null>(null);
@@ -131,6 +137,7 @@ export default function AdminDashboard() {
         }
         return {
           code: r.internalCode,
+          name: r.firstName && r.lastName ? `${r.firstName} ${r.lastName[0]}.` : r.internalCode,
           safehouse: r.safehouse ?? '',
           category: r.caseCategory ?? '',
           riskLevel: (r.currentRiskLevel ?? 'Low') as Severity,
@@ -211,7 +218,7 @@ export default function AdminDashboard() {
           <div className={styles.metricRow}>
             <span className={styles.metricNumber}>{metrics.activeResidents}</span>
           </div>
-          <span className={styles.metricSub}>across all safehouses</span>
+          <span className={styles.metricSub}>{activeSafehouseName ?? 'across all safehouses'}</span>
         </div>
         <div className={styles.metricCard}>
           <span className={styles.metricLabel}>Open Incidents</span>
@@ -297,11 +304,11 @@ export default function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {residents.slice(0, 8).map((r, i) => (
+                    {residents.map((r, i) => (
                       <tr key={`${r.code}-${i}`} className={r.riskLevel === 'Critical' ? styles.rowCritical : ''}>
                         <td>
-                          <span className={styles.residentCode}>{r.code}</span>
-                          <span className={styles.residentWorker}>{r.socialWorker}</span>
+                          <span className={styles.residentCode}>{r.name}</span>
+                          <span className={styles.residentWorker}>{r.code}</span>
                         </td>
                         <td>{r.safehouse}</td>
                         <td>{r.category}</td>
@@ -326,7 +333,7 @@ export default function AdminDashboard() {
                   </tbody>
                 </table>
               </div>
-              {totalResidents > 8 && (
+              {totalResidents > residents.length && (
                 <div className={styles.viewAllRow}>
                   <button className={styles.viewAllBtn} onClick={() => navigate('/admin/caseload')}>
                     View all {totalResidents} residents
