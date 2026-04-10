@@ -172,7 +172,12 @@
   box-shadow: var(--shadow-sm);
 }
 
-.tableCard,
+.tableCard {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
 .donationsCard {
   overflow: hidden;
 }
@@ -225,6 +230,9 @@
 
 .tableWrapper {
   overflow-x: auto;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .table {
@@ -319,6 +327,7 @@
   padding: 0.65rem 1rem;
   text-align: center;
   border-top: 1px solid rgba(15, 27, 45, 0.06);
+  flex-shrink: 0;
 }
 
 .viewAllBtn {
