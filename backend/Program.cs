@@ -537,6 +537,17 @@ app.MapPatch("/api/admin/social/posts/{id}/approve", async (int id, HttpContext 
     post.ApprovedBy = user?.Email;
     post.ApprovedAt = AppConstants.DataCutoffUtc;
     post.UpdatedAt = AppConstants.DataCutoffUtc;
+
+    // Rebase ScheduledAt into the frozen-date week (week of Feb 16, 2026)
+    if (post.ScheduledAt != null)
+    {
+        var cutoff = AppConstants.DataCutoffUtc; // Mon Feb 16, 2026
+        var dayOfWeek = (int)post.ScheduledAt.Value.DayOfWeek;
+        // Sunday=0 → offset 0..6 from Monday
+        var daysFromMonday = dayOfWeek == 0 ? 6 : dayOfWeek - 1;
+        post.ScheduledAt = cutoff.AddDays(daysFromMonday)
+            .Date.Add(post.ScheduledAt.Value.TimeOfDay);
+    }
     await db.SaveChangesAsync();
     return Results.Ok(post);
 }).RequireAuthorization(p => p.RequireRole("Admin", "SocialMediaManager"));
@@ -1226,6 +1237,15 @@ app.MapPost("/api/admin/social/generate", async (HttpContext ctx, AppDbContext d
                 }
             }
             catch { /* scheduling is optional, post will just not have a suggested time */ }
+
+            // Rebase into frozen-date week regardless of what the harness returned
+            if (scheduledAt != null)
+            {
+                var cutoff = AppConstants.DataCutoffUtc; // Mon Feb 16, 2026
+                var dow = (int)scheduledAt.Value.DayOfWeek;
+                var daysFromMonday = dow == 0 ? 6 : dow - 1;
+                scheduledAt = cutoff.AddDays(daysFromMonday).Date.Add(scheduledAt.Value.TimeOfDay);
+            }
 
             // Save as draft
             var post = new backend.Models.SocialMedia.AutomatedPost
