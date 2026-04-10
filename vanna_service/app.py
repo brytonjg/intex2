@@ -305,12 +305,27 @@ def ask(req: AskRequest, request: Request):
         )
 
         raw_error = str(e)
-        if "statement timeout" in raw_error.lower():
+        error_lower = raw_error.lower()
+        if "statement timeout" in error_lower:
             user_msg = "Your query was too complex and timed out. Try a simpler question."
-        elif "permission denied" in raw_error.lower():
+        elif "permission denied" in error_lower:
             user_msg = "You don't have access to the requested data."
+        elif "undefinedcolumn" in error_lower or "does not exist" in error_lower:
+            user_msg = "I tried to query a column that doesn't exist in the database. Try rephrasing your question with different terms."
+        elif "undefinedtable" in error_lower or "relation" in error_lower and "does not exist" in error_lower:
+            user_msg = "I couldn't find the right table for that question. Try asking in a different way."
+        elif "syntax error" in error_lower:
+            user_msg = "I generated an invalid query for that question. Could you try rephrasing it more specifically?"
+        elif "division by zero" in error_lower:
+            user_msg = "The calculation resulted in a division by zero. Try a different question."
+        elif "connect" in error_lower or "connection" in error_lower:
+            user_msg = "I'm having trouble reaching the database right now. Please try again in a moment."
+        elif "rate limit" in error_lower or "429" in raw_error:
+            user_msg = "The AI service is temporarily busy. Please wait a moment and try again."
+        elif "api key" in error_lower or "authentication" in error_lower or "401" in raw_error:
+            user_msg = "There's a configuration issue with the AI service. Please contact an administrator."
         else:
-            user_msg = "Something went wrong processing your question. Try rephrasing it."
+            user_msg = "Something went wrong processing your question. Try rephrasing it or asking something more specific."
 
         # Include the real error details so the .NET backend can log them
         return AskResponse(
