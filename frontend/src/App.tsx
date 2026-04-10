@@ -65,6 +65,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
 import HomePage from './pages/HomePage';
 import ImpactPage from './pages/ImpactPage';
 import LoginPage from './pages/LoginPage';
+import DemoEntry from './pages/DemoEntry';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 // SignupPage removed - donors get accounts after donating
 const NewsletterPage = lazyRetry(() => import('./pages/NewsletterPage'));
@@ -142,6 +143,7 @@ function App() {
             <Route path="/" element={<PublicLayout><HomePage /></PublicLayout>} />
             <Route path="/impact" element={<PublicLayout><ImpactPage /></PublicLayout>} />
             <Route path="/login" element={<PublicLayout><LoginPage /></PublicLayout>} />
+            <Route path="/demo" element={<DemoEntry />} />
             <Route path="/privacy-policy" element={<PublicLayout><PrivacyPolicyPage /></PublicLayout>} />
             <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
             <Route path="/signup" element={<Navigate to="/donate" replace />} />
