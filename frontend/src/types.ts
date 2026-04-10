@@ -4,7 +4,9 @@ export interface ImpactSummary {
   activeSafehouses: number;
   totalDonations: number;
   completedReintegrations: number;
+  completedReintegrationsAllTime: number;
   reintegrationRate: number;
+  okrGoal: number;
 }
 
 export interface MonthlyDataPoint {

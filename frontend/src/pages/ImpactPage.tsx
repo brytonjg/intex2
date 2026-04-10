@@ -128,7 +128,7 @@ export default function ImpactPage() {
               </div>
               <div className={styles.statCard}>
                 <span className={styles.statNumber}>
-                  <Counter end={summary.completedReintegrations} />
+                  <Counter end={summary.completedReintegrationsAllTime} />
                 </span>
                 <span className={styles.statLabel}>Successfully reintegrated</span>
               </div>
@@ -156,10 +156,10 @@ export default function ImpactPage() {
             <div className={styles.okrContent}>
               <p className={styles.okrEyebrow}>Our North-Star Metric</p>
               <h2 className={styles.okrHeadline}>
-                <span className={styles.okrNumber}>{summary.completedReintegrations}</span> girls reintegrated
+                <span className={styles.okrNumber}>{summary.completedReintegrations}</span> girls reintegrated this year
               </h2>
               <p className={styles.okrBody}>
-                Our goal is to reintegrate 10 girls into safe, permanent homes this year.
+                Our goal is to reintegrate {summary.okrGoal} girls into safe, permanent homes this year.
                 Every donation funds the counseling, education, and care that makes
                 this possible &mdash; each number represents a life transformed.
               </p>

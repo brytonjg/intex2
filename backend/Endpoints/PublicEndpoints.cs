@@ -41,9 +41,10 @@ public static class PublicEndpoints
                     total = g.Count(),
                     active = g.Count(r => r.CaseStatus == "Active"),
                     completed = g.Count(r => r.ReintegrationStatus == "Completed"
-                        && r.DateClosed != null && r.DateClosed.Value.Year == currentYear)
+                        && r.DateClosed != null && r.DateClosed.Value.Year == currentYear),
+                    completedAllTime = g.Count(r => r.ReintegrationStatus == "Completed")
                 })
-                .FirstOrDefaultAsync() ?? new { total = 0, active = 0, completed = 0 };
+                .FirstOrDefaultAsync() ?? new { total = 0, active = 0, completed = 0, completedAllTime = 0 };
 
             var activeSafehouses = await db.Safehouses.CountAsync(s => s.Status == "Active");
             var totalDonations = await db.Donations
@@ -60,6 +61,7 @@ public static class PublicEndpoints
                 activeSafehouses,
                 totalDonations,
                 completedReintegrations = r.completed,
+                completedReintegrationsAllTime = r.completedAllTime,
                 reintegrationRate = r.total > 0 ? Math.Round((double)r.completed / r.total * 100) : 0,
                 okrGoal,
             };
