@@ -137,9 +137,9 @@ export default function HomePage() {
               </div>
               <div className={styles.statCard}>
                 <span className={styles.statNumber}>
-                  <Counter end={impact.reintegrationRate} suffix="%" />
+                  <Counter end={impact.completedReintegrationsAllTime} />
                 </span>
-                <span className={styles.statDesc}>Successfully reintegrated</span>
+                <span className={styles.statDesc}>Girls reintegrated</span>
               </div>
               <div className={styles.statCard}>
                 <span className={styles.statNumber}>
