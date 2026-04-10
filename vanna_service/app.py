@@ -28,16 +28,17 @@ def verify_key(authorization: str = Header(default="")):
         raise HTTPException(status_code=401, detail="Invalid API key")
 
 
-app = FastAPI(title="Vanna Chatbot Service", version="0.1.0", dependencies=[Depends(verify_key)])
+app = FastAPI(title="Vanna Chatbot Service", version="0.1.0")
 
 
 # -- Health (no auth) --
 
-@app.get("/health", dependencies=[])
+@app.get("/health")
 def health():
     from vanna_service.db import get_engine
     try:
-        get_engine().connect().close()
+        with get_engine().connect() as conn:
+            conn.execute(__import__("sqlalchemy").text("SELECT 1"))
         db_ok = True
     except Exception:
         db_ok = False
@@ -150,7 +151,7 @@ def _infer_chart(columns: list[str], rows: list[dict]) -> ChartDescriptor | None
 
 # -- Main endpoint --
 
-@app.post("/ask", response_model=AskResponse)
+@app.post("/ask", response_model=AskResponse, dependencies=[Depends(verify_key)])
 def ask(req: AskRequest):
     logger.info("Question: %s | Safehouses: %s", req.question, req.safehouse_ids)
 
