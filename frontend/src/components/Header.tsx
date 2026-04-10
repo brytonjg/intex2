@@ -116,7 +116,36 @@ export default function Header() {
           <Link to="/#involved" className={styles.navLink} onClick={() => setMenuOpen(false)}>
             Get Involved
           </Link>
+
+          {/* Mobile-only: action buttons inside the drawer */}
+          <div className={styles.mobileActions}>
+            {isAuthenticated && user ? (
+              <>
+                <Link to={user.roles?.includes('Admin') || user.roles?.includes('Staff') ? '/admin/dashboard' : '/donor'} className={styles.loginBtn} onClick={() => setMenuOpen(false)}>
+                  <User size={16} aria-hidden="true" />
+                  <span>{user.roles?.includes('Admin') || user.roles?.includes('Staff') ? 'Dashboard' : user.firstName}</span>
+                </Link>
+                <button onClick={() => { handleLogout(); setMenuOpen(false); }} className={styles.logoutBtn}>
+                  <LogOut size={16} aria-hidden="true" />
+                  <span>Logout</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/donate" className={styles.signupBtn} onClick={() => setMenuOpen(false)}>
+                  <UserPlus size={16} />
+                  <span>Donate</span>
+                </Link>
+                <Link to="/login" className={styles.loginBtn} onClick={() => setMenuOpen(false)}>
+                  <User size={16} />
+                  <span>Login</span>
+                </Link>
+              </>
+            )}
+          </div>
         </nav>
+
+        {menuOpen && <div className={styles.navBackdrop} onClick={() => setMenuOpen(false)} />}
 
         <div className={styles.actions}>
           {isAuthenticated && user ? (
