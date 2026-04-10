@@ -245,8 +245,9 @@ def predict_schedule_endpoint(req: PredictScheduleRequest):
 
     d = defaults.get(req.platform, {"hour": 10, "weekday": 1})
 
-    # Find the next occurrence of the target weekday
-    now = datetime.utcnow()
+    # Find the next occurrence of the target weekday (relative to frozen date)
+    from config import APP_TODAY
+    now = APP_TODAY
     days_ahead = d["weekday"] - now.weekday()
     if days_ahead <= 0:
         days_ahead += 7
@@ -271,9 +272,9 @@ def generate_newsletter_endpoint(req: GenerateNewsletterRequest):
     from ai_harness.config import OPENAI_API_KEY, OPENAI_MODEL
     from openai import OpenAI
 
-    now = datetime.utcnow()
-    year = req.year or now.year
-    month = req.month or now.month
+    from ai_harness.config import APP_TODAY
+    year = req.year or APP_TODAY.year
+    month = req.month or APP_TODAY.month
 
     # Aggregate monthly data
     posts = db.fetch_monthly_published_posts(year, month)
