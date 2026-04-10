@@ -5,6 +5,11 @@ import { APP_TODAY } from '../../../constants';
 import TextArea from '../../../components/admin/TextArea';
 import styles from './SocialPostsPage.module.css';
 
+function mediaUrl(path: string | null | undefined): string {
+  if (!path) return '';
+  return path.startsWith('http') ? path : `${getApiUrl()}${path}`;
+}
+
 interface Post {
   automatedPostId: number;
   content: string;
@@ -371,9 +376,9 @@ export default function SocialPostsPage() {
                   <>
                     <div className={styles.editPhotoWrap}>
                       {editMediaThumb ? (
-                        <img src={`${getApiUrl()}${editMediaThumb}`} alt="Post photo" className={styles.cardImage} />
+                        <img src={mediaUrl(editMediaThumb)} alt="Post photo" className={styles.cardImage} />
                       ) : post.mediaThumbPath ? (
-                        <img src={`${getApiUrl()}${post.mediaThumbPath}`} alt="Post photo" className={styles.cardImage} />
+                        <img src={mediaUrl(post.mediaThumbPath)} alt="Post photo" className={styles.cardImage} />
                       ) : null}
                       <button className={styles.changePhotoBtn} onClick={openPhotoPicker}><CameraIcon size={13} /> {editMediaThumb || post.mediaThumbPath ? 'Change Photo' : 'Add Photo'}</button>
                     </div>
@@ -382,7 +387,7 @@ export default function SocialPostsPage() {
                 ) : (
                   <>
                     {post.mediaThumbPath && (
-                      <img src={`${getApiUrl()}${post.mediaThumbPath}`} alt="Post photo" className={styles.cardImage} />
+                      <img src={mediaUrl(post.mediaThumbPath)} alt="Post photo" className={styles.cardImage} />
                     )}
                     <p className={styles.postContent}>{post.content}</p>
                   </>
@@ -422,7 +427,7 @@ export default function SocialPostsPage() {
                   <span className={styles.platform}>{post.platform}</span>
                 </div>
                 {post.mediaThumbPath && (
-                  <img src={`${getApiUrl()}${post.mediaThumbPath}`} alt="Post photo" className={styles.cardImage} />
+                  <img src={mediaUrl(post.mediaThumbPath)} alt="Post photo" className={styles.cardImage} />
                 )}
                 <p className={styles.postContent}>{post.content}</p>
                 {post.scheduledAt && <p className={styles.scheduledTime}>Scheduled: {new Date(post.scheduledAt).toLocaleString()}</p>}
@@ -507,7 +512,7 @@ export default function SocialPostsPage() {
               </div>
               <div className={styles.popoverBody}>
                 {selectedPost.mediaPath && (
-                  <img src={`${getApiUrl()}${selectedPost.mediaPath}`} alt="Post photo" className={styles.popoverImage} />
+                  <img src={mediaUrl(selectedPost.mediaPath)} alt="Post photo" className={styles.popoverImage} />
                 )}
                 {selectedPost.scheduledAt && (
                   <p className={styles.popoverDate}>{new Date(selectedPost.scheduledAt).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} · {new Date(selectedPost.scheduledAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</p>
