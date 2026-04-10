@@ -264,6 +264,11 @@
   background: rgba(15, 27, 45, 0.05);
 }
 
+/* ── Mobile-only action buttons (inside drawer) ─────── */
+.mobileActions {
+  display: none;
+}
+
 /* ── Mobile nav backdrop ───────────────────────────────── */
 .navBackdrop {
   display: none;
@@ -289,30 +294,45 @@
     z-index: 201;
   }
 
-  .nav {
+  /* Hide desktop action buttons on mobile */
+  .actions .loginBtn,
+  .actions .logoutBtn,
+  .actions .signupBtn {
     display: none;
+  }
+
+  /* Slide-in drawer from right */
+  .nav {
     position: fixed;
-    inset: 0;
-    background: rgba(255, 255, 255, 0.97);
-    backdrop-filter: blur(12px);
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 280px;
+    max-width: 80vw;
+    background: #fff;
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    align-items: stretch;
+    justify-content: flex-start;
     gap: 0;
     z-index: 200;
+    padding: 5rem 0 2rem;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    visibility: hidden;
   }
 
   .navOpen {
-    display: flex;
+    transform: translateX(0);
+    visibility: visible;
   }
 
   .navLink {
-    font-size: 1.2rem;
+    font-size: 1.05rem;
     font-weight: 600;
-    padding: 1.1rem 2rem;
+    padding: 1rem 1.5rem;
     width: 100%;
-    max-width: 300px;
-    text-align: center;
+    text-align: left;
     border-bottom: 1px solid rgba(15, 27, 45, 0.06);
   }
 
@@ -320,26 +340,38 @@
     display: none;
   }
 
-  .loginBtn span,
-  .logoutBtn span,
-  .signupBtn span {
-    display: none;
+  /* Show action buttons inside the drawer */
+  .mobileActions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.5rem 1.5rem 0;
+    margin-top: auto;
+    border-top: 1px solid rgba(15, 27, 45, 0.08);
+    padding-top: 1.25rem;
   }
 
-  .loginBtn {
-    border: 1px solid transparent;
-    padding: 0.5rem;
+  .mobileActions .loginBtn,
+  .mobileActions .signupBtn,
+  .mobileActions .logoutBtn {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding: 0.65rem 1rem;
   }
 
-  .signupBtn {
-    padding: 0.5rem;
+  .mobileActions .loginBtn span,
+  .mobileActions .signupBtn span,
+  .mobileActions .logoutBtn span {
+    display: inline;
   }
 
-  .logoutBtn {
-    padding: 0.5rem;
-  }
-
+  /* Backdrop overlay */
   .navBackdrop {
-    display: none;
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 199;
   }
 }
