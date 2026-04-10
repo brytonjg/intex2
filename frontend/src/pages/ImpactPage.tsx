@@ -173,10 +173,11 @@ export default function ImpactPage() {
       {goalData && (
         <section className={styles.goalSection}>
           <div className={styles.goalInner}>
-            <h2 className={styles.goalHeadline}>Help us reach our monthly goal</h2>
+            <h2 className={styles.goalHeadline}>Help us reintegrate more children</h2>
             <p className={styles.goalSub}>
-              We need ${goalData.goal.toLocaleString()} each month to keep our safehouses
-              running and our programs funded. Here's where we are this month.
+              Every dollar funds the counseling, education, and care that makes
+              reintegration possible. We need ${goalData.goal.toLocaleString()} each
+              month to keep our safehouses running. Here's where we are this month.
             </p>
             <div className={styles.goalCard}>
               <div className={styles.goalHeader}>
@@ -210,7 +211,7 @@ export default function ImpactPage() {
             </div>
             <Link to="/donate" className={styles.goalCta}>
               <Heart size={16} aria-hidden="true" />
-              Help Us Get There
+              Donate Now
             </Link>
           </div>
         </section>
