@@ -1,0 +1,102 @@
+[
+  {
+    "question": "How many active residents are there?",
+    "sql": "SELECT COUNT(*) AS active_residents FROM residents WHERE case_status = 'Active'"
+  },
+  {
+    "question": "How many residents are in each safehouse?",
+    "sql": "SELECT s.name AS safehouse, COUNT(r.resident_id) AS resident_count FROM safehouses s LEFT JOIN residents r ON s.safehouse_id = r.safehouse_id AND r.case_status = 'Active' GROUP BY s.name ORDER BY resident_count DESC"
+  },
+  {
+    "question": "Show me all safehouses and their occupancy",
+    "sql": "SELECT name, safehouse_code, current_occupancy, capacity_girls FROM safehouses ORDER BY name"
+  },
+  {
+    "question": "How many incidents were reported this month?",
+    "sql": "SELECT COUNT(*) AS incident_count FROM incident_reports WHERE incident_date >= '2026-02-01' AND incident_date <= '2026-02-16'"
+  },
+  {
+    "question": "What are the most common incident types?",
+    "sql": "SELECT incident_type, COUNT(*) AS count FROM incident_reports GROUP BY incident_type ORDER BY count DESC LIMIT 10"
+  },
+  {
+    "question": "Show incidents by severity",
+    "sql": "SELECT severity, COUNT(*) AS count FROM incident_reports GROUP BY severity ORDER BY count DESC"
+  },
+  {
+    "question": "How many residents were admitted in the last 3 months?",
+    "sql": "SELECT COUNT(*) AS new_admissions FROM residents WHERE admission_date >= '2025-11-16' AND admission_date <= '2026-02-16'"
+  },
+  {
+    "question": "What is the average length of stay for residents?",
+    "sql": "SELECT ROUND(AVG(EXTRACT(DAY FROM ('2026-02-16'::date - admission_date::date)))) AS avg_days_stay FROM residents WHERE case_status = 'Active' AND admission_date IS NOT NULL"
+  },
+  {
+    "question": "Show donations by month",
+    "sql": "SELECT TO_CHAR(donation_date, 'YYYY-MM') AS month, SUM(amount) AS total_donated, COUNT(*) AS donation_count FROM donations WHERE donation_date >= '2025-02-16' GROUP BY TO_CHAR(donation_date, 'YYYY-MM') ORDER BY month"
+  },
+  {
+    "question": "What is the total amount donated?",
+    "sql": "SELECT SUM(amount) AS total_donations FROM donations"
+  },
+  {
+    "question": "How many pending staff tasks are there?",
+    "sql": "SELECT COUNT(*) AS pending_tasks FROM staff_tasks WHERE status = 'Pending'"
+  },
+  {
+    "question": "Show staff tasks by status",
+    "sql": "SELECT status, COUNT(*) AS count FROM staff_tasks GROUP BY status ORDER BY count DESC"
+  },
+  {
+    "question": "How many residents have been reintegrated?",
+    "sql": "SELECT COUNT(*) AS reintegrated FROM residents WHERE case_status = 'Reintegrated'"
+  },
+  {
+    "question": "Show residents by risk level",
+    "sql": "SELECT risk_level, COUNT(*) AS count FROM residents WHERE case_status = 'Active' AND risk_level IS NOT NULL GROUP BY risk_level ORDER BY CASE risk_level WHEN 'Critical' THEN 1 WHEN 'High' THEN 2 WHEN 'Medium' THEN 3 WHEN 'Low' THEN 4 END"
+  },
+  {
+    "question": "What are the monthly metrics for each safehouse?",
+    "sql": "SELECT s.name AS safehouse, m.month_start, m.active_residents, m.new_admissions, m.discharges, m.incidents_count FROM safehouse_monthly_metrics m JOIN safehouses s ON m.safehouse_id = s.safehouse_id WHERE m.month_start = (SELECT MAX(month_start) FROM safehouse_monthly_metrics) ORDER BY s.name"
+  },
+  {
+    "question": "Show education progress across safehouses",
+    "sql": "SELECT s.name AS safehouse, ROUND(AVG(m.avg_education_progress)::numeric, 1) AS avg_education_progress FROM safehouse_monthly_metrics m JOIN safehouses s ON m.safehouse_id = s.safehouse_id WHERE m.month_start = (SELECT MAX(month_start) FROM safehouse_monthly_metrics) GROUP BY s.name ORDER BY avg_education_progress DESC"
+  },
+  {
+    "question": "Which safehouse has the most incidents?",
+    "sql": "SELECT s.name AS safehouse, COUNT(i.incident_report_id) AS incident_count FROM safehouses s LEFT JOIN incident_reports i ON s.safehouse_id = i.safehouse_id GROUP BY s.name ORDER BY incident_count DESC"
+  },
+  {
+    "question": "Show social media engagement by platform",
+    "sql": "SELECT platform, COUNT(*) AS posts, SUM(COALESCE(engagement_likes, 0)) AS total_likes, SUM(COALESCE(engagement_shares, 0)) AS total_shares, SUM(COALESCE(engagement_comments, 0)) AS total_comments FROM social_media_posts WHERE status = 'published' GROUP BY platform"
+  },
+  {
+    "question": "How many calendar events are upcoming?",
+    "sql": "SELECT COUNT(*) AS upcoming_events FROM calendar_events WHERE event_date >= '2026-02-16' AND status = 'Scheduled'"
+  },
+  {
+    "question": "Show residents who are at high risk",
+    "sql": "SELECT first_name, last_name, case_control_no, risk_level, admission_date FROM residents WHERE case_status = 'Active' AND risk_level IN ('Critical', 'High') ORDER BY CASE risk_level WHEN 'Critical' THEN 1 WHEN 'High' THEN 2 END, admission_date"
+  },
+  {
+    "question": "What is the donation allocation by safehouse?",
+    "sql": "SELECT s.name AS safehouse, SUM(da.amount) AS allocated_amount FROM donation_allocations da JOIN safehouses s ON da.safehouse_id = s.safehouse_id GROUP BY s.name ORDER BY allocated_amount DESC"
+  },
+  {
+    "question": "Show the ML reintegration readiness scores",
+    "sql": "SELECT r.first_name, r.last_name, mp.score, mp.score_label FROM ml_predictions mp JOIN residents r ON mp.entity_id = r.resident_id WHERE mp.entity_type = 'resident' AND mp.model_name = 'reintegration-readiness' AND r.case_status = 'Active' ORDER BY mp.score DESC"
+  },
+  {
+    "question": "How many home visitations have been conducted?",
+    "sql": "SELECT COUNT(*) AS visitation_count FROM home_visitations"
+  },
+  {
+    "question": "Show case conferences by safehouse",
+    "sql": "SELECT s.name AS safehouse, COUNT(cc.case_conference_id) AS conference_count FROM case_conferences cc JOIN safehouses s ON cc.safehouse_id = s.safehouse_id GROUP BY s.name ORDER BY conference_count DESC"
+  },
+  {
+    "question": "What are the top performing social media posts?",
+    "sql": "SELECT platform, content, COALESCE(engagement_likes, 0) + COALESCE(engagement_shares, 0) + COALESCE(engagement_comments, 0) AS total_engagement FROM social_media_posts WHERE status = 'published' ORDER BY total_engagement DESC LIMIT 10"
+  }
+]
