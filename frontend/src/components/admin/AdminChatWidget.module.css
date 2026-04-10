@@ -1,0 +1,412 @@
+/* ── Floating Action Button ───────────────────────────── */
+.fab {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 1000;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, var(--color-sage), #13a490);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(15, 143, 125, 0.35);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.fab:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 28px rgba(15, 143, 125, 0.45);
+}
+
+/* ── Chat Panel ──────────────────────────────────────── */
+.panel {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 1000;
+  width: 480px;
+  max-height: 70vh;
+  background: var(--surface-1);
+  border-radius: 16px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.25s ease-out;
+}
+
+.panelExpanded {
+  width: min(90vw, 900px);
+  max-height: 85vh;
+  bottom: 50%;
+  right: 50%;
+  transform: translate(50%, 50%);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Header ──────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, var(--color-sage), #13a490);
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.headerDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #34d399;
+  flex-shrink: 0;
+}
+
+.headerTitle {
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.headerBtn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, background 0.2s;
+}
+
+.headerBtn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* ── Messages ────────────────────────────────────────── */
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.messageUser {
+  align-self: flex-end;
+  max-width: 80%;
+  padding: 0.65rem 0.9rem;
+  border-radius: 14px;
+  border-bottom-right-radius: 4px;
+  background: var(--color-sage);
+  color: #fff;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+.messageBot {
+  align-self: flex-start;
+  max-width: 95%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.messageSummary {
+  padding: 0.65rem 0.9rem;
+  border-radius: 14px;
+  border-bottom-left-radius: 4px;
+  background: var(--surface-2);
+  color: var(--text-strong);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.messageError {
+  padding: 0.65rem 0.9rem;
+  border-radius: 14px;
+  border-bottom-left-radius: 4px;
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+/* ── Data Table ──────────────────────────────────────── */
+.tableWrap {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid rgba(15, 27, 45, 0.08);
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.dataTable th {
+  background: var(--surface-2);
+  padding: 0.5rem 0.65rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-strong);
+  border-bottom: 1px solid rgba(15, 27, 45, 0.1);
+  position: sticky;
+  top: 0;
+}
+
+.dataTable td {
+  padding: 0.4rem 0.65rem;
+  border-bottom: 1px solid rgba(15, 27, 45, 0.05);
+  color: var(--text-body);
+}
+
+.dataTable tr:hover td {
+  background: rgba(15, 143, 125, 0.04);
+}
+
+.showMoreBtn {
+  background: none;
+  border: none;
+  color: var(--color-sage);
+  font-size: 0.8rem;
+  font-family: var(--font-body);
+  cursor: pointer;
+  padding: 0.4rem 0;
+  font-weight: 600;
+}
+
+.showMoreBtn:hover {
+  text-decoration: underline;
+}
+
+/* ── Chart ───────────────────────────────────────────── */
+.chartWrap {
+  background: var(--surface-1);
+  border-radius: 8px;
+  border: 1px solid rgba(15, 27, 45, 0.08);
+  padding: 0.5rem;
+}
+
+/* ── SQL Toggle ──────────────────────────────────────── */
+.sqlToggle {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-family: var(--font-body);
+  cursor: pointer;
+  padding: 0.2rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.sqlToggle:hover {
+  color: var(--color-sage);
+}
+
+.sqlBlock {
+  background: #1e293b;
+  color: #e2e8f0;
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.75rem;
+  font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', 'Menlo', monospace;
+  overflow-x: auto;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* ── Loading ─────────────────────────────────────────── */
+.loadingWrap {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 14px;
+  border-bottom-left-radius: 4px;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(15, 143, 125, 0.2);
+  border-top-color: var(--color-sage);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Input ───────────────────────────────────────────── */
+.inputArea {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid rgba(15, 27, 45, 0.08);
+  flex-shrink: 0;
+}
+
+.input {
+  flex: 1;
+  border: 1.5px solid rgba(15, 27, 45, 0.12);
+  border-radius: 10px;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.88rem;
+  font-family: var(--font-body);
+  color: var(--text-strong);
+  background: var(--surface-1);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  border-color: var(--color-sage);
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+.sendBtn {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: none;
+  background: var(--color-sage);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  flex-shrink: 0;
+}
+
+.sendBtn:hover:not(:disabled) {
+  background: #0d7a6b;
+  transform: scale(1.05);
+}
+
+.sendBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Welcome ─────────────────────────────────────────── */
+.welcome {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--text-muted);
+}
+
+.welcomeIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(15, 143, 125, 0.1);
+  color: var(--color-sage);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.75rem;
+}
+
+.welcomeTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-strong);
+  margin-bottom: 0.35rem;
+}
+
+.welcomeText {
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 1rem;
+}
+
+.suggestionBtn {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1.5px solid rgba(15, 143, 125, 0.15);
+  border-radius: 8px;
+  background: rgba(15, 143, 125, 0.04);
+  color: var(--text-body);
+  font-size: 0.8rem;
+  font-family: var(--font-body);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.suggestionBtn:hover {
+  border-color: var(--color-sage);
+  background: rgba(15, 143, 125, 0.1);
+}
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 520px) {
+  .panel {
+    width: calc(100vw - 2rem);
+    right: 1rem;
+    bottom: 1rem;
+  }
+
+  .fab {
+    bottom: 1rem;
+    right: 1rem;
+  }
+}

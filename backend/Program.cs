@@ -236,6 +236,7 @@ app.MapDonorPortalEndpoints();
 app.MapSeedEndpoints();
 app.MapNewsletterEndpoints();
 app.MapOutreachEndpoints();
+app.MapChatbotEndpoints();
 
 // ── Social Media Automation Endpoints ──────────────────────
 

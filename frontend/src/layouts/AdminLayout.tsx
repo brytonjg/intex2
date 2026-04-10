@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, Suspense, Component } from 'react';
+import { useState, useRef, useEffect, Suspense, Component, lazy } from 'react';
 import type { ReactNode, ErrorInfo } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -27,6 +27,8 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { SafehouseProvider, useSafehouse } from '../contexts/SafehouseContext';
 import styles from './AdminLayout.module.css';
+
+const AdminChatWidget = lazy(() => import('../components/admin/AdminChatWidget'));
 
 class PageErrorBoundary extends Component<{ children: ReactNode; resetKey: string }, { hasError: boolean }> {
   constructor(props: { children: ReactNode; resetKey: string }) {
@@ -311,6 +313,10 @@ function AdminLayoutInner() {
           </Suspense>
         </PageErrorBoundary>
       </main>
+
+      <Suspense fallback={null}>
+        <AdminChatWidget />
+      </Suspense>
     </div>
   );
 }
