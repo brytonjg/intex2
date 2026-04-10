@@ -28,6 +28,7 @@ type Severity = 'Low' | 'Medium' | 'High' | 'Critical';
 
 interface ResidentRow {
   code: string;
+  name: string;
   safehouse: string;
   category: string;
   riskLevel: Severity;
@@ -67,6 +68,8 @@ interface Metrics {
 }
 
 interface ApiResident {
+  firstName: string | null;
+  lastName: string | null;
   internalCode: string;
   safehouse: string;
   caseCategory: string;
@@ -131,6 +134,7 @@ export default function AdminDashboard() {
         }
         return {
           code: r.internalCode,
+          name: r.firstName && r.lastName ? `${r.firstName} ${r.lastName[0]}.` : r.internalCode,
           safehouse: r.safehouse ?? '',
           category: r.caseCategory ?? '',
           riskLevel: (r.currentRiskLevel ?? 'Low') as Severity,
@@ -300,8 +304,8 @@ export default function AdminDashboard() {
                     {residents.slice(0, 8).map((r, i) => (
                       <tr key={`${r.code}-${i}`} className={r.riskLevel === 'Critical' ? styles.rowCritical : ''}>
                         <td>
-                          <span className={styles.residentCode}>{r.code}</span>
-                          <span className={styles.residentWorker}>{r.socialWorker}</span>
+                          <span className={styles.residentCode}>{r.name}</span>
+                          <span className={styles.residentWorker}>{r.code}</span>
                         </td>
                         <td>{r.safehouse}</td>
                         <td>{r.category}</td>
