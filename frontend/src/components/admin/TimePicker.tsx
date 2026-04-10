@@ -24,6 +24,7 @@ function fmtTime(t: string): string {
 
 export default function TimePicker({ value, onChange, placeholder = 'Select time...', interval = 15, startHour = 6, endHour = 19 }: TimePickerProps) {
   const [open, setOpen] = useState(false);
+  const [openUp, setOpenUp] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -56,7 +57,13 @@ export default function TimePicker({ value, onChange, placeholder = 'Select time
       <button
         type="button"
         className={styles.trigger}
-        onClick={() => setOpen(o => !o)}
+        onClick={() => {
+          if (!open && ref.current) {
+            const rect = ref.current.getBoundingClientRect();
+            setOpenUp(rect.bottom + 250 > window.innerHeight);
+          }
+          setOpen(o => !o);
+        }}
       >
         <Clock size={14} className={styles.icon} />
         {value
@@ -65,7 +72,7 @@ export default function TimePicker({ value, onChange, placeholder = 'Select time
         }
       </button>
       {open && (
-        <div className={styles.dropdown} ref={listRef}>
+        <div className={`${styles.dropdown} ${openUp ? styles.dropdownUp : ''}`} ref={listRef}>
           {slots.map(t => (
             <button
               key={t}
