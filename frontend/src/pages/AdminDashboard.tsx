@@ -301,7 +301,7 @@ export default function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {residents.slice(0, 8).map((r, i) => (
+                    {residents.map((r, i) => (
                       <tr key={`${r.code}-${i}`} className={r.riskLevel === 'Critical' ? styles.rowCritical : ''}>
                         <td>
                           <span className={styles.residentCode}>{r.name}</span>
@@ -330,7 +330,7 @@ export default function AdminDashboard() {
                   </tbody>
                 </table>
               </div>
-              {totalResidents > 8 && (
+              {totalResidents > residents.length && (
                 <div className={styles.viewAllRow}>
                   <button className={styles.viewAllBtn} onClick={() => navigate('/admin/caseload')}>
                     View all {totalResidents} residents
