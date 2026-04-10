@@ -29,7 +29,7 @@ describe('SocialPostsPage', () => {
 
   it('shows generate button', async () => {
     renderWithProviders(<SocialPostsPage />);
-    await waitFor(() => expect(screen.getByText('Generate Posts')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Generate Post')).toBeInTheDocument());
   });
 
   it('shows Review Drafts section with posts', async () => {
@@ -86,10 +86,16 @@ describe('SocialPostsPage', () => {
   it('clicking generate calls the API', async () => {
     const user = userEvent.setup();
     renderWithProviders(<SocialPostsPage />);
-    await waitFor(() => expect(screen.getByText('Generate Posts')).toBeInTheDocument());
-    await user.click(screen.getByText('Generate Posts'));
-    const calls = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls;
-    expect(calls.some((c: string[]) => c[0]?.includes('/generate'))).toBe(true);
+    await waitFor(() => expect(screen.getByText('Generate Post')).toBeInTheDocument());
+    // Click opens pillar selection panel
+    await user.click(screen.getByText('Generate Post'));
+    // Click a pillar option to trigger the actual generate call
+    await waitFor(() => expect(screen.getByText('Our Work')).toBeInTheDocument());
+    await user.click(screen.getByText('Our Work'));
+    await waitFor(() => {
+      const calls = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls;
+      expect(calls.some((c: string[]) => c[0]?.includes('/generate'))).toBe(true);
+    });
   });
 
   it('shows pillar badges', async () => {

@@ -25,7 +25,9 @@ public class FinalGapTests : IClassFixture<TestWebApplicationFactory>
         var jpegBytes = CreateMinimalJpeg();
 
         using var content = new MultipartFormDataContent();
-        content.Add(new ByteArrayContent(jpegBytes), "photo", "test.jpg");
+        var photoContent = new ByteArrayContent(jpegBytes);
+        photoContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
+        content.Add(photoContent, "photo", "test.jpg");
         content.Add(new StringContent("Multipart test"), "caption");
         content.Add(new StringContent("art_therapy"), "activityType");
         content.Add(new StringContent("true"), "consentConfirmed");
@@ -45,7 +47,9 @@ public class FinalGapTests : IClassFixture<TestWebApplicationFactory>
         var jpegBytes = CreateMinimalJpeg();
 
         using var content = new MultipartFormDataContent();
-        content.Add(new ByteArrayContent(jpegBytes), "photo", "test.jpg");
+        var photoContent = new ByteArrayContent(jpegBytes);
+        photoContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
+        content.Add(photoContent, "photo", "test.jpg");
         content.Add(new StringContent("No consent"), "caption");
         content.Add(new StringContent("false"), "consentConfirmed");
 

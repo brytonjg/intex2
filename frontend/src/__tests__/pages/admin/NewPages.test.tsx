@@ -100,15 +100,17 @@ describe('CaseQueuePage', () => {
 });
 
 describe('CaseConferencesPage', () => {
-  it('renders the page title', () => {
-    renderWithProviders(<CaseConferencesPage />);
-    expect(screen.getByText('Case Conferences')).toBeInTheDocument();
-  });
-
-  it('loads and shows intervention plans', async () => {
+  it('renders the page title', async () => {
     renderWithProviders(<CaseConferencesPage />);
     await waitFor(() => {
-      expect(screen.getByText(/Intervention Plans/)).toBeInTheDocument();
+      expect(screen.getByText('Case Conferences')).toBeInTheDocument();
+    });
+  });
+
+  it('loads and shows intervention plans subtitle', async () => {
+    renderWithProviders(<CaseConferencesPage />);
+    await waitFor(() => {
+      expect(screen.getByText(/intervention plans/i)).toBeInTheDocument();
     });
   });
 });

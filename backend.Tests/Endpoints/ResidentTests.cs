@@ -149,8 +149,10 @@ public class ResidentTests : IClassFixture<TestWebApplicationFactory>
         {
             internalCode = "TEST-CR-001",
             caseStatus = "Active",
+            safehouseId = 1,
             caseCategory = "Neglected",
             sex = "F",
+            assignedSocialWorker = "test@example.com",
             currentRiskLevel = "Medium"
         });
 
@@ -178,7 +180,11 @@ public class ResidentTests : IClassFixture<TestWebApplicationFactory>
         var createResponse = await client.PostAsJsonAsync("/api/admin/residents", new
         {
             internalCode = "TEST-UPD-001",
-            caseStatus = "Active"
+            caseStatus = "Active",
+            safehouseId = 1,
+            caseCategory = "Trafficking",
+            assignedSocialWorker = "test@example.com",
+            currentRiskLevel = "Medium"
         });
         var created = await createResponse.Content.ReadFromJsonAsync<JsonElement>();
         var id = created.GetProperty("residentId").GetInt32();
@@ -187,7 +193,11 @@ public class ResidentTests : IClassFixture<TestWebApplicationFactory>
         var updateResponse = await client.PutAsJsonAsync($"/api/admin/residents/{id}", new
         {
             internalCode = "TEST-UPD-001",
-            caseStatus = "Closed"
+            caseStatus = "Closed",
+            safehouseId = 1,
+            caseCategory = "Trafficking",
+            assignedSocialWorker = "test@example.com",
+            currentRiskLevel = "Medium"
         });
 
         updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -200,7 +210,11 @@ public class ResidentTests : IClassFixture<TestWebApplicationFactory>
         var response = await client.PutAsJsonAsync("/api/admin/residents/99999", new
         {
             internalCode = "TEST-UPD-INVALID",
-            caseStatus = "Active"
+            caseStatus = "Active",
+            safehouseId = 1,
+            caseCategory = "Trafficking",
+            assignedSocialWorker = "test@example.com",
+            currentRiskLevel = "Medium"
         });
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -215,7 +229,11 @@ public class ResidentTests : IClassFixture<TestWebApplicationFactory>
         var createResponse = await client.PostAsJsonAsync("/api/admin/residents", new
         {
             internalCode = "TEST-DEL-001",
-            caseStatus = "Active"
+            caseStatus = "Active",
+            safehouseId = 1,
+            caseCategory = "Trafficking",
+            assignedSocialWorker = "test@example.com",
+            currentRiskLevel = "Medium"
         });
         var created = await createResponse.Content.ReadFromJsonAsync<JsonElement>();
         var id = created.GetProperty("residentId").GetInt32();
@@ -235,6 +253,7 @@ public class ResidentTests : IClassFixture<TestWebApplicationFactory>
         {
             internalCode = "TEST-GET-001",
             caseStatus = "Active",
+            safehouseId = 1,
             caseCategory = "Neglected",
             sex = "F",
             currentRiskLevel = "Medium",

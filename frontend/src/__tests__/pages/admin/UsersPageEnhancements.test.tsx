@@ -21,20 +21,13 @@ describe('UsersPage - Enhancements', () => {
     });
   });
 
-  it('renders role filter buttons', async () => {
+  it('renders role filter dropdown', async () => {
     renderWithProviders(<UsersPage />);
     await waitFor(() => {
-      // Filter buttons should appear if page renders (admin or not)
-      const allBtn = screen.queryByRole('button', { name: /All/i });
-      const staffBtn = screen.queryByRole('button', { name: /Staff/i });
-      const donorsBtn = screen.queryByRole('button', { name: /Donors/i });
-      // At least one should be present if the page loaded as admin
-      const pageLoaded = allBtn || screen.queryByText(/Access denied/);
+      // The role filter is a custom Dropdown showing "All Roles" by default
+      const dropdown = screen.queryByText('All Roles');
+      const pageLoaded = dropdown || screen.queryByText(/Access denied/);
       expect(pageLoaded).toBeTruthy();
-      if (allBtn) {
-        expect(staffBtn).toBeTruthy();
-        expect(donorsBtn).toBeTruthy();
-      }
     });
   });
 

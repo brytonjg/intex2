@@ -31,16 +31,16 @@ describe('formatDate', () => {
     expect(result).toContain('2026');
   });
 
-  it('returns em dash for null', () => {
-    expect(formatDate(null)).toBe('\u2014');
+  it('returns hyphen for null', () => {
+    expect(formatDate(null)).toBe('-');
   });
 
-  it('returns em dash for undefined', () => {
-    expect(formatDate(undefined)).toBe('\u2014');
+  it('returns hyphen for undefined', () => {
+    expect(formatDate(undefined)).toBe('-');
   });
 
-  it('returns em dash for empty string', () => {
-    expect(formatDate('')).toBe('\u2014');
+  it('returns hyphen for empty string', () => {
+    expect(formatDate('')).toBe('-');
   });
 });
 
@@ -51,12 +51,12 @@ describe('formatAmount', () => {
     expect(result).toContain('5');
   });
 
-  it('returns em dash for null', () => {
-    expect(formatAmount(null)).toBe('\u2014');
+  it('returns hyphen for null', () => {
+    expect(formatAmount(null)).toBe('-');
   });
 
-  it('returns em dash for undefined', () => {
-    expect(formatAmount(undefined)).toBe('\u2014');
+  it('returns hyphen for undefined', () => {
+    expect(formatAmount(undefined)).toBe('-');
   });
 
   it('handles zero', () => {

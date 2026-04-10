@@ -54,7 +54,7 @@ describe('SocialPhotosPage', () => {
 
   it('has activity type filter', async () => {
     renderWithProviders(<SocialPhotosPage />);
-    await waitFor(() => expect(screen.getByDisplayValue('All types')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('All types')).toBeInTheDocument());
   });
 
   it('clicking Upload Photo shows upload panel', async () => {

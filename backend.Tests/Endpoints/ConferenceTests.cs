@@ -24,7 +24,11 @@ public class ConferenceTests : IClassFixture<TestWebApplicationFactory>
         var resResp = await client.PostAsJsonAsync("/api/admin/residents", new
         {
             internalCode = $"CONF-{Guid.NewGuid():N}"[..10],
-            caseStatus = "Active"
+            caseStatus = "Active",
+            safehouseId = 1,
+            caseCategory = "Trafficking",
+            assignedSocialWorker = "test@example.com",
+            currentRiskLevel = "Medium"
         });
         var residentId = (await resResp.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("residentId").GetInt32();
 
@@ -65,7 +69,11 @@ public class ConferenceTests : IClassFixture<TestWebApplicationFactory>
         var resResp = await client.PostAsJsonAsync("/api/admin/residents", new
         {
             internalCode = $"CFLT-{Guid.NewGuid():N}"[..10],
-            caseStatus = "Active"
+            caseStatus = "Active",
+            safehouseId = 1,
+            caseCategory = "Trafficking",
+            assignedSocialWorker = "test@example.com",
+            currentRiskLevel = "Medium"
         });
         var residentId = (await resResp.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("residentId").GetInt32();
 
