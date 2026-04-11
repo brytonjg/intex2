@@ -1,11 +1,7 @@
 name: Deploy to Oracle Cloud
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'backend/**'
-      - 'frontend/**'
+  workflow_dispatch:
 
 jobs:
   deploy:
